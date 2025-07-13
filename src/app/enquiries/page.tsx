@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEnquiry } from '@/context/EnquiryContext';
 import { Trash2, MessageSquare } from 'lucide-react';
 
@@ -18,7 +17,7 @@ export default function EnquiriesPage() {
         </div>
         <h1 className="text-3xl font-bold mb-4">No Enquiries Yet</h1>
         <p className="text-gray-600 mb-8">
-          You haven't made any product enquiries yet. Start exploring our products!
+          You haven&apos;t made any product enquiries yet. Start exploring our products!
         </p>
         <button
           onClick={() => router.push('/products')}
@@ -107,7 +106,7 @@ export default function EnquiriesPage() {
             </div>
             <div className="border-t pt-4">
               <p className="text-sm text-gray-600 mb-4">
-                We'll get back to you with pricing and availability information for your enquiries.
+                We&apos;ll get back to you with pricing and availability information for your enquiries.
               </p>
               <button
                 onClick={() => router.push('/products')}

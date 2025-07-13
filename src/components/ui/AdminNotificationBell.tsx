@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Bell, X, Check, Trash2 } from 'lucide-react';
-import { useNotifications, Notification } from '@/context/NotificationContext';
+import { useNotifications } from '@/context/NotificationContext';
 
 export default function AdminNotificationBell() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();

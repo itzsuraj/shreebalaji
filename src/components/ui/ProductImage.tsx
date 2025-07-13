@@ -8,8 +8,17 @@ interface ProductImageProps extends Omit<ImageProps, 'src'> {
 export default function ProductImage({ src, alt, fill, ...props }: ProductImageProps) {
   const isSvg = src.endsWith('.svg');
   if (isSvg) {
-    // For SVGs, use a regular <img> tag and omit 'fill'
-    return <img src={src} alt={alt} {...props} style={{ width: '100%', height: '100%', objectFit: 'cover', ...props.style }} />;
+    // For SVGs, use Next.js Image with width and height instead of fill
+    return (
+      <Image 
+        src={src} 
+        alt={alt} 
+        width={400} 
+        height={400} 
+        {...props} 
+        style={{ width: '100%', height: '100%', objectFit: 'cover', ...props.style }} 
+      />
+    );
   }
   // For other images, use Next.js <Image />
   return <Image src={src} alt={alt} fill={fill} {...props} />;

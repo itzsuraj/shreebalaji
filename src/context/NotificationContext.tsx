@@ -9,7 +9,7 @@ export interface Notification {
   message: string;
   timestamp: Date;
   read: boolean;
-  data?: any;
+  data?: unknown;
 }
 
 interface NotificationContextType {

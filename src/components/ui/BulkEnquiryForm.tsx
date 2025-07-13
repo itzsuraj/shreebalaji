@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useEnquiry } from '@/context/EnquiryContext';
 import { Product } from '@/types/product';
-import { MessageSquare, Package, Users, Calendar } from 'lucide-react';
+import { MessageSquare, Package, Users } from 'lucide-react';
 
 interface BulkEnquiryFormProps {
   product?: Product;
