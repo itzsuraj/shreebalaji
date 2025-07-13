@@ -7,7 +7,7 @@ export const getProductImage = (product: { image?: string; category: string }) =
   // Otherwise, use category-based fallback icons
   const categoryIcons: Record<string, string> = {
     'buttons': '/button-icon.svg',
-    'zippers': '/zipper-icon.svg',
+    'zippers': '/zipper.png',
     'elastic': '/elastic-icon.svg',
     'cords': '/cord-icon.svg',
   };
@@ -18,7 +18,7 @@ export const getProductImage = (product: { image?: string; category: string }) =
 export const getCategoryIcon = (category: string) => {
   const categoryIcons: Record<string, string> = {
     'buttons': '/button-icon.svg',
-    'zippers': '/zipper-icon.svg',
+    'zippers': '/zipper.png',
     'elastic': '/elastic-icon.svg',
     'cords': '/cord-icon.svg',
   };
