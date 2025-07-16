@@ -203,7 +203,7 @@ export const products: Product[] = [
   },
   {
     id: '9',
-    name: 'Wooden Buttons - 20mm',
+    name: 'Wooden Buttons - 11mm',
     description: 'Elegant wooden buttons perfect for eco-friendly and natural garment designs. Lightweight and stylish.',
     price: 291,
     category: 'buttons',
@@ -262,18 +262,18 @@ export const products: Product[] = [
     reviews: 203,
     inStock: true,
     features: [
-      '22mm diameter',
-      'Decorative design',
-      'Metal construction',
-      'Premium finish',
-      'Professional look'
+      'Elastic construction',
+      'White color',
+      'Flexible material',
+      'Multiple uses',
+      'Durable'
     ],
     specifications: {
-      'Material': 'Metal',
-      'Size': '22mm',
-      'Pack Size': '10 pieces',
-      'Finish': 'Antique Brass/Silver',
-      'Design': 'Decorative'
+      'Material': 'Elastic',
+      'Color': 'White',
+      'Length': '100 yards',
+      'Thickness': '2mm',
+      'Use': 'Drawstrings/Ties'
     }
   },
   {
@@ -474,6 +474,31 @@ export const products: Product[] = [
       'Length': '100 yards',
       'Thickness': '2mm',
       'Use': 'Drawstrings/Ties'
+    }
+  },
+  {
+    id: '20',
+    name: 'Fancy Tassel - Decorative',
+    description: 'Elegant decorative tassels perfect for adding a touch of luxury to garments, bags, and accessories. Available in various colors and styles.',
+    price: 45,
+    category: 'cords',
+    image: '/IMG-20250713-WA0010.jpg',
+    rating: 4.8,
+    reviews: 67,
+    inStock: true,
+    features: [
+      'Decorative design',
+      'Multiple colors',
+      'Luxury finish',
+      'Versatile use',
+      'High-quality material'
+    ],
+    specifications: {
+      'Material': 'Silk/Cotton Blend',
+      'Length': '8 inches',
+      'Pack Size': '12 pieces',
+      'Colors': 'Gold/Silver/Red/Blue/Green',
+      'Use': 'Decorative Accessories'
     }
   }
 ]; 

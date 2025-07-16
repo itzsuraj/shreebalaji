@@ -4,11 +4,13 @@ import { MessageSquare, Heart } from 'lucide-react';
 
 interface ProductActionsProps {
   productName: string;
+  productId: string;
 }
 
-export default function ProductActions({ productName }: ProductActionsProps) {
+export default function ProductActions({ productName, productId }: ProductActionsProps) {
   const handleEnquiry = () => {
-    const message = encodeURIComponent(`Hello, I am interested in ${productName}. Please provide more details.`);
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/products/${productId}` : '';
+    const message = encodeURIComponent(`Hello, I am interested in ${productName}.\nProduct link: ${url}\nPlease provide more details.`);
     window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
   };
 

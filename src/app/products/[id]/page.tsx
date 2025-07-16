@@ -4,6 +4,7 @@ import { products } from '@/data/products';
 import { notFound } from 'next/navigation';
 import { getProductImage } from '@/utils/imageUtils';
 import ProductActions from './ProductActions';
+import Link from 'next/link';
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -46,7 +47,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <p className="text-gray-600">{product.description}</p>
 
           {/* Action Buttons */}
-          <ProductActions productName={product.name} />
+          <ProductActions productName={product.name} productId={product.id} />
 
           {/* Features */}
           {product.features && (
@@ -77,6 +78,36 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Related Products Section */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {products
+            .filter(p => p.category === product.category && p.id !== product.id)
+            .slice(0, 4)
+            .map(related => (
+              <Link
+                key={related.id}
+                href={`/products/${related.id}`}
+                className="block bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
+              >
+                <div className="relative h-40 w-full">
+                  <Image
+                    src={getProductImage(related)}
+                    alt={related.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg mb-2 truncate">{related.name}</h3>
+                  <p className="text-blue-600 font-bold">₹{related.price.toLocaleString()}</p>
+                </div>
+              </Link>
+            ))}
         </div>
       </div>
     </div>

@@ -21,13 +21,13 @@ export default function Home() {
       <section className="relative h-[600px] flex items-center">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-bg.jpg"
-            alt="Hero background"
+            src="/banner.png"
+            alt="Shree Balaji Enterprises Banner"
             fill
-            className="object-cover"
+            className="object-cover shadow-2xl"
             priority
           />
-          <div className="absolute inset-0 bg-black opacity-50"></div>
+          <div className="absolute inset-0 bg-black opacity-40 shadow-inner"></div>
         </div>
         
         <div className="container mx-auto px-4 relative z-10 text-white">
