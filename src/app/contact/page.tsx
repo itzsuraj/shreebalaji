@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-import ContactForm from './ContactForm';
 
 export const metadata: Metadata = {
   title: "Contact Us - Shree Balaji Enterprises | Get in Touch",
