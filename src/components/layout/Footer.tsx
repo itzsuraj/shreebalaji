@@ -105,7 +105,7 @@ const Footer = () => {
               <p>&copy; {new Date().getFullYear()} Shree Balaji Enterprises. All rights reserved.</p>
             </div>
             <div className="text-gray-400">
-              <p>Serving garment manufacturers worldwide since 2024</p>
+              <p>Serving garment manufacturers worldwide since 1990</p>
             </div>
             <div className="flex justify-center md:justify-end space-x-4">
               <Link href="/privacy" className="text-gray-400 hover:text-white">

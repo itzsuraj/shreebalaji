@@ -158,8 +158,8 @@ export default function ContactPage() {
             <div className="text-center">
               <MapPin className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <p className="text-gray-900">
-                C Wing 704, Grit Height<br />
-                G.M Link Road, Chembur West, Mumbai - 400043
+                C Wing 704, Grit Height <br />
+                G.M Link Road, Chembur West, <br />  Mumbai - 400043
               </p>
               <p className="text-sm text-gray-700 mt-2">
                 (Interactive map can be added here)

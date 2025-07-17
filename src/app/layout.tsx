@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { EnquiryProvider } from "@/context/EnquiryContext";
 import StructuredData from "@/components/StructuredData";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -57,8 +58,12 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  other: {
+    'google-site-verification': process.env.GOOGLE_SEARCH_CONSOLE_VERIFICATION || '',
+    'msvalidate.01': process.env.BING_WEBMASTER_VERIFICATION || '',
+  },
   verification: {
-    google: 'your-google-verification-code', // Add your Google Search Console verification code
+    google: process.env.GOOGLE_SEARCH_CONSOLE_VERIFICATION || '', // Add your Google Search Console verification code
   },
 };
 
@@ -75,6 +80,7 @@ export default function RootLayout({
         <StructuredData />
       </head>
       <body className={inter.className}>
+        <GoogleAnalytics />
         <EnquiryProvider>
           <div className="min-h-screen flex flex-col bg-white">
             <Header />

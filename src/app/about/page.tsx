@@ -37,7 +37,7 @@ export default function AboutPage() {
           <h1 className="text-4xl font-bold mb-4">About Shree Balaji Enterprises</h1>
           <p className="text-xl text-gray-900 max-w-3xl mx-auto">
             Leading manufacturer and supplier of premium garment accessories in Mumbai, 
-            serving the textile industry with quality and reliability since 2024.
+            serving the textile industry with quality and reliability since 1990.
           </p>
         </div>
 
