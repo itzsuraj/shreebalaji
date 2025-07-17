@@ -10,8 +10,8 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Shree Balaji Enterprises - Premium Garment Accessories | Buttons, Zippers, Elastic & Cords",
-  description: "Leading manufacturer and supplier of premium garment accessories in Mumbai. Quality buttons, zippers, elastic bands, and cotton cords for professional garment making. Bulk orders welcome. Contact: +91 9372268410",
+  title: "Shree Balaji Enterprises - Garment Accessories Mumbai",
+  description: "Leading manufacturer of premium garment accessories in Mumbai. Quality buttons, zippers, elastic & cords. Bulk orders welcome. Contact +91 9372268410",
   keywords: "garment accessories, buttons, zippers, elastic, cords, Mumbai, manufacturer, supplier, textile industry, garment making, bulk orders",
   authors: [{ name: "Shree Balaji Enterprises" }],
   creator: "Shree Balaji Enterprises",
@@ -77,6 +77,8 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="light" />
         <meta name="theme-color" content="#ffffff" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <StructuredData />
       </head>
       <body className={inter.className}>

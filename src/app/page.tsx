@@ -27,6 +27,8 @@ export default function Home() {
             fill
             className="object-cover shadow-2xl"
             priority
+            sizes="100vw"
+            quality={85}
           />
           <div className="absolute inset-0 bg-black opacity-40 shadow-inner"></div>
         </div>
@@ -108,12 +110,14 @@ export default function Home() {
               >
                 <Link href={`/products/${product.id}`}>
                   <div className="relative h-48">
-                    <ProductImage
+                    <Image
                       src={getProductImage(product)}
                       alt={product.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      priority={false}
+                      quality={80}
                     />
                   </div>
                   <div className="p-4">
@@ -182,6 +186,135 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Industry Expertise Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+              Mumbai&apos;s Premier Garment Accessories Manufacturer
+            </h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h3 className="text-2xl font-semibold mb-6 text-gray-900">
+                  Serving the Textile Industry Since 1990
+                </h3>
+                <div className="space-y-4 text-gray-700">
+                  <p>
+                    Shree Balaji Enterprises has been at the forefront of garment accessories manufacturing in Mumbai for over three decades. Our commitment to quality, innovation, and customer satisfaction has made us the trusted choice for garment manufacturers across India.
+                  </p>
+                  <p>
+                    We specialize in producing high-quality buttons, zippers, elastic bands, and cotton cords that meet international standards. Our products are used by leading garment manufacturers, fashion houses, and textile companies throughout the country.
+                  </p>
+                  <p>
+                    Located in the heart of Mumbai&apos;s textile district, we offer quick delivery, competitive pricing, and personalized service to meet your specific requirements. Whether you need small quantities for sampling or bulk orders for production, we&apos;ve got you covered.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-white p-8 rounded-lg shadow-md">
+                <h4 className="text-xl font-semibold mb-6 text-gray-900">Why Choose Shree Balaji Enterprises?</h4>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Quality Assurance:</strong> All products undergo rigorous quality testing to ensure they meet industry standards
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Bulk Pricing:</strong> Competitive rates for large orders with volume discounts
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Fast Delivery:</strong> Quick processing and shipping to keep your production on schedule
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Expert Support:</strong> Technical guidance and product recommendations from our experienced team
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div>
+                      <strong>Custom Solutions:</strong> Tailored products to meet your specific design and quality requirements
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Categories Detail */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+            Comprehensive Garment Accessories Range
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Buttons Collection</h3>
+              <p className="text-gray-700 mb-4">
+                Our extensive button collection includes metal buttons, plastic buttons, wooden buttons, and decorative buttons in various sizes from 12mm to 30mm. Perfect for shirts, jackets, pants, and all types of garments.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Metal buttons (18mm, 20mm, 22mm)</li>
+                <li>• Plastic snap buttons (15mm, 18mm)</li>
+                <li>• Wooden buttons (20mm, 25mm)</li>
+                <li>• Decorative fashion buttons</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Zipper Solutions</h3>
+              <p className="text-gray-700 mb-4">
+                High-quality zippers including nylon coil zippers, invisible zippers, and decorative zippers. Available in various lengths and colors to match your garment requirements.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Nylon coil zippers</li>
+                <li>• Invisible zippers</li>
+                <li>• Decorative zippers</li>
+                <li>• Metal zippers</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Elastic Bands</h3>
+              <p className="text-gray-700 mb-4">
+                Premium elastic bands for waistbands, cuffs, and various garment applications. Available in different widths and stretch ratios to suit your specific needs.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Waistband elastic</li>
+                <li>• Cuff elastic</li>
+                <li>• Braided elastic</li>
+                <li>• Knitted elastic</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Cotton Cords</h3>
+              <p className="text-gray-700 mb-4">
+                Natural cotton cords and drawstrings for hoodies, pants, and various garment applications. Available in different thicknesses and colors.
+              </p>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Drawstring cords</li>
+                <li>• Hoodie cords</li>
+                <li>• Decorative cords</li>
+                <li>• Functional cords</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action */}
       <section className="py-16 bg-blue-600">
         <div className="container mx-auto px-4 text-center">
@@ -189,14 +322,22 @@ export default function Home() {
             Ready to Start Your Project?
           </h2>
           <p className="text-blue-100 mb-6 sm:mb-8 text-base sm:text-lg leading-relaxed">
-            Browse our complete range of garment accessories and enquire about bulk pricing for your production needs.
+            Browse our complete range of garment accessories and enquire about bulk pricing for your production needs. Contact us today for expert guidance and competitive quotes.
           </p>
-          <Link
-            href="/products"
-            className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-base sm:text-lg shadow-lg"
-          >
-            View All Products
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/products"
+              className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-base sm:text-lg shadow-lg"
+            >
+              View All Products
+            </Link>
+            <Link
+              href="/contact"
+              className="bg-transparent text-white border-2 border-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors font-semibold text-base sm:text-lg"
+            >
+              Contact Us
+            </Link>
+          </div>
         </div>
       </section>
     </div>
