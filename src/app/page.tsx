@@ -7,7 +7,13 @@ import { Star, MessageSquare } from "lucide-react";
 import { getProductImage } from "@/utils/imageUtils";
 
 export default function Home() {
-  const featuredProducts = products.slice(0, 4); // Get first 4 products as featured
+  const featuredProducts = products.slice(0, 8); // Get first 8 products as featured
+  
+  // Get products by category for showcase
+  const buttonProducts = products.filter(p => p.category === 'buttons').slice(0, 3);
+  const zipperProducts = products.filter(p => p.category === 'zippers').slice(0, 3);
+  const elasticProducts = products.filter(p => p.category === 'elastic').slice(0, 3);
+  const cordProducts = products.filter(p => p.category === 'cords').slice(0, 3);
 
   const handleEnquiry = (product: typeof products[0]) => {
     const url = `${window.location.origin}/products/${product.id}`;
@@ -101,7 +107,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12">
             Featured Products
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
               <div
                 key={product.id}
@@ -144,6 +150,22 @@ export default function Home() {
               </div>
             ))}
           </div>
+          
+          {/* View All Products Button */}
+          <div className="text-center mt-12">
+            <Link
+              href="/products"
+              className="inline-flex items-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-lg"
+            >
+              View All Products
+              <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+            <p className="text-gray-600 mt-4">
+              Explore our complete collection of {products.length} premium garment accessories
+            </p>
+          </div>
         </div>
       </section>
 
@@ -180,6 +202,203 @@ export default function Home() {
               </div>
               <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Expert Support</h3>
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Our team of experts is here to help you choose the right accessories for your projects.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Product Showcase */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+            Explore by Category
+          </h2>
+          
+          {/* Buttons Category */}
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-semibold text-gray-900">Premium Buttons</h3>
+              <Link href="/products?category=buttons" className="text-blue-600 hover:text-blue-800 font-semibold">
+                View All Buttons →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {buttonProducts.map((product) => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                  <Link href={`/products/${product.id}`}>
+                    <div className="relative h-40">
+                      <Image
+                        src={getProductImage(product)}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        quality={80}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      <div className="flex items-center mb-2">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-sm text-gray-600">
+                          {product.rating} ({product.reviews} reviews)
+                        </span>
+                      </div>
+                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                    </div>
+                  </Link>
+                  <div className="px-4 pb-4">
+                    <button 
+                      onClick={() => handleEnquiry(product)}
+                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Enquire Now
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Zippers Category */}
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-semibold text-gray-900">Quality Zippers</h3>
+              <Link href="/products?category=zippers" className="text-blue-600 hover:text-blue-800 font-semibold">
+                View All Zippers →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {zipperProducts.map((product) => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                  <Link href={`/products/${product.id}`}>
+                    <div className="relative h-40">
+                      <Image
+                        src={getProductImage(product)}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        quality={80}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      <div className="flex items-center mb-2">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-sm text-gray-600">
+                          {product.rating} ({product.reviews} reviews)
+                        </span>
+                      </div>
+                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                    </div>
+                  </Link>
+                  <div className="px-4 pb-4">
+                    <button 
+                      onClick={() => handleEnquiry(product)}
+                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Enquire Now
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Elastic Category */}
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-semibold text-gray-900">Elastic Bands</h3>
+              <Link href="/products?category=elastic" className="text-blue-600 hover:text-blue-800 font-semibold">
+                View All Elastic →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {elasticProducts.map((product) => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                  <Link href={`/products/${product.id}`}>
+                    <div className="relative h-40">
+                      <Image
+                        src={getProductImage(product)}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        quality={80}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      <div className="flex items-center mb-2">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-sm text-gray-600">
+                          {product.rating} ({product.reviews} reviews)
+                        </span>
+                      </div>
+                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                    </div>
+                  </Link>
+                  <div className="px-4 pb-4">
+                    <button 
+                      onClick={() => handleEnquiry(product)}
+                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Enquire Now
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Cords Category */}
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-semibold text-gray-900">Cotton Cords</h3>
+              <Link href="/products?category=cords" className="text-blue-600 hover:text-blue-800 font-semibold">
+                View All Cords →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {cordProducts.map((product) => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                  <Link href={`/products/${product.id}`}>
+                    <div className="relative h-40">
+                      <Image
+                        src={getProductImage(product)}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        quality={80}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      <div className="flex items-center mb-2">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="ml-1 text-sm text-gray-600">
+                          {product.rating} ({product.reviews} reviews)
+                        </span>
+                      </div>
+                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                    </div>
+                  </Link>
+                  <div className="px-4 pb-4">
+                    <button 
+                      onClick={() => handleEnquiry(product)}
+                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Enquire Now
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
