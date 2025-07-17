@@ -5,7 +5,6 @@ import Link from "next/link";
 import { products } from "@/data/products";
 import { Star, MessageSquare } from "lucide-react";
 import { getProductImage } from "@/utils/imageUtils";
-import ProductImage from "@/components/ui/ProductImage";
 
 export default function Home() {
   const featuredProducts = products.slice(0, 4); // Get first 4 products as featured
