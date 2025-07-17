@@ -8,9 +8,13 @@ export const metadata: Metadata = {
   title: "FAQ - Frequently Asked Questions | Shree Balaji Enterprises",
   description: "Find answers to common questions about garment accessories, ordering process, shipping, and more. Get help with buttons, zippers, elastic, and cords.",
   keywords: "FAQ, frequently asked questions, garment accessories, ordering, shipping, buttons, zippers, elastic, cords",
+  alternates: {
+    canonical: 'https://www.balajisphere.com/faq',
+  },
   openGraph: {
     title: "FAQ - Frequently Asked Questions | Shree Balaji Enterprises",
     description: "Find answers to common questions about garment accessories and ordering.",
+    url: 'https://www.balajisphere.com/faq',
     type: 'website',
   },
 };

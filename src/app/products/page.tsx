@@ -6,9 +6,13 @@ export const metadata: Metadata = {
   title: "All Products - Garment Accessories | Shree Balaji Enterprises",
   description: "Browse our complete collection of premium garment accessories including buttons, zippers, elastic bands, and cotton cords. Quality products for professional garment making.",
   keywords: "garment accessories, buttons, zippers, elastic, cords, products, Mumbai, manufacturer, supplier",
+  alternates: {
+    canonical: 'https://www.balajisphere.com/products',
+  },
   openGraph: {
     title: "All Products - Garment Accessories | Shree Balaji Enterprises",
     description: "Browse our complete collection of premium garment accessories including buttons, zippers, elastic bands, and cotton cords.",
+    url: 'https://www.balajisphere.com/products',
     type: 'website',
   },
   twitter: {

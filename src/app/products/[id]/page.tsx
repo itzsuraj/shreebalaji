@@ -19,13 +19,19 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   }
 
+  const canonicalUrl = `https://www.balajisphere.com/products/${resolvedParams.id}`;
+
   return {
     title: `${product.name} - Shree Balaji Enterprises`,
     description: product.description,
     keywords: `${product.name}, ${product.category}, garment accessories, Mumbai, manufacturer`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${product.name} - Shree Balaji Enterprises`,
       description: product.description,
+      url: canonicalUrl,
       images: [
         {
           url: getProductImage(product),

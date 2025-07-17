@@ -7,9 +7,13 @@ export const metadata: Metadata = {
   title: "Contact Us - Shree Balaji Enterprises | Get in Touch",
   description: "Contact Shree Balaji Enterprises for garment accessories. Located in Mumbai. Call +91 9372268410 or email us for bulk orders and enquiries.",
   keywords: "contact, garment accessories, Mumbai, phone, email, address, Shree Balaji Enterprises",
+  alternates: {
+    canonical: 'https://www.balajisphere.com/contact',
+  },
   openGraph: {
     title: "Contact Us - Shree Balaji Enterprises",
     description: "Get in touch with us for quality garment accessories. Located in Mumbai.",
+    url: 'https://www.balajisphere.com/contact',
     type: 'website',
   },
 };

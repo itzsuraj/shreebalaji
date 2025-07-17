@@ -7,9 +7,13 @@ export const metadata: Metadata = {
   title: "About Us - Shree Balaji Enterprises | Leading Garment Accessories Manufacturer",
   description: "Learn about Shree Balaji Enterprises, Mumbai's premier manufacturer of quality garment accessories. 20+ years of excellence in buttons, zippers, elastic, and cords.",
   keywords: "about us, garment accessories manufacturer, Mumbai, quality, experience, Shree Balaji Enterprises",
+  alternates: {
+    canonical: 'https://www.balajisphere.com/about',
+  },
   openGraph: {
     title: "About Us - Shree Balaji Enterprises",
     description: "Leading manufacturer of quality garment accessories in Mumbai with 20+ years of experience.",
+    url: 'https://www.balajisphere.com/about',
     type: 'website',
   },
 };
