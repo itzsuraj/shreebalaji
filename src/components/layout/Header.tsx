@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 const WhatsAppIcon = () => (
   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -10,17 +12,27 @@ const WhatsAppIcon = () => (
 );
 
 export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hello! I'm interested in your garment accessories. Please provide more information.");
     window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
   };
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white shadow relative">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-24">
           <div className="flex">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center" onClick={closeMenu}>
               <div className="relative w-24 h-24">
                 <Image
                   src="/logo.png"
@@ -33,6 +45,7 @@ export default function Header() {
             </Link>
           </div>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <Link href="/products" className="text-gray-700 hover:text-blue-600 transition-colors">
               Products
@@ -54,7 +67,80 @@ export default function Header() {
               <WhatsAppIcon />
             </button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <button
+              onClick={handleWhatsAppClick}
+              className="p-2 text-green-600 hover:text-green-700 transition-colors"
+              title="Contact us on WhatsApp"
+            >
+              <WhatsAppIcon />
+            </button>
+            <button
+              onClick={toggleMenu}
+              className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-50">
+            <div className="px-4 py-6 space-y-4">
+              <Link 
+                href="/products" 
+                className="block text-gray-700 hover:text-blue-600 transition-colors py-2 text-lg"
+                onClick={closeMenu}
+              >
+                Products
+              </Link>
+              <Link 
+                href="/about" 
+                className="block text-gray-700 hover:text-blue-600 transition-colors py-2 text-lg"
+                onClick={closeMenu}
+              >
+                About
+              </Link>
+              <Link 
+                href="/contact" 
+                className="block text-gray-700 hover:text-blue-600 transition-colors py-2 text-lg"
+                onClick={closeMenu}
+              >
+                Contact
+              </Link>
+              <Link 
+                href="/faq" 
+                className="block text-gray-700 hover:text-blue-600 transition-colors py-2 text-lg"
+                onClick={closeMenu}
+              >
+                FAQ
+              </Link>
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500 mb-2">Quick Contact:</p>
+                <a 
+                  href="tel:+919372268410"
+                  className="block text-blue-600 hover:text-blue-800 transition-colors py-1"
+                >
+                  +91 9372268410
+                </a>
+                <a 
+                  href="mailto:shreebalajienterprises400077@gmail.com"
+                  className="block text-blue-600 hover:text-blue-800 transition-colors py-1"
+                >
+                  Email Us
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
     </header>
   );

@@ -7,7 +7,7 @@ export const products: Product[] = [
     description: 'High-quality metal buttons perfect for jackets, coats, and heavy-duty garments. Available in various finishes including antique brass, silver, and gunmetal.',
     price: 249,
     category: 'buttons',
-    image: '/IMG-20250713-WA0021.jpg',
+    image: '/shiny-button.webp',
     rating: 4.8,
     reviews: 156,
     inStock: true,

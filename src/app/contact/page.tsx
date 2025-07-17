@@ -36,13 +36,7 @@ export default function ContactPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Contact Form */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
-          <ContactForm />
-        </div>
-
-        {/* Contact Information */}
+        {/* Contact Information Only (form removed) */}
         <div className="space-y-8">
           <div>
             <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
