@@ -49,22 +49,22 @@ export default function ProductsClient({ products }: ProductsClientProps) {
         Back to Home
       </Link>
       
-      <h1 className="text-3xl font-bold mb-8">All Products</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-gray-900">All Products</h1>
       
       <div className="flex flex-col md:flex-row gap-8">
         {/* Filters */}
         <div className="w-full md:w-64 space-y-6">
           <div>
-            <h2 className="text-lg font-semibold mb-4">Categories</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">Categories</h2>
             <div className="space-y-2">
               {categories.map(category => (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`block w-full text-left px-4 py-2 rounded ${
+                  className={`block w-full text-left px-4 py-3 rounded-lg text-base font-medium transition-colors ${
                     selectedCategory === category
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-100'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
                   {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -74,11 +74,11 @@ export default function ProductsClient({ products }: ProductsClientProps) {
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold mb-4">Sort By</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-900">Sort By</h2>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-4 py-2 border rounded"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="featured">Featured</option>
               <option value="price-low">Price: Low to High</option>
@@ -106,20 +106,20 @@ export default function ProductsClient({ products }: ProductsClientProps) {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 leading-tight line-clamp-2">{product.name}</h3>
                     <div className="flex items-center mb-2">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm text-gray-600">
+                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                      <span className="ml-1 text-sm text-gray-700 font-medium">
                         {product.rating} ({product.reviews} reviews)
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-2">₹{product.price.toLocaleString()}</p>
+                    <p className="text-blue-600 font-bold text-lg mb-2">₹{product.price.toLocaleString()}</p>
                   </div>
                 </Link>
                 <div className="px-4 pb-4">
                   <button 
                     onClick={() => handleEnquiry(product)}
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-semibold text-base shadow-md"
                   >
                     <MessageSquare className="h-4 w-4" />
                     Enquire Now
