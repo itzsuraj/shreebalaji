@@ -70,13 +70,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#ffffff" />
         <StructuredData />
       </head>
       <body className={inter.className}>
         <EnquiryProvider>
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col bg-white">
             <Header />
-            <main className="flex-grow">
+            <main className="flex-grow bg-white">
               {children}
             </main>
             <Footer />
