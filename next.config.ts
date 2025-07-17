@@ -24,16 +24,7 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
-      {
-        source: '/bulk_enquiry',
-        destination: '/bulk-enquiry',
-        permanent: true,
-      },
-      {
-        source: '/bulk-enquiry.html',
-        destination: '/bulk-enquiry',
-        permanent: true,
-      },
+
       {
         source: '/contact.html',
         destination: '/contact',

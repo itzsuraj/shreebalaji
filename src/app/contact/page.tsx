@@ -134,12 +134,7 @@ export default function ContactPage() {
                 >
                   → Browse Our Products
                 </Link>
-                <Link 
-                  href="/bulk-enquiry" 
-                  className="block text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                  → Bulk Order Enquiry
-                </Link>
+
                 <Link 
                   href="/about" 
                   className="block text-blue-600 hover:text-blue-800 transition-colors"

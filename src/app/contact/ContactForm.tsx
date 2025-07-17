@@ -144,7 +144,6 @@ export default function ContactForm() {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="general">General Enquiry</option>
-          <option value="bulk-order">Bulk Order</option>
           <option value="product-info">Product Information</option>
           <option value="pricing">Pricing Enquiry</option>
           <option value="technical">Technical Support</option>
