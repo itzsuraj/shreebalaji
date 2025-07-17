@@ -47,7 +47,7 @@ export default function ContactPage() {
           <div>
             <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
             <p className="text-gray-600 mb-6">
-              We're here to help you find the perfect garment accessories for your needs. 
+              We&apos;re here to help you find the perfect garment accessories for your needs. 
               Reach out to us through any of the following channels.
             </p>
           </div>

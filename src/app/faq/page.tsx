@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import FAQAccordion from './FAQAccordion';
 
@@ -31,7 +31,7 @@ export default function FAQPage() {
         <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Find answers to common questions about our products, ordering process, 
-          and services. Can't find what you're looking for? Contact us directly.
+          and services. Can&apos;t find what you&apos;re looking for? Contact us directly.
         </p>
       </div>
 
@@ -158,7 +158,7 @@ export default function FAQPage() {
       <div className="mt-16 bg-blue-50 p-8 rounded-lg text-center">
         <h2 className="text-2xl font-bold mb-4">Still Have Questions?</h2>
         <p className="text-gray-600 mb-6">
-          Can't find the answer you're looking for? Our team is here to help you 
+          Can&apos;t find the answer you&apos;re looking for? Our team is here to help you 
           with any specific questions about our products or services.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
