@@ -11,7 +11,8 @@ export default function Home() {
   const featuredProducts = products.slice(0, 4); // Get first 4 products as featured
 
   const handleEnquiry = (product: typeof products[0]) => {
-    const message = encodeURIComponent(`Hello, I am interested in ${product.name}. Please provide more details.`);
+    const url = `${window.location.origin}/products/${product.id}`;
+    const message = encodeURIComponent(`Hello, I am interested in ${product.name}.\nProduct link: ${url}\nPlease provide more details.`);
     window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
   };
 

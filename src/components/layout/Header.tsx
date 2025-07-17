@@ -27,13 +27,25 @@ export default function Header() {
                   alt="Shree Balaji Enterprises Logo"
                   fill
                   className="object-contain"
-                />
+                  />
               </div>
               <span className="text-xl font-bold text-gray-900 italic">Shree Balaji Enterprises</span>
             </Link>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-6">
+            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Products
+            </Link>
+            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+              About
+            </Link>
+            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Contact
+            </Link>
+            <Link href="/faq" className="text-gray-700 hover:text-blue-600 transition-colors">
+              FAQ
+            </Link>
             <button
               onClick={handleWhatsAppClick}
               className="p-2 text-green-600 hover:text-green-700 transition-colors"

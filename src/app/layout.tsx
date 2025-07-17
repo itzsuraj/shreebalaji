@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://your-domain.com'), // Replace with your actual domain
+  metadataBase: new URL('https://www.balajisphere.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: "Shree Balaji Enterprises - Premium Garment Accessories",
     description: "Leading manufacturer and supplier of premium garment accessories in Mumbai. Quality buttons, zippers, elastic bands, and cotton cords.",
-    url: 'https://your-domain.com', // Replace with your actual domain
+    url: 'https://www.balajisphere.com',
     siteName: 'Shree Balaji Enterprises',
     images: [
       {

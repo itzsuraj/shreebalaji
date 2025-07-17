@@ -4,8 +4,8 @@ export default function StructuredData() {
     "@type": "Organization",
     "name": "Shree Balaji Enterprises",
     "description": "Leading manufacturer and supplier of premium garment accessories in Mumbai",
-    "url": "https://your-domain.com", // Replace with your actual domain
-    "logo": "https://your-domain.com/logo.png", // Replace with your actual domain
+    "url": "https://www.balajisphere.com",
+    "logo": "https://www.balajisphere.com/logo.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+91-9372268410",

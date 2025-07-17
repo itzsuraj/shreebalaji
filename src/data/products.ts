@@ -53,11 +53,11 @@ export const products: Product[] = [
   },
   {
     id: '3',
-    name: 'Elastic Band - 1/2" Width',
+    name: 'Elastic Band - 1 inch" Width',
     description: 'High-quality elastic band with excellent stretch and recovery. Perfect for waistbands, cuffs, and other garment applications requiring flexibility.',
     price: 82,
     category: 'elastic',
-    image: '/elastic-icon.svg',
+    image: '/woven-elastic.png',
     rating: 4.7,
     reviews: 234,
     inStock: true,
@@ -82,7 +82,7 @@ export const products: Product[] = [
     description: 'Natural cotton cord perfect for drawstrings, ties, and decorative applications. Soft, durable, and available in various colors.',
     price: 107,
     category: 'cords',
-    image: '/cord-icon.svg',
+    image: '/cotton-cord.png',
     rating: 4.5,
     reviews: 167,
     inStock: true,
@@ -151,58 +151,34 @@ export const products: Product[] = [
       'Pack Size': '5 pieces'
     }
   },
+
   {
     id: '7',
-    name: 'Wide Elastic Band - 1" Width',
-    description: 'Wide elastic band perfect for waistbands, sports wear, and heavy-duty applications. Excellent stretch and durability.',
-    price: 149,
-    category: 'elastic',
-    image: '/elastic-icon.svg',
-    rating: 4.6,
-    reviews: 145,
+    name: 'Satin Cord - 3mm Multiple Colors',
+    description: 'Premium 3mm satin cords available in a wide range of vibrant colors. Perfect for drawstrings, decorative applications, and garment accessories. Features a luxurious satin finish with subtle metallic sheen.',
+    price: 189,
+    category: 'cords',
+    image: '/satin-tape.png',
+    rating: 4.5,
+    reviews: 92,
     inStock: true,
     features: [
-      '1-inch width',
-      'Heavy-duty',
-      'Excellent stretch',
-      'Durable construction',
-      'Washable'
+      '3mm thickness',
+      'Satin finish',
+      'Metallic sheen',
+      'Wide color range',
+      'Premium quality'
     ],
     specifications: {
-      'Width': '1 inch',
-      'Material': 'Polyester/Rubber',
-      'Length': '5 yards',
-      'Color': 'White/Black',
-      'Stretch': '3x'
+      'Material': 'Satin',
+      'Thickness': '3mm',
+      'Length': '30 yards',
+      'Colors': 'White, Lime Green, Teal, Peach, Yellow, Pink, Fuchsia, Red, Purple & more',
+      'Finish': 'Satin with metallic sheen'
     }
   },
   {
     id: '8',
-    name: 'Braided Cotton Cord - 5mm',
-    description: 'Thick braided cotton cord ideal for drawstrings, bag handles, and decorative applications. Strong and durable construction.',
-    price: 157,
-    category: 'cords',
-    image: '/cord-icon.svg',
-    rating: 4.3,
-    reviews: 78,
-    inStock: true,
-    features: [
-      'Braided construction',
-      '5mm thickness',
-      'Strong and durable',
-      'Natural material',
-      'Multiple colors'
-    ],
-    specifications: {
-      'Material': '100% Cotton',
-      'Thickness': '5mm',
-      'Length': '25 yards',
-      'Colors': 'Natural/Black/White/Brown',
-      'Construction': 'Braided'
-    }
-  },
-  {
-    id: '9',
     name: 'Wooden Buttons - 11mm',
     description: 'Elegant wooden buttons perfect for eco-friendly and natural garment designs. Lightweight and stylish.',
     price: 291,
@@ -227,7 +203,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '10',
+    id: '9',
     name: 'Decorative Zipper Pulls',
     description: 'Stylish decorative zipper pulls to customize and enhance your zipper applications. Available in various designs and finishes.',
     price: 66,
@@ -252,7 +228,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '11',
+    id: '10',
     name: 'Elastic cord bundel',
     description: 'Beautiful decorative metal buttons with intricate designs, perfect for formal wear, coats, and premium garments.',
     price: 324,
@@ -277,7 +253,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '12',
+    id: '11',
     name: 'Pant Buttons - 15mm',
     description: 'Classic shirt buttons perfect for formal shirts, blouses, and professional attire. Clean and professional appearance.',
     price: 89,
@@ -302,7 +278,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '13',
+    id: '12',
     name: 'Fashion Buttons - 16mm',
     description: 'Trendy fashion buttons with modern designs, perfect for contemporary clothing and fashion-forward garments.',
     price: 198,
@@ -327,7 +303,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '14',
+    id: '13',
     name: '18l 2h rainbow shell buttons',
     description: 'Vintage-inspired buttons with classic designs, perfect for retro clothing and nostalgic fashion pieces.',
     price: 267,
@@ -352,7 +328,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '15',
+    id: '14',
     name: '18l 4h horn buttons (112)',
     description: 'Premium luxury buttons with sophisticated designs, perfect for high-end garments and designer clothing.',
     price: 456,
@@ -377,7 +353,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '16',
+    id: '15',
     name: 'Chalk Buttons - 16mm',
     description: 'Elegant chalk-finish buttons with a sophisticated matte appearance, perfect for modern and minimalist garment designs.',
     price: 189,
@@ -402,7 +378,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '17',
+    id: '16',
     name: 'Down Hole Metal Buttons - 11mm',
     description: 'Professional down hole metal buttons with secure attachment, ideal for heavy-duty garments and outdoor wear.',
     price: 278,
@@ -427,7 +403,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '18',
+    id: '17',
     name: 'Polyester Buttons White - 15mm',
     description: 'Clean white polyester buttons perfect for formal shirts, medical uniforms, and professional attire.',
     price: 95,
@@ -452,7 +428,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '19',
+    id: '18',
     name: 'Elastic Cord White',
     description: 'High-quality white elastic cord perfect for drawstrings, ties, and various garment applications requiring flexibility.',
     price: 73,
@@ -477,7 +453,7 @@ export const products: Product[] = [
     }
   },
   {
-    id: '20',
+    id: '19',
     name: 'Fancy Tassel - Decorative',
     description: 'Elegant decorative tassels perfect for adding a touch of luxury to garments, bags, and accessories. Available in various colors and styles.',
     price: 45,

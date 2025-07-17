@@ -9,7 +9,7 @@ interface ProductActionsProps {
 
 export default function ProductActions({ productName, productId }: ProductActionsProps) {
   const handleEnquiry = () => {
-    const url = typeof window !== 'undefined' ? `${window.location.origin}/products/${productId}` : '';
+    const url = `${window.location.origin}/products/${productId}`;
     const message = encodeURIComponent(`Hello, I am interested in ${productName}.\nProduct link: ${url}\nPlease provide more details.`);
     window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
   };
