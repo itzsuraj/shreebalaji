@@ -2,92 +2,6 @@ import { Product } from '@/types/product';
 
 export const products: Product[] = [
   {
-    id: '20',
-    name: 'White Round Galaxy Plastic Button',
-    description: 'Beautiful white round galaxy plastic buttons with a unique pearl-like finish. Perfect for adding a touch of elegance to garments, especially formal wear and decorative applications.',
-    price: 1,
-    category: 'buttons',
-    image: '/galaxy-pearl-button.png',
-    rating: 4.8,
-    reviews: 45,
-    inStock: true,
-    features: [
-      '2.5mm diameter',
-      'Galaxy pearl finish',
-      'White color',
-      'Round shape',
-      'Plastic material'
-    ],
-    specifications: {
-      'Color': 'White',
-      'Shape': 'Round',
-      'Size/Dimension': '2.5mm(D)',
-      'Material': 'Plastic',
-      'Usage/Application': 'Garments',
-      'Packing Type': 'Loose',
-      'Product Shape': 'Galaxy'
-    }
-  },
-  {
-    id: '21',
-    name: 'Multicolor Fabric Cover Button',
-    description: 'Versatile multicolor fabric cover buttons perfect for garments. These self-covered buttons can be customized with your own fabric to match your garment perfectly. Available in various sizes from 9-15mm with 2-hole design.',
-    price: 100,
-    category: 'buttons',
-    image: '/fabric-cover-button.png',
-    rating: 4.7,
-    reviews: 78,
-    inStock: true,
-    features: [
-      '9-15mm size range',
-      '2-hole design',
-      'Multicolor options',
-      'Fabric coverable',
-      'Garment compatible'
-    ],
-    specifications: {
-      'Color': 'Multi Colour',
-      'Usage/Application': 'Garments',
-      'Packaging Type': 'Packet',
-      'Shape': 'Round',
-      'Quantity Per Pack': '10 gross',
-      'Size/Dimension': '9-15mm',
-      'Product Type': 'Button',
-      'Material': 'Fabric, Steel, Plastic',
-      'No Of Holes': '2',
-      'Hole Type': '2 hole',
-      'Usage': 'Garments'
-    }
-  },
-  {
-    id: '22',
-    name: 'Round Plastic Transparent Button',
-    description: 'ALL SIZES DYEABLE TPT BUTTON DYEABLE. High-quality transparent plastic buttons perfect for garments. These dyeable buttons can be customized to match any fabric color, making them extremely versatile for various garment applications.',
-    price: 288,
-    category: 'buttons',
-    image: '/transparent-button.png',
-    rating: 4.6,
-    reviews: 92,
-    inStock: true,
-    features: [
-      '18L size',
-      'Transparent property',
-      'Dyeable material',
-      '4-hole design',
-      '1728 pieces per pack'
-    ],
-    specifications: {
-      'Shape': 'Round',
-      'Size/Dimension': '18L',
-      'Material': 'Plastic',
-      'Usage/Application': 'Garments',
-      'Packaging Type': 'Packet',
-      'Property': 'Transparent',
-      'Packet Content': '1728 Pieces',
-      'No of Holes': '4'
-    }
-  },
-  {
     id: '1',
     name: '18l chalk button 2h shiny (DD)',
     description: 'High-quality metal buttons perfect for jackets, coats, and heavy-duty garments. Available in various finishes including antique brass, silver, and gunmetal.',
@@ -237,7 +151,6 @@ export const products: Product[] = [
       'Pack Size': '5 pieces'
     }
   },
-
   {
     id: '7',
     name: 'Satin Cord - 3mm Multiple Colors',
@@ -544,7 +457,7 @@ export const products: Product[] = [
     description: 'Due to our enormous understanding and massive knowledge of this business, we are involved in offering Stylish Decorative Tassels. Perfect for ladies tops, scarves, and various decorative applications.',
     price: 12,
     category: 'cords',
-    image: '/Fancy-tassel.png',
+    image: '/fancy-tassel.png',
     rating: 4.8,
     reviews: 67,
     inStock: true,
@@ -564,5 +477,92 @@ export const products: Product[] = [
       'Weight (Gram)': '10',
       'Usage': 'Ladies Top, Scarf'
     }
-  }
+  },
+  {
+    id: '20',
+    name: 'White Round Galaxy Plastic Button',
+    description: 'Beautiful white round galaxy plastic buttons with a unique pearl-like finish. Perfect for adding a touch of elegance to garments, especially formal wear and decorative applications.',
+    price: 1,
+    category: 'buttons',
+    image: '/galaxy-pearl-button.png',
+    rating: 4.8,
+    reviews: 45,
+    inStock: true,
+    features: [
+      '2.5mm diameter',
+      'Galaxy pearl finish',
+      'White color',
+      'Round shape',
+      'Plastic material'
+    ],
+    specifications: {
+      'Color': 'White',
+      'Shape': 'Round',
+      'Size/Dimension': '2.5mm(D)',
+      'Material': 'Plastic',
+      'Usage/Application': 'Garments',
+      'Packing Type': 'Loose',
+      'Product Shape': 'Galaxy'
+    }
+  },
+  {
+    id: '21',
+    name: 'Multicolor Fabric Cover Button',
+    description: 'Versatile multicolor fabric cover buttons perfect for garments. These self-covered buttons can be customized with your own fabric to match your garment perfectly. Available in various sizes from 9-15mm with 2-hole design.',
+    price: 100,
+    category: 'buttons',
+    image: '/fabric-cover-button.png',
+    rating: 4.7,
+    reviews: 78,
+    inStock: true,
+    features: [
+      '9-15mm size range',
+      '2-hole design',
+      'Multicolor options',
+      'Fabric coverable',
+      'Garment compatible'
+    ],
+    specifications: {
+      'Color': 'Multi Colour',
+      'Usage/Application': 'Garments',
+      'Packaging Type': 'Packet',
+      'Shape': 'Round',
+      'Quantity Per Pack': '10 gross',
+      'Size/Dimension': '9-15mm',
+      'Product Type': 'Button',
+      'Material': 'Fabric, Steel, Plastic',
+      'No Of Holes': '2',
+      'Hole Type': '2 hole',
+      'Usage': 'Garments'
+    }
+  },
+  {
+    id: '22',
+    name: 'Round Plastic Transparent Button',
+    description: 'ALL SIZES DYEABLE TPT BUTTON DYEABLE. High-quality transparent plastic buttons perfect for garments. These dyeable buttons can be customized to match any fabric color, making them extremely versatile for various garment applications.',
+    price: 288,
+    category: 'buttons',
+    image: '/transparent-button.png',
+    rating: 4.6,
+    reviews: 92,
+    inStock: true,
+    features: [
+      '18L size',
+      'Transparent property',
+      'Dyeable material',
+      '4-hole design',
+      '1728 pieces per pack'
+    ],
+    specifications: {
+      'Shape': 'Round',
+      'Size/Dimension': '18L',
+      'Material': 'Plastic',
+      'Usage/Application': 'Garments',
+      'Packaging Type': 'Packet',
+      'Property': 'Transparent',
+      'Packet Content': '1728 Pieces',
+      'No of Holes': '4'
+    }
+  },
+  
 ]; 
