@@ -2,6 +2,64 @@ import { Product } from '@/types/product';
 
 export const products: Product[] = [
   {
+    id: '20',
+    name: 'White Round Galaxy Plastic Button',
+    description: 'Beautiful white round galaxy plastic buttons with a unique pearl-like finish. Perfect for adding a touch of elegance to garments, especially formal wear and decorative applications.',
+    price: 1,
+    category: 'buttons',
+    image: '/galaxy-pearl-button.png',
+    rating: 4.8,
+    reviews: 45,
+    inStock: true,
+    features: [
+      '2.5mm diameter',
+      'Galaxy pearl finish',
+      'White color',
+      'Round shape',
+      'Plastic material'
+    ],
+    specifications: {
+      'Color': 'White',
+      'Shape': 'Round',
+      'Size/Dimension': '2.5mm(D)',
+      'Material': 'Plastic',
+      'Usage/Application': 'Garments',
+      'Packing Type': 'Loose',
+      'Product Shape': 'Galaxy'
+    }
+  },
+  {
+    id: '21',
+    name: 'Multicolor Fabric Cover Button',
+    description: 'Versatile multicolor fabric cover buttons perfect for garments. These self-covered buttons can be customized with your own fabric to match your garment perfectly. Available in various sizes from 9-15mm with 2-hole design.',
+    price: 100,
+    category: 'buttons',
+    image: '/fabric-cover-button.png',
+    rating: 4.7,
+    reviews: 78,
+    inStock: true,
+    features: [
+      '9-15mm size range',
+      '2-hole design',
+      'Multicolor options',
+      'Fabric coverable',
+      'Garment compatible'
+    ],
+    specifications: {
+      'Color': 'Multi Colour',
+      'Usage/Application': 'Garments',
+      'Packaging Type': 'Packet',
+      'Shape': 'Round',
+      'Quantity Per Pack': '10 gross',
+      'Size/Dimension': '9-15mm',
+      'Product Type': 'Button',
+      'Material': 'Fabric, Steel, Plastic',
+      'No Of Holes': '2',
+      'Hole Type': '2 hole',
+      'Usage': 'Garments'
+    }
+  },
+  {
     id: '1',
     name: '18l chalk button 2h shiny (DD)',
     description: 'High-quality metal buttons perfect for jackets, coats, and heavy-duty garments. Available in various finishes including antique brass, silver, and gunmetal.',

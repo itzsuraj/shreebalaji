@@ -30,10 +30,10 @@ export default function Header() {
   return (
     <header className="bg-white shadow relative">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-24">
+        <div className="flex justify-between h-16">
           <div className="flex">
             <Link href="/" className="flex items-center" onClick={closeMenu}>
-              <div className="relative w-24 h-24">
+              <div className="relative w-16 h-16">
                 <Image
                   src="/logo.png"
                   alt="Shree Balaji Enterprises Logo"
