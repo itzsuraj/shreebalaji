@@ -7,7 +7,7 @@ import FAQStructuredData from './FAQStructuredData';
 export const metadata: Metadata = {
   title: "FAQ - Frequently Asked Questions | Shree Balaji Enterprises",
   description: "Find answers to common questions about garment accessories, ordering process, shipping, and more. Get help with buttons, zippers, elastic, and cords.",
-  keywords: "FAQ, frequently asked questions, garment accessories, ordering, shipping, buttons, zippers, elastic, cords",
+  keywords: "garment accessories FAQ, button manufacturer FAQ, zipper supplier FAQ, elastic band FAQ, cotton cord FAQ, garment accessories questions, ordering garment accessories, shipping garment accessories, buttons FAQ, zippers FAQ, elastic FAQ, cords FAQ, garment accessories help, manufacturer FAQ Mumbai, supplier questions, wholesale FAQ, bulk order FAQ, garment accessories support, textile accessories FAQ",
   alternates: {
     canonical: 'https://www.balajisphere.com/faq',
   },

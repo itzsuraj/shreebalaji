@@ -6,7 +6,7 @@ import ContactStructuredData from './ContactStructuredData';
 export const metadata: Metadata = {
   title: "Contact Us - Shree Balaji Enterprises | Get in Touch",
   description: "Contact Shree Balaji Enterprises for garment accessories. Located in Mumbai. Call +91 9372268410 or email us for bulk orders and enquiries.",
-  keywords: "contact, garment accessories, Mumbai, phone, email, address, Shree Balaji Enterprises",
+  keywords: "contact Shree Balaji Enterprises, garment accessories contact Mumbai, button manufacturer contact, zipper supplier contact, elastic band manufacturer contact, cotton cord supplier contact, garment accessories phone Mumbai, garment accessories email, garment accessories address Mumbai, Shree Balaji Enterprises contact, garment accessories supplier contact, wholesale contact Mumbai, bulk order contact, garment accessories manufacturer contact India, textile accessories contact, professional supplier contact",
   alternates: {
     canonical: 'https://www.balajisphere.com/contact',
   },

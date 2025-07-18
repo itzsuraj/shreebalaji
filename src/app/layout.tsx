@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Shree Balaji Enterprises - Garment Accessories Mumbai",
   description: "Leading manufacturer of premium garment accessories in Mumbai. Quality buttons, zippers, elastic & cords. Bulk orders welcome. Contact +91 9372268410",
-  keywords: "garment accessories, buttons, zippers, elastic, cords, Mumbai, manufacturer, supplier, textile industry, garment making, bulk orders",
+      keywords: "garment accessories manufacturer Mumbai, button manufacturer Mumbai, zipper supplier Mumbai, elastic band manufacturer India, cotton cord supplier Mumbai, garment accessories wholesale Mumbai, metal buttons for garments, nylon coil zippers, invisible zippers, waistband elastic, drawstring cords, garment accessories bulk order, textile industry supplier, garment making accessories, quality buttons Mumbai, professional zippers supplier, elastic bands wholesale, cotton cords manufacturer, garment accessories India, Mumbai textile accessories",
   authors: [{ name: "Shree Balaji Enterprises" }],
   creator: "Shree Balaji Enterprises",
   publisher: "Shree Balaji Enterprises",

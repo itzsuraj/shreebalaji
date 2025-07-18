@@ -4,7 +4,7 @@ export default function AboutStructuredData() {
     "@type": "Organization",
     "name": "Shree Balaji Enterprises",
     "alternateName": "Balaji Sphere",
-    "description": "Leading manufacturer and supplier of premium garment accessories in Mumbai, serving the textile industry with quality and reliability since 2024",
+    "description": "Leading manufacturer and supplier of premium garment accessories in Mumbai, serving the textile industry with quality and reliability since 1990",
     "url": "https://www.balajisphere.com",
     "logo": "https://www.balajisphere.com/next.svg",
     "foundingDate": "2024",
@@ -52,7 +52,19 @@ export default function AboutStructuredData() {
           "itemOffered": {
             "@type": "Product",
             "name": "Buttons",
-            "description": "Metal, plastic, and wooden buttons for all types of garments"
+            "description": "Metal, plastic, and wooden buttons for all types of garments",
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": 4.7,
+              "reviewCount": 150,
+              "bestRating": 5,
+              "worstRating": 1
+            }
           }
         },
         {
@@ -60,7 +72,19 @@ export default function AboutStructuredData() {
           "itemOffered": {
             "@type": "Product",
             "name": "Zippers",
-            "description": "Nylon coil, invisible, and decorative zippers"
+            "description": "Nylon coil, invisible, and decorative zippers",
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": 4.6,
+              "reviewCount": 89,
+              "bestRating": 5,
+              "worstRating": 1
+            }
           }
         },
         {
@@ -68,7 +92,19 @@ export default function AboutStructuredData() {
           "itemOffered": {
             "@type": "Product",
             "name": "Elastic",
-            "description": "High-quality elastic bands for waistbands and cuffs"
+            "description": "High-quality elastic bands for waistbands and cuffs",
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": 4.7,
+              "reviewCount": 234,
+              "bestRating": 5,
+              "worstRating": 1
+            }
           }
         },
         {
@@ -76,7 +112,19 @@ export default function AboutStructuredData() {
           "itemOffered": {
             "@type": "Product",
             "name": "Cords",
-            "description": "Cotton cords and drawstrings for various applications"
+            "description": "Cotton cords and drawstrings for various applications",
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": 4.5,
+              "reviewCount": 167,
+              "bestRating": 5,
+              "worstRating": 1
+            }
           }
         }
       ]

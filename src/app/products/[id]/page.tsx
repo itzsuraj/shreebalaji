@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: `${product.name} - Shree Balaji Enterprises`,
     description: product.description,
-    keywords: `${product.name}, ${product.category}, garment accessories, Mumbai, manufacturer`,
+    keywords: `${product.name}, ${product.category} manufacturer Mumbai, ${product.category} supplier India, ${product.category} wholesale, garment accessories ${product.category}, quality ${product.category} Mumbai, professional ${product.category} supplier, ${product.category} bulk order, garment accessories manufacturer, textile accessories ${product.category}, Mumbai garment accessories, India garment accessories supplier`,
     alternates: {
       canonical: canonicalUrl,
     },
