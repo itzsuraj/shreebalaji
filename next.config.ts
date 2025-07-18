@@ -8,6 +8,17 @@ const nextConfig: NextConfig = {
         destination: '/products/:path*',
         permanent: true,
       },
+      // Specific old product redirects
+      {
+        source: '/shop/polyster-button-4',
+        destination: '/products/1',
+        permanent: true,
+      },
+      {
+        source: '/shop/polyster-button-fabrics-button-polyester-round-ring-with-4-holes-buttons-white-pack-of-100-4',
+        destination: '/products/1',
+        permanent: true,
+      },
       // Canonicalization redirects
       {
         source: '/index.html',
