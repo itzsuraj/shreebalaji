@@ -60,6 +60,34 @@ export const products: Product[] = [
     }
   },
   {
+    id: '22',
+    name: 'Round Plastic Transparent Button',
+    description: 'ALL SIZES DYEABLE TPT BUTTON DYEABLE. High-quality transparent plastic buttons perfect for garments. These dyeable buttons can be customized to match any fabric color, making them extremely versatile for various garment applications.',
+    price: 288,
+    category: 'buttons',
+    image: '/transparent-button.png',
+    rating: 4.6,
+    reviews: 92,
+    inStock: true,
+    features: [
+      '18L size',
+      'Transparent property',
+      'Dyeable material',
+      '4-hole design',
+      '1728 pieces per pack'
+    ],
+    specifications: {
+      'Shape': 'Round',
+      'Size/Dimension': '18L',
+      'Material': 'Plastic',
+      'Usage/Application': 'Garments',
+      'Packaging Type': 'Packet',
+      'Property': 'Transparent',
+      'Packet Content': '1728 Pieces',
+      'No of Holes': '4'
+    }
+  },
+  {
     id: '1',
     name: '18l chalk button 2h shiny (DD)',
     description: 'High-quality metal buttons perfect for jackets, coats, and heavy-duty garments. Available in various finishes including antique brass, silver, and gunmetal.',
@@ -70,7 +98,7 @@ export const products: Product[] = [
     reviews: 156,
     inStock: true,
     features: [
-      '18mm diameter', 
+      '18mm diameter',
       'Metal construction',
       'Multiple finishes available',
       'Suitable for heavy fabrics',
@@ -512,27 +540,29 @@ export const products: Product[] = [
   },
   {
     id: '19',
-    name: 'Fancy Tassel - Decorative',
-    description: 'Elegant decorative tassels perfect for adding a touch of luxury to garments, bags, and accessories. Available in various colors and styles.',
-    price: 45,
+    name: 'Nylon Stylish Tassels',
+    description: 'Due to our enormous understanding and massive knowledge of this business, we are involved in offering Stylish Decorative Tassels. Perfect for ladies tops, scarves, and various decorative applications.',
+    price: 12,
     category: 'cords',
-    image: '/IMG-20250713-WA0010.jpg',
+    image: '/Fancy-tassel.png',
     rating: 4.8,
     reviews: 67,
     inStock: true,
     features: [
-      'Decorative design',
-      'Multiple colors',
-      'Luxury finish',
-      'Versatile use',
-      'High-quality material'
+      '5.2 inch size',
+      'Polyester material',
+      'Decorative use',
+      'Plain pattern',
+      'Lightweight design'
     ],
     specifications: {
-      'Material': 'Silk/Cotton Blend',
-      'Length': '8 inches',
-      'Pack Size': '12 pieces',
-      'Colors': 'Gold/Silver/Red/Blue/Green',
-      'Use': 'Decorative Accessories'
+      'Size': '5.2"',
+      'Material': 'Polyester',
+      'Use': 'Decoration',
+      'Packaging Type': 'Packet',
+      'Pattern': 'Plain',
+      'Weight (Gram)': '10',
+      'Usage': 'Ladies Top, Scarf'
     }
   }
 ]; 

@@ -7,6 +7,8 @@ import ProductActions from './ProductActions';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import ProductStructuredData from './ProductStructuredData';
+import ZoomableImage from '@/components/ui/ZoomableImage';
+import Accordion from '@/components/ui/Accordion';
 
 // Generate metadata for each product
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -74,14 +76,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Product Image */}
-          <div className="relative h-[500px] rounded-lg overflow-hidden">
-            <Image
-              src={getProductImage(product)}
-              alt={product.name}
-              fill
-              className="object-cover"
-            />
-          </div>
+          <ZoomableImage
+            src={getProductImage(product)}
+            alt={product.name}
+          />
 
           {/* Product Info */}
           <div className="space-y-6">
@@ -105,35 +103,36 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             {/* Action Buttons */}
             <ProductActions productName={product.name} productId={product.id} />
 
-            {/* Features */}
-            {product.features && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Key Features</h3>
-                <ul className="space-y-2">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* Features and Specifications in Accordion */}
+            <div className="space-y-4">
+              {/* Features Accordion */}
+              {product.features && (
+                <Accordion title="Key Features" defaultOpen={true}>
+                  <ul className="space-y-2">
+                    {product.features.map((feature, index) => (
+                      <li key={index} className="flex items-center">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </Accordion>
+              )}
 
-            {/* Specifications */}
-            {product.specifications && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Specifications</h3>
-                <div className="space-y-2">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex justify-between py-1 border-b border-gray-100">
-                      <span className="font-medium">{key}</span>
-                      <span className="text-gray-600">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              {/* Specifications Accordion */}
+              {product.specifications && (
+                <Accordion title="Specifications">
+                  <div className="space-y-2">
+                    {Object.entries(product.specifications).map(([key, value]) => (
+                      <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
+                        <span className="font-medium text-gray-700">{key}</span>
+                        <span className="text-gray-600">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Accordion>
+              )}
+            </div>
           </div>
         </div>
 
