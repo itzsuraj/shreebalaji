@@ -44,6 +44,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
+      url: `${baseUrl}/technical-support`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/privacy`,
       lastModified: new Date(),
       changeFrequency: 'yearly' as const,
@@ -75,6 +81,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const blogPosts = [
     {
       url: `${baseUrl}/blog/choosing-right-buttons`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/blog/elastic-selection`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/blog/quality-standards`,
       lastModified: new Date(),
       changeFrequency: 'yearly' as const,
       priority: 0.6,

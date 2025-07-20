@@ -20,15 +20,27 @@ export const metadata: Metadata = {
     title: "All Products - Garment Accessories | Shree Balaji Enterprises",
     description: "Browse our complete collection of premium garment accessories.",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 interface ProductsPageProps {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string; category?: string }>;
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
   const searchQuery = params.search || '';
+  const category = params.category || '';
   
-  return <ProductsClient products={products} searchQuery={searchQuery} />;
+  return <ProductsClient products={products} searchQuery={searchQuery} initialCategory={category} />;
 } 

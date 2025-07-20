@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
 import { Star, MessageSquare, ArrowLeft } from 'lucide-react';
 import { getProductImage } from '@/utils/imageUtils';
@@ -10,10 +11,13 @@ import { getProductImage } from '@/utils/imageUtils';
 interface ProductsClientProps {
   products: Product[];
   searchQuery?: string;
+  initialCategory?: string;
 }
 
-export default function ProductsClient({ products, searchQuery = '' }: ProductsClientProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+export default function ProductsClient({ products, searchQuery = '', initialCategory = '' }: ProductsClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [searchTerm, setSearchTerm] = useState<string>(searchQuery);
 
@@ -132,6 +136,27 @@ export default function ProductsClient({ products, searchQuery = '' }: ProductsC
     window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
   };
 
+  const updateURL = (category: string, search?: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (category === 'all') {
+      params.delete('category');
+    } else {
+      params.set('category', category);
+    }
+    if (search) {
+      params.set('search', search);
+    } else if (searchTerm) {
+      params.set('search', searchTerm);
+    }
+    const newURL = `/products${params.toString() ? `?${params.toString()}` : ''}`;
+    router.push(newURL, { scroll: false });
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    updateURL(category);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Back Button */}
@@ -153,13 +178,20 @@ export default function ProductsClient({ products, searchQuery = '' }: ProductsC
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              const newSearchTerm = e.target.value;
+              setSearchTerm(newSearchTerm);
+              updateURL(selectedCategory, newSearchTerm);
+            }}
             placeholder="Search products... (e.g., 'buttons for denim jackets')"
             className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           {searchTerm && (
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={() => {
+                setSearchTerm('');
+                updateURL(selectedCategory, '');
+              }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               ✕
@@ -182,7 +214,7 @@ export default function ProductsClient({ products, searchQuery = '' }: ProductsC
               {categories.map(category => (
                 <button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => handleCategoryChange(category)}
                   className={`block w-full text-left px-4 py-3 rounded-lg text-base font-medium transition-colors ${
                     selectedCategory === category
                       ? 'bg-blue-600 text-white shadow-md'
