@@ -18,13 +18,13 @@ export default function AboutStructuredData() {
       "postalCode": "400043",
       "addressCountry": "IN"
     },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+91-9372268410",
-      "contactType": "customer service",
-      "availableLanguage": ["English", "Hindi", "Marathi"],
-      "areaServed": "IN"
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 19.076,
+      "longitude": 72.8777
     },
+    "telephone": "+91-9372268410",
+    "email": "shreebalajienterprises400077@gmail.com",
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
@@ -39,6 +39,13 @@ export default function AboutStructuredData() {
         "closes": "16:00"
       }
     ],
+    "priceRange": "₹₹",
+    "paymentAccepted": ["Cash", "Bank Transfer", "UPI"],
+    "currenciesAccepted": "INR",
+    "areaServed": {
+      "@type": "Country",
+      "name": "India"
+    },
     "serviceArea": {
       "@type": "Country",
       "name": "India"
@@ -57,7 +64,52 @@ export default function AboutStructuredData() {
               "@type": "Organization",
               "name": "Shree Balaji Enterprises"
             }
-          }
+          },
+          "price": "50",
+          "priceCurrency": "INR",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Shree Balaji Enterprises",
+            "url": "https://www.balajisphere.com"
+          },
+          "priceValidUntil": "2026-07-20",
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "IN",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 7,
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn"
+          },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": {
+              "@type": "MonetaryAmount",
+              "value": "0",
+              "currency": "INR"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 1,
+                "maxValue": 2,
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 2,
+                "maxValue": 5,
+                "unitCode": "DAY"
+              }
+            },
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "IN"
+            }
+          },
+          "image": "https://www.balajisphere.com/shiny-button.webp"
         },
         {
           "@type": "Offer",
@@ -69,7 +121,52 @@ export default function AboutStructuredData() {
               "@type": "Organization",
               "name": "Shree Balaji Enterprises"
             }
-          }
+          },
+          "price": "100",
+          "priceCurrency": "INR",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Shree Balaji Enterprises",
+            "url": "https://www.balajisphere.com"
+          },
+          "priceValidUntil": "2026-07-20",
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "IN",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 7,
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn"
+          },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": {
+              "@type": "MonetaryAmount",
+              "value": "0",
+              "currency": "INR"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 1,
+                "maxValue": 2,
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 2,
+                "maxValue": 5,
+                "unitCode": "DAY"
+              }
+            },
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "IN"
+            }
+          },
+          "image": "https://www.balajisphere.com/zipper.png"
         },
         {
           "@type": "Offer",
@@ -81,7 +178,52 @@ export default function AboutStructuredData() {
               "@type": "Organization",
               "name": "Shree Balaji Enterprises"
             }
-          }
+          },
+          "price": "75",
+          "priceCurrency": "INR",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Shree Balaji Enterprises",
+            "url": "https://www.balajisphere.com"
+          },
+          "priceValidUntil": "2026-07-20",
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "IN",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 7,
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn"
+          },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": {
+              "@type": "MonetaryAmount",
+              "value": "0",
+              "currency": "INR"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 1,
+                "maxValue": 2,
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 2,
+                "maxValue": 5,
+                "unitCode": "DAY"
+              }
+            },
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "IN"
+            }
+          },
+          "image": "https://www.balajisphere.com/woven-elastic.png"
         },
         {
           "@type": "Offer",
@@ -93,13 +235,57 @@ export default function AboutStructuredData() {
               "@type": "Organization",
               "name": "Shree Balaji Enterprises"
             }
-          }
+          },
+          "price": "80",
+          "priceCurrency": "INR",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Shree Balaji Enterprises",
+            "url": "https://www.balajisphere.com"
+          },
+          "priceValidUntil": "2026-07-20",
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "IN",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 7,
+            "returnMethod": "https://schema.org/ReturnByMail",
+            "returnFees": "https://schema.org/FreeReturn"
+          },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": {
+              "@type": "MonetaryAmount",
+              "value": "0",
+              "currency": "INR"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 1,
+                "maxValue": 2,
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 2,
+                "maxValue": 5,
+                "unitCode": "DAY"
+              }
+            },
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "IN"
+            }
+          },
+          "image": "https://www.balajisphere.com/cotton-cord.png"
         }
       ]
     },
-    "sameAs": [
-      "https://wa.me/919372268410"
-    ]
+    "sameAs": ["https://wa.me/919372268410"],
+    "numberOfEmployees": "10-50"
   };
 
   return (

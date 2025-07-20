@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { products } from '@/data/products';
 import ProductsClient from './ProductsClient';
+import ProductsStructuredData from './ProductsStructuredData';
 
 export const metadata: Metadata = {
   title: "All Products - Garment Accessories | Shree Balaji Enterprises",
@@ -42,5 +43,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const searchQuery = params.search || '';
   const category = params.category || '';
   
-  return <ProductsClient products={products} searchQuery={searchQuery} initialCategory={category} />;
+  return (
+    <>
+      <ProductsStructuredData products={products} />
+      <ProductsClient products={products} searchQuery={searchQuery} initialCategory={category} />
+    </>
+  );
 } 

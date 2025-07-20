@@ -26,7 +26,42 @@ export default function ProductStructuredData({ product }: ProductStructuredData
         "name": "Shree Balaji Enterprises",
         "url": "https://www.balajisphere.com"
       },
-      "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      "priceValidUntil": "2026-07-20",
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "IN",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+        "merchantReturnDays": 7,
+        "returnMethod": "https://schema.org/ReturnByMail",
+        "returnFees": "https://schema.org/FreeReturn"
+      },
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": {
+          "@type": "MonetaryAmount",
+          "value": "0",
+          "currency": "INR"
+        },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 1,
+            "maxValue": 2,
+            "unitCode": "DAY"
+          },
+          "transitTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 2,
+            "maxValue": 5,
+            "unitCode": "DAY"
+          }
+        },
+        "shippingDestination": {
+          "@type": "DefinedRegion",
+          "addressCountry": "IN"
+        }
+      }
     },
     "aggregateRating": {
       "@type": "AggregateRating",
@@ -48,10 +83,10 @@ export default function ProductStructuredData({ product }: ProductStructuredData
       {
         "@type": "PropertyValue",
         "name": "Material",
-        "value": product.specifications?.Material || "High Quality"
+        "value": product.specifications?.Material || "Various"
       },
       {
-        "@type": "PropertyValue", 
+        "@type": "PropertyValue",
         "name": "Category",
         "value": product.category
       }
