@@ -54,80 +54,48 @@ export default function StructuredData() {
         {
           "@type": "Offer",
           "itemOffered": {
-            "@type": "Product",
-            "name": "Buttons",
+            "@type": "Service",
+            "name": "Button Manufacturing & Supply",
             "description": "Metal, plastic, and wooden buttons for all types of garments",
-            "offers": {
-              "@type": "Offer",
-              "priceCurrency": "INR",
-              "availability": "https://schema.org/InStock"
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": 4.7,
-              "reviewCount": 150,
-              "bestRating": 5,
-              "worstRating": 1
+            "provider": {
+              "@type": "Organization",
+              "name": "Shree Balaji Enterprises"
             }
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
-            "@type": "Product",
-            "name": "Zippers",
+            "@type": "Service",
+            "name": "Zipper Manufacturing & Supply",
             "description": "Nylon coil, invisible, and decorative zippers",
-            "offers": {
-              "@type": "Offer",
-              "priceCurrency": "INR",
-              "availability": "https://schema.org/InStock"
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": 4.6,
-              "reviewCount": 89,
-              "bestRating": 5,
-              "worstRating": 1
+            "provider": {
+              "@type": "Organization",
+              "name": "Shree Balaji Enterprises"
             }
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
-            "@type": "Product",
-            "name": "Elastic",
+            "@type": "Service",
+            "name": "Elastic Band Manufacturing & Supply",
             "description": "High-quality elastic bands for waistbands and cuffs",
-            "offers": {
-              "@type": "Offer",
-              "priceCurrency": "INR",
-              "availability": "https://schema.org/InStock"
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": 4.7,
-              "reviewCount": 234,
-              "bestRating": 5,
-              "worstRating": 1
+            "provider": {
+              "@type": "Organization",
+              "name": "Shree Balaji Enterprises"
             }
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
-            "@type": "Product",
-            "name": "Cords",
+            "@type": "Service",
+            "name": "Cord Manufacturing & Supply",
             "description": "Cotton cords and drawstrings for various applications",
-            "offers": {
-              "@type": "Offer",
-              "priceCurrency": "INR",
-              "availability": "https://schema.org/InStock"
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": 4.5,
-              "reviewCount": 167,
-              "bestRating": 5,
-              "worstRating": 1
+            "provider": {
+              "@type": "Organization",
+              "name": "Shree Balaji Enterprises"
             }
           }
         }

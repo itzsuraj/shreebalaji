@@ -22,6 +22,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ProductsPage() {
-  return <ProductsClient products={products} />;
+interface ProductsPageProps {
+  searchParams: Promise<{ search?: string }>;
+}
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const params = await searchParams;
+  const searchQuery = params.search || '';
+  
+  return <ProductsClient products={products} searchQuery={searchQuery} />;
 } 

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Menu, X, Search } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const WhatsAppIcon = () => (
   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -11,8 +12,151 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+// Sample product data for search (you can import from your actual data)
+interface SearchProduct {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+}
+
+const sampleProducts: SearchProduct[] = [
+  { id: '1', name: '18l chalk button 2h shiny (DD)', category: 'buttons', price: 249, description: 'High-quality metal buttons perfect for jackets, coats, and heavy-duty garments.' },
+  { id: '2', name: 'Nylon Coil Zipper - 5"', category: 'zippers', price: 124, description: 'Durable nylon coil zipper with metal slider, perfect for bags, jackets.' },
+  { id: '3', name: 'Elastic Band - 1 inch Width', category: 'elastic', price: 82, description: 'High-quality elastic band with excellent stretch and recovery.' },
+  { id: '4', name: 'Cotton Cord - 3mm Thickness', category: 'cords', price: 107, description: 'Natural cotton cord perfect for drawstrings, ties, and decorative applications.' },
+  { id: '5', name: 'Metal Snap Buttons - 15mm', category: 'buttons', price: 166, description: 'Versatile plastic snap buttons with easy installation.' },
+  { id: '6', name: 'Invisible Zipper - 7"', category: 'zippers', price: 207, description: 'Professional invisible zipper for seamless garment construction.' },
+  { id: '7', name: 'Satin Cord - 3mm Multiple Colors', category: 'cords', price: 189, description: 'Premium 3mm satin cords available in a wide range of vibrant colors.' },
+  { id: '8', name: 'Wooden Buttons - 11mm', category: 'buttons', price: 291, description: 'Elegant wooden buttons perfect for eco-friendly and natural garment designs.' },
+];
+
+// Smart search function with natural language processing
+const smartSearch = (query: string, products: SearchProduct[]): SearchProduct[] => {
+  if (!query.trim()) return [];
+  
+  const searchTerm = query.toLowerCase();
+  
+  // Natural language processing for common queries
+  const naturalLanguageMap = {
+    'button': 'buttons',
+    'buttons': 'buttons',
+    'zipper': 'zippers',
+    'zippers': 'zippers',
+    'elastic': 'elastic',
+    'cord': 'cords',
+    'cords': 'cords',
+    'denim': 'metal',
+    'heavy': 'metal',
+    'light': 'plastic',
+    'wood': 'wooden',
+    'invisible': 'invisible',
+    'nylon': 'nylon',
+    'cotton': 'cotton',
+    'satin': 'satin',
+    'metal': 'metal',
+    'plastic': 'plastic',
+  };
+
+  // Enhanced search with multiple criteria and scoring
+  const scoredProducts = products.map(product => {
+    let score = 0;
+    const productName = product.name.toLowerCase();
+    const productDescription = product.description.toLowerCase();
+    const productCategory = product.category.toLowerCase();
+    
+    // Exact name match (highest priority)
+    if (productName === searchTerm) {
+      score += 1000;
+    }
+    
+    // Starts with search term
+    if (productName.startsWith(searchTerm)) {
+      score += 500;
+    }
+    
+    // Contains search term in name
+    if (productName.includes(searchTerm)) {
+      score += 100;
+    }
+    
+    // Category match
+    if (productCategory.includes(searchTerm)) {
+      score += 50;
+    }
+    
+    // Description match
+    if (productDescription.includes(searchTerm)) {
+      score += 25;
+    }
+    
+    // Natural language processing (only for specific queries, not product names)
+    const isProductNameQuery = searchTerm.length > 10 || searchTerm.includes('(') || searchTerm.includes(')');
+    if (!isProductNameQuery) {
+      const naturalLanguageMatch = Object.entries(naturalLanguageMap).some(([key, value]) => {
+        if (searchTerm.includes(key)) {
+          return productName.includes(value) || 
+                 productDescription.includes(value) ||
+                 productCategory.includes(value);
+        }
+        return false;
+      });
+      if (naturalLanguageMatch) {
+        score += 30;
+      }
+    }
+
+    // Price range queries
+    if (searchTerm.includes('cheap') || searchTerm.includes('budget')) {
+      if (product.price < 150) score += 20;
+    } else if (searchTerm.includes('premium') || searchTerm.includes('luxury')) {
+      if (product.price > 200) score += 20;
+    }
+
+    return { product, score };
+  });
+
+  // Filter products with score > 0 and sort by score (highest first)
+  return scoredProducts
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.product);
+};
+
+// Search suggestions
+const getSearchSuggestions = (query: string): string[] => {
+  const suggestions = [
+    'buttons for denim jackets',
+    'invisible zippers for dresses',
+    'elastic bands for waistbands',
+    'cotton cords for drawstrings',
+    'metal buttons for coats',
+    'nylon zippers for bags',
+    'wooden buttons for shirts',
+    'satin cords for decoration',
+    'cheap buttons',
+    'premium zippers',
+    'bulk elastic',
+    'wholesale cords'
+  ];
+  
+  if (!query) return suggestions.slice(0, 6);
+  
+  return suggestions.filter(suggestion => 
+    suggestion.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, 6);
+};
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hello! I'm interested in your garment accessories. Please provide more information.");
@@ -26,6 +170,77 @@ export default function Header() {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+
+  const toggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (!isSearchOpen) {
+      setSearchQuery('');
+      setSearchResults([]);
+      setSearchSuggestions(getSearchSuggestions(''));
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    if (query.trim()) {
+      const results = smartSearch(query, sampleProducts);
+      setSearchResults(results);
+      setSearchSuggestions(getSearchSuggestions(query));
+      setShowSuggestions(true);
+    } else {
+      setSearchResults([]);
+      setSearchSuggestions(getSearchSuggestions(''));
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    performSearch();
+  };
+
+  const performSearch = () => {
+    if (searchQuery.trim()) {
+      // Navigate to products page with search query
+      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
+      setIsSearchOpen(false);
+      setSearchQuery('');
+      setSearchResults([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    const results = smartSearch(suggestion, sampleProducts);
+    setSearchResults(results);
+    setShowSuggestions(false);
+  };
+
+  const handleResultClick = (product: SearchProduct) => {
+    router.push(`/products/${product.id}`);
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSuggestions(false);
+  };
+
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="bg-white shadow relative">
@@ -62,6 +277,16 @@ export default function Header() {
             <Link href="/faq" className="text-gray-700 hover:text-blue-600 transition-colors">
               FAQ
             </Link>
+            
+            {/* Search Button */}
+            <button
+              onClick={toggleSearch}
+              className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
+              title="Search products"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            
             <button
               onClick={handleWhatsAppClick}
               className="p-2 text-green-600 hover:text-green-700 transition-colors"
@@ -73,6 +298,13 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
+            <button
+              onClick={toggleSearch}
+              className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
+              title="Search products"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             <button
               onClick={handleWhatsAppClick}
               className="p-2 text-green-600 hover:text-green-700 transition-colors"
@@ -93,6 +325,97 @@ export default function Header() {
             </button>
           </div>
         </div>
+
+        {/* Smart Search Bar */}
+        {isSearchOpen && (
+          <div className="absolute top-full left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-50 p-4">
+            <div className="max-w-4xl mx-auto" ref={searchRef}>
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <div className="flex items-center">
+                  <Search className="h-5 w-5 text-gray-400 absolute left-3" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="Search for buttons, zippers, elastic, cords... (e.g., 'buttons for denim jackets')"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Search
+                  </button>
+                </div>
+                
+                {/* Search Suggestions and Results */}
+                {showSuggestions && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-96 overflow-y-auto">
+                    {/* Search Suggestions */}
+                    {searchSuggestions.length > 0 && (
+                      <div className="p-4 border-b border-gray-100">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Popular Searches:</h4>
+                        <div className="space-y-1">
+                          {searchSuggestions.map((suggestion, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleSuggestionClick(suggestion)}
+                              className="block w-full text-left px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Search Results */}
+                    {searchResults.length > 0 && (
+                      <div className="p-4">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Products:</h4>
+                        <div className="space-y-2">
+                          {searchResults.slice(0, 5).map((product) => (
+                            <button
+                              key={product.id}
+                              onClick={() => handleResultClick(product)}
+                              className="block w-full text-left p-3 hover:bg-gray-50 rounded-lg border border-gray-100"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h5 className="font-medium text-gray-900">{product.name}</h5>
+                                  <p className="text-sm text-gray-600">{product.description}</p>
+                                  <span className="text-xs text-blue-600 capitalize">{product.category}</span>
+                                </div>
+                                <span className="text-sm font-semibold text-gray-900">₹{product.price}</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                        {searchResults.length > 5 && (
+                          <button
+                            onClick={performSearch}
+                            className="w-full mt-2 text-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            View all {searchResults.length} results →
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* No Results */}
+                    {searchQuery && searchResults.length === 0 && (
+                      <div className="p-4 text-center text-gray-500">
+                        <p>No products found for &quot;{searchQuery}&quot;</p>
+                        <p className="text-sm mt-1">Try different keywords or browse our categories</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (

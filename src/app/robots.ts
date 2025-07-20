@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        disallow: ['/admin/', '/api/', '/_next/', '/static/'],
+        disallow: ['/admin/', '/api/', '/_next/', '/static/', '/shop'],
       },
     ],
     sitemap: 'https://www.balajisphere.com/sitemap.xml',
