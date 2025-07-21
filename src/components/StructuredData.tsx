@@ -1,3 +1,5 @@
+import { getProtectedEmail } from '@/utils/emailProtection';
+
 export default function StructuredData() {
   const structuredData = {
     "@context": "https://schema.org",
@@ -8,7 +10,7 @@ export default function StructuredData() {
     "logo": "https://www.balajisphere.com/logo.png",
     "image": "https://www.balajisphere.com/banner.png",
     "telephone": "+91-9372268410",
-    "email": "shreebalajienterprises400077@gmail.com",
+    "email": getProtectedEmail(),
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "C Wing 704, Grit Height, G.M Link Road, Opposite Indian Oil Nagar, Near Shankara Colony, Chembur West",

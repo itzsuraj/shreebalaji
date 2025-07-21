@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getEmailLink } from '@/utils/emailProtection';
 
 const WhatsAppIcon = () => (
   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -465,7 +466,7 @@ export default function Header() {
                   +91 9372268410
                 </a>
                 <a 
-                  href="mailto:shreebalajienterprises400077@gmail.com"
+                  href={getEmailLink()}
                   className="block text-blue-600 hover:text-blue-800 transition-colors py-1"
                 >
                   Email Us

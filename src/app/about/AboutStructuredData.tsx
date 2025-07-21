@@ -1,3 +1,5 @@
+import { getProtectedEmail } from '@/utils/emailProtection';
+
 export default function AboutStructuredData() {
   const structuredData = {
     "@context": "https://schema.org",
@@ -24,7 +26,7 @@ export default function AboutStructuredData() {
       "longitude": 72.8777
     },
     "telephone": "+91-9372268410",
-    "email": "shreebalajienterprises400077@gmail.com",
+    "email": getProtectedEmail(),
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",

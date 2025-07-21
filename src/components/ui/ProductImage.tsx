@@ -1,4 +1,5 @@
 import Image, { ImageProps } from 'next/image';
+import styles from './ProductImage.module.css';
 
 interface ProductImageProps extends Omit<ImageProps, 'src'> {
   src: string;
@@ -16,7 +17,7 @@ export default function ProductImage({ src, alt, fill, ...props }: ProductImageP
         width={400} 
         height={400} 
         {...props} 
-        style={{ width: '100%', height: '100%', objectFit: 'cover', ...props.style }} 
+        className={`${styles.svgImage} ${props.className || ''}`}
       />
     );
   }

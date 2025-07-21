@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import ContactStructuredData from './ContactStructuredData';
+import { getProtectedEmail, getEmailLink } from '@/utils/emailProtection';
 
 export const metadata: Metadata = {
   title: "Contact Us - Shree Balaji Enterprises | Get in Touch",
@@ -73,10 +74,10 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-lg">Email</h3>
                   <a 
-                    href="mailto:shreebalajienterprises400077@gmail.com" 
+                    href={getEmailLink()} 
                     className="text-blue-600 hover:text-blue-800 transition-colors"
+                    dangerouslySetInnerHTML={{ __html: getProtectedEmail() }}
                   >
-                    shreebalajienterprises400077@gmail.com
                   </a>
                   <p className="text-gray-900 text-sm mt-1">Send us detailed enquiries</p>
                 </div>

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, X } from 'lucide-react';
+import styles from './ZoomableImage.module.css';
 
 interface ZoomableImageProps {
   src: string;
@@ -62,6 +63,19 @@ export default function ZoomableImage({ src, alt, className = '' }: ZoomableImag
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isZoomed]);
 
+  // Set CSS custom properties for dynamic styles
+  const imageStyle = {
+    '--transform-origin-x': `${position.x}%`,
+    '--transform-origin-y': `${position.y}%`,
+    '--zoom-level': isZoomed ? zoomLevel : 1,
+  } as React.CSSProperties;
+
+  const modalImageStyle = {
+    '--transform-origin-x': `${position.x}%`,
+    '--transform-origin-y': `${position.y}%`,
+    '--zoom-level': zoomLevel,
+  } as React.CSSProperties;
+
   return (
     <>
       {/* Main Image Container */}
@@ -79,13 +93,10 @@ export default function ZoomableImage({ src, alt, className = '' }: ZoomableImag
             src={src}
             alt={alt}
             fill
-            className={`object-cover transition-transform duration-300 ${
+            className={`object-cover transition-transform duration-300 ${styles.zoomableImage} ${
               isZoomed ? 'scale-110' : 'group-hover:scale-105'
             }`}
-            style={{
-              transformOrigin: `${position.x}% ${position.y}%`,
-              transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
-            }}
+            style={imageStyle}
           />
           
           {/* Zoom Overlay */}
@@ -157,11 +168,8 @@ export default function ZoomableImage({ src, alt, className = '' }: ZoomableImag
               alt={alt}
               width={800}
               height={600}
-              className="object-contain max-h-[90vh] rounded-lg"
-              style={{
-                transform: `scale(${zoomLevel})`,
-                transformOrigin: `${position.x}% ${position.y}%`,
-              }}
+              className={`object-contain max-h-[90vh] rounded-lg ${styles.modalImage}`}
+              style={modalImageStyle}
             />
             
             {/* Modal Controls */}

@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 import { ArrowLeft, Phone, Mail, MessageSquare, FileText, Users, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { getEmailLink } from '@/utils/emailProtection';
 
 export const metadata: Metadata = {
   title: "Technical Support - Garment Accessories | Shree Balaji Enterprises",
@@ -77,7 +78,7 @@ export default function TechnicalSupportPage() {
           <h3 className="text-xl font-semibold mb-2">Email Support</h3>
           <p className="text-gray-600 mb-4">Detailed technical queries</p>
           <a 
-            href="mailto:shreebalajienterprises400077@gmail.com" 
+            href={getEmailLink()} 
             className="text-purple-600 hover:text-purple-800 font-semibold"
           >
             Send Email

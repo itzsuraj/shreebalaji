@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import { Metadata } from 'next';
 import { ArrowLeft, Calendar, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';

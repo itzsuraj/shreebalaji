@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { getProtectedEmail } from '@/utils/emailProtection';
 
 export const metadata: Metadata = {
   title: "Privacy Policy - Shree Balaji Enterprises",
@@ -78,7 +79,7 @@ export default function PrivacyPage() {
               <p className="text-gray-700">
                 <strong>Shree Balaji Enterprises</strong><br />
                 Phone: +91 9372268410<br />
-                Email: shreebalajienterprises400077@gmail.com<br />
+                Email: <span dangerouslySetInnerHTML={{ __html: getProtectedEmail() }} /><br />
                 Address: C Wing 704, Grit Height, G.M Link Road, Opposite Indian Oil Nagar, Near Shankara Colony, Chembur West, Mumbai - 400043
               </p>
             </div>

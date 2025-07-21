@@ -5,15 +5,17 @@ import Link from "next/link";
 import { products } from "@/data/products";
 import { Star, MessageSquare } from "lucide-react";
 import { getProductImage } from "@/utils/imageUtils";
+import { useMemo } from "react";
 
 export default function HomeClient() {
-  const featuredProducts = products.slice(0, 8); // Get first 8 products as featured
-  
-  // Get products by category for showcase
-  const buttonProducts = products.filter(p => p.category === 'buttons').slice(0, 3);
-  const zipperProducts = products.filter(p => p.category === 'zippers').slice(0, 3);
-  const elasticProducts = products.filter(p => p.category === 'elastic').slice(0, 3);
-  const cordProducts = products.filter(p => p.category === 'cords').slice(0, 3);
+  // Memoize product filtering to avoid recalculation
+  const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => ({
+    featuredProducts: products.slice(0, 8),
+    buttonProducts: products.filter(p => p.category === 'buttons').slice(0, 3),
+    zipperProducts: products.filter(p => p.category === 'zippers').slice(0, 3),
+    elasticProducts: products.filter(p => p.category === 'elastic').slice(0, 3),
+    cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
+  }), []);
 
   const handleEnquiry = (product: typeof products[0]) => {
     const url = `${window.location.origin}/products/${product.id}`;
@@ -32,8 +34,10 @@ export default function HomeClient() {
             fill
             className="object-cover shadow-2xl"
             priority
-            sizes="100vw"
-            quality={85}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+            quality={75}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
           />
           <div className="absolute inset-0 bg-black opacity-40 shadow-inner"></div>
         </div>
@@ -539,7 +543,7 @@ export default function HomeClient() {
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight">
             Ready to Start Your Project?
           </h2>
-          <p className="text-blue-100 mb-6 sm:mb-8 text-base sm:text-lg leading-relaxed">
+          <p className="text-white mb-6 sm:mb-8 text-base sm:text-lg leading-relaxed">
             Browse our complete range of garment accessories and enquire about bulk pricing for your production needs. Contact us today for expert guidance and competitive quotes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

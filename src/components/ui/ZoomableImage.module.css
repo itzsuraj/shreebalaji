@@ -1,0 +1,9 @@
+.zoomableImage {
+  transform-origin: var(--transform-origin-x, 50%) var(--transform-origin-y, 50%);
+  transform: scale(var(--zoom-level, 1));
+}
+
+.modalImage {
+  transform: scale(var(--zoom-level, 1));
+  transform-origin: var(--transform-origin-x, 50%) var(--transform-origin-y, 50%);
+} 
