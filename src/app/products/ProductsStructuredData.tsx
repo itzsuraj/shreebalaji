@@ -11,7 +11,7 @@ export default function ProductsStructuredData({ products }: ProductsStructuredD
     "@type": "ItemList",
     "name": "Garment Accessories Collection",
     "description": "Complete collection of premium garment accessories including buttons, zippers, elastic bands, and cotton cords.",
-    "url": "https://balajisphere.com/products",
+    "url": "https://www.balajisphere.com/products",
     "numberOfItems": products.length,
     "itemListElement": products.map((product, index) => ({
       "@type": "ListItem",
@@ -33,7 +33,7 @@ export default function ProductsStructuredData({ products }: ProductsStructuredD
                   "seller": {
           "@type": "Organization",
           "name": "Shree Balaji Enterprises",
-          "url": "https://balajisphere.com"
+          "url": "https://www.balajisphere.com"
         },
           "priceValidUntil": "2026-07-20",
           "hasMerchantReturnPolicy": {
@@ -87,7 +87,7 @@ export default function ProductsStructuredData({ products }: ProductsStructuredD
         },
         "mpn": product.id,
         "sku": product.id,
-        "url": `https://balajisphere.com/products/${product.id}`,
+        "url": `https://www.balajisphere.com/products/${product.id}`,
         "additionalProperty": [
           {
             "@type": "PropertyValue",

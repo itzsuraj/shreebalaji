@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://balajisphere.com'),
+  metadataBase: new URL('https://www.balajisphere.com'),
   alternates: {
     canonical: '/',
   },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Shree Balaji Enterprises - Premium Garment Accessories",
     description: "Leading manufacturer and supplier of premium garment accessories in Mumbai. Quality buttons, zippers, elastic bands, and cotton cords.",
-    url: 'https://balajisphere.com',
+    url: 'https://www.balajisphere.com',
     siteName: 'Shree Balaji Enterprises',
     images: [
       {
