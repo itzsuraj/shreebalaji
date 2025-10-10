@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   const keyId = process.env.RAZORPAY_KEY_ID;
