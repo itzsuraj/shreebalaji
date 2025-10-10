@@ -101,7 +101,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <p className="text-gray-600">{product.description}</p>
 
             {/* Action Buttons */}
-            <ProductActions productName={product.name} productId={product.id} />
+            <ProductActions 
+              productName={product.name} 
+              productId={product.id} 
+              price={product.price}
+              image={getProductImage(product)}
+              category={product.category}
+              sizes={product.sizes}
+              colors={product.colors}
+              packs={product.packs}
+            />
 
             {/* Features and Specifications in Accordion */}
             <div className="space-y-4">

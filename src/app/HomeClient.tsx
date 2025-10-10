@@ -3,11 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { products } from "@/data/products";
-import { Star, MessageSquare } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
+import { useCart } from '@/context/CartContext';
 import { getProductImage } from "@/utils/imageUtils";
 import { useMemo } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function HomeClient() {
+  const { addItem } = useCart();
+  const router = useRouter();
   // Memoize product filtering to avoid recalculation
   const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => ({
     featuredProducts: products.slice(0, 8),
@@ -17,10 +21,13 @@ export default function HomeClient() {
     cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
   }), []);
 
-  const handleEnquiry = (product: typeof products[0]) => {
-    const url = `${window.location.origin}/products/${product.id}`;
-    const message = encodeURIComponent(`Hello, I am interested in ${product.name}.\nProduct link: ${url}\nPlease provide more details.`);
-    window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
+  const handleAddToCart = (product: typeof products[0]) => {
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+  };
+
+  const handleBuyNow = (product: typeof products[0]) => {
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    router.push('/checkout');
   };
 
   return (
@@ -143,13 +150,21 @@ export default function HomeClient() {
                   </div>
                 </Link>
                 <div className="px-4 pb-4">
-                  <button 
-                    onClick={() => handleEnquiry(product)}
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Enquire Now
-                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Add to Cart
+                    </button>
+                    <button 
+                      onClick={() => handleBuyNow(product)}
+                      className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -252,13 +267,21 @@ export default function HomeClient() {
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <button 
-                      onClick={() => handleEnquiry(product)}
-                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Enquire Now
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => handleAddToCart(product)}
+                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Add to Cart
+                      </button>
+                      <button 
+                        onClick={() => handleBuyNow(product)}
+                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -299,13 +322,21 @@ export default function HomeClient() {
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <button 
-                      onClick={() => handleEnquiry(product)}
-                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Enquire Now
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => handleAddToCart(product)}
+                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Add to Cart
+                      </button>
+                      <button 
+                        onClick={() => handleBuyNow(product)}
+                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -346,13 +377,21 @@ export default function HomeClient() {
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <button 
-                      onClick={() => handleEnquiry(product)}
-                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Enquire Now
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => handleAddToCart(product)}
+                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Add to Cart
+                      </button>
+                      <button 
+                        onClick={() => handleBuyNow(product)}
+                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -393,13 +432,21 @@ export default function HomeClient() {
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <button 
-                      onClick={() => handleEnquiry(product)}
-                      className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Enquire Now
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => handleAddToCart(product)}
+                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Add to Cart
+                      </button>
+                      <button 
+                        onClick={() => handleBuyNow(product)}
+                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Buy Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

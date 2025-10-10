@@ -3,7 +3,7 @@ import { Product } from '@/types/product';
 export const products: Product[] = [
   {
     id: '1',
-    name: '18l chalk button 2h shiny (DD)',
+    name: 'Chalk button 2h shiny (DD)',
     description: 'High-quality metal buttons perfect for jackets, coats, and heavy-duty garments. Available in various finishes including antique brass, silver, and gunmetal.',
     price: 249,
     category: 'buttons',
@@ -24,6 +24,22 @@ export const products: Product[] = [
       'Pack Size': '12 pieces',
       'Finish': 'Antique Brass/Silver/Gunmetal',
       'Weight': '5g per button'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -124,6 +140,22 @@ export const products: Product[] = [
       'Pack Size': '20 pieces',
       'Colors': 'White/Black/Red/Blue',
       'Installation': 'Snap-on'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -199,6 +231,22 @@ export const products: Product[] = [
       'Pack Size': '8 pieces',
       'Finish': 'Natural/Stained',
       'Weight': 'Light'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -249,6 +297,22 @@ export const products: Product[] = [
       'Length': '100 yards',
       'Thickness': '2mm',
       'Use': 'Drawstrings/Ties'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -274,6 +338,22 @@ export const products: Product[] = [
       'Pack Size': '25 pieces',
       'Colors': 'White/Black/Navy',
       'Style': 'Classic'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -299,6 +379,22 @@ export const products: Product[] = [
       'Pack Size': '15 pieces',
       'Styles': 'Geometric/Abstract',
       'Colors': 'Various'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -324,6 +420,22 @@ export const products: Product[] = [
       'Pack Size': '12 pieces',
       'Style': 'Vintage',
       'Finish': 'Antique'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    colors: ['Brown', 'Black', 'White'],
+    packs: ['24 Pieces', '200 Pieces'],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -349,6 +461,20 @@ export const products: Product[] = [
       'Pack Size': '8 pieces',
       'Finish': 'Luxury',
       'Quality': 'Designer'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -374,6 +500,20 @@ export const products: Product[] = [
       'Pack Size': '15 pieces',
       'Finish': 'Chalk',
       'Style': 'Modern'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -399,6 +539,20 @@ export const products: Product[] = [
       'Pack Size': '12 pieces',
       'Design': 'Down Hole',
       'Use': 'Heavy-duty'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -424,6 +578,20 @@ export const products: Product[] = [
       'Pack Size': '30 pieces',
       'Color': 'White',
       'Use': 'Formal wear'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -503,6 +671,20 @@ export const products: Product[] = [
       'Usage/Application': 'Garments',
       'Packing Type': 'Loose',
       'Product Shape': 'Galaxy'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -534,6 +716,20 @@ export const products: Product[] = [
       'No Of Holes': '2',
       'Hole Type': '2 hole',
       'Usage': 'Garments'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   {
@@ -562,6 +758,20 @@ export const products: Product[] = [
       'Property': 'Transparent',
       'Packet Content': '1728 Pieces',
       'No of Holes': '4'
+    },
+    sizes: [
+      '10mm (16L)',
+      '11mm (18L)',
+      '12mm (20L)',
+      '15mm (24L)'
+    ],
+    variants: {
+      size: [
+        '10mm (16L)',
+        '11mm (18L)',
+        '12mm (20L)',
+        '15mm (24L)'
+      ]
     }
   },
   

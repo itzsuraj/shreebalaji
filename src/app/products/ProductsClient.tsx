@@ -5,8 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
-import { Star, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Star, ShoppingCart, ArrowLeft, Check } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
 import { getProductImage } from '@/utils/imageUtils';
+import Toast from '@/components/ui/Toast';
 
 interface ProductsClientProps {
   products: Product[];
@@ -17,6 +19,8 @@ interface ProductsClientProps {
 export default function ProductsClient({ products, searchQuery = '', initialCategory = '' }: ProductsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { addItem } = useCart();
+  const [addedId, setAddedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [searchTerm, setSearchTerm] = useState<string>(searchQuery);
@@ -130,10 +134,15 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
       }
     });
 
-  const handleEnquiry = (product: Product) => {
-    const url = `${window.location.origin}/products/${product.id}`;
-    const message = encodeURIComponent(`Hello, I am interested in ${product.name}.\nProduct link: ${url}\nPlease provide more details.`);
-    window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
+  const handleAddToCart = (product: Product) => {
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    setAddedId(product.id);
+    setTimeout(() => setAddedId(null), 1200);
+  };
+
+  const handleBuyNow = (product: Product) => {
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    router.push('/checkout');
   };
 
   const updateURL = (category: string, search?: string) => {
@@ -296,14 +305,33 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
                     <p className="text-blue-600 font-bold text-lg mb-2">₹{product.price.toLocaleString()}</p>
                   </div>
                 </Link>
-                <div className="px-4 pb-4">
-                  <button 
-                    onClick={() => handleEnquiry(product)}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-semibold text-base shadow-md"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Enquire Now
-                  </button>
+                <div className="px-4 pb-4 relative">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      onClick={() => handleAddToCart(product)}
+                      aria-live="polite"
+                      className={`${addedId===product.id ? 'bg-green-700' : 'bg-green-600'} text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-1 font-medium ${addedId===product.id ? 'scale-[0.98]' : ''}`}
+                    >
+                      {addedId===product.id ? (
+                        <>
+                          <Check className="h-3 w-3" />
+                          Added
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="h-3 w-3" />
+                          Add to Cart
+                        </>
+                      )}
+                    </button>
+                    <button 
+                      onClick={() => handleBuyNow(product)}
+                      className="bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-all font-medium"
+                    >
+                      Buy Now
+                    </button>
+                  </div>
+                  <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => setAddedId(null)} />
                 </div>
               </div>
             ))}

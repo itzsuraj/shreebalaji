@@ -4,8 +4,10 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { EnquiryProvider } from "@/context/EnquiryContext";
+import { CartProvider } from "@/context/CartContext";
 import StructuredData from "@/components/StructuredData";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import CustomerSupportWidget from "@/components/CustomerSupportWidget";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -93,17 +95,24 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <StructuredData />
+        {/* Expose public Razorpay key to client */}
+        {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+          <meta name="razorpay-key" content={process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID} />
+        )}
       </head>
       <body className={inter.className}>
         <GoogleAnalytics />
         <EnquiryProvider>
-          <div className="min-h-screen flex flex-col bg-white">
-            <Header />
-            <main className="flex-grow bg-white">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col bg-white">
+              <Header />
+              <main className="flex-grow bg-white">
+                {children}
+              </main>
+              <Footer />
+              <CustomerSupportWidget />
+            </div>
+          </CartProvider>
         </EnquiryProvider>
       </body>
     </html>
