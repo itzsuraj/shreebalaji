@@ -11,6 +11,12 @@ interface AdminProductForm {
   sizes?: string;
   colors?: string;
   packs?: string;
+  variantPricing?: Array<{
+    size?: string;
+    color?: string;
+    pack?: string;
+    price: number;
+  }>;
 }
 
 interface AdminProductRow {
@@ -24,6 +30,12 @@ interface AdminProductRow {
   sizes?: string[];
   colors?: string[];
   packs?: string[];
+  variantPricing?: Array<{
+    size?: string;
+    color?: string;
+    pack?: string;
+    price: number;
+  }>;
   createdAt?: string;
 }
 
@@ -33,6 +45,13 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState<AdminProductForm>({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
   const [editingProduct, setEditingProduct] = useState<AdminProductRow | null>(null);
   const [editForm, setEditForm] = useState<AdminProductForm>({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+  const [showVariantPricing, setShowVariantPricing] = useState(false);
+  const [variantPricing, setVariantPricing] = useState<Array<{
+    size?: string;
+    color?: string;
+    pack?: string;
+    price: number;
+  }>>([]);
 
   const load = async () => {
     setLoading(true);
@@ -79,6 +98,8 @@ export default function AdminProductsPage() {
       colors: product.colors ? product.colors.join(', ') : '',
       packs: product.packs ? product.packs.join(', ') : ''
     });
+    setVariantPricing(product.variantPricing || []);
+    setShowVariantPricing((product.variantPricing && product.variantPricing.length > 0) || false);
   };
 
   const updateProduct = async () => {
@@ -93,6 +114,7 @@ export default function AdminProductsPage() {
       sizes: editForm.sizes ? editForm.sizes.split(',').map(s => s.trim()) : [],
       colors: editForm.colors ? editForm.colors.split(',').map(s => s.trim()) : [],
       packs: editForm.packs ? editForm.packs.split(',').map(s => s.trim()) : [],
+      variantPricing: showVariantPricing ? variantPricing : undefined,
     };
     
     const res = await fetch(`/api/admin/products/${editingProduct._id}`, { 
@@ -104,6 +126,8 @@ export default function AdminProductsPage() {
     if (res.ok) {
       setEditingProduct(null);
       setEditForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+      setShowVariantPricing(false);
+      setVariantPricing([]);
       load();
     }
   };
@@ -111,6 +135,50 @@ export default function AdminProductsPage() {
   const cancelEdit = () => {
     setEditingProduct(null);
     setEditForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+    setShowVariantPricing(false);
+    setVariantPricing([]);
+  };
+
+  const addVariantPrice = () => {
+    setVariantPricing([...variantPricing, { price: 0 }]);
+  };
+
+  const removeVariantPrice = (index: number) => {
+    setVariantPricing(variantPricing.filter((_, i) => i !== index));
+  };
+
+  const updateVariantPrice = (index: number, field: string, value: string | number) => {
+    const updated = [...variantPricing];
+    updated[index] = { ...updated[index], [field]: value };
+    setVariantPricing(updated);
+  };
+
+  const generateVariantCombinations = () => {
+    const sizes = editForm.sizes ? editForm.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
+    const colors = editForm.colors ? editForm.colors.split(',').map(s => s.trim()).filter(s => s) : [];
+    const packs = editForm.packs ? editForm.packs.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    const combinations: Array<{ size?: string; color?: string; pack?: string; price: number }> = [];
+    
+    // Generate all possible combinations
+    const allSizes = sizes.length > 0 ? sizes : [''];
+    const allColors = colors.length > 0 ? colors : [''];
+    const allPacks = packs.length > 0 ? packs : [''];
+
+    allSizes.forEach(size => {
+      allColors.forEach(color => {
+        allPacks.forEach(pack => {
+          combinations.push({
+            size: size || undefined,
+            color: color || undefined,
+            pack: pack || undefined,
+            price: editForm.price
+          });
+        });
+      });
+    });
+
+    setVariantPricing(combinations);
   };
 
   return (
@@ -201,6 +269,12 @@ export default function AdminProductsPage() {
                     <div className="text-xs">
                       <span className="font-medium text-gray-700">Packs:</span>
                       <span className="ml-1 text-gray-600">{product.packs.join(', ')}</span>
+                    </div>
+                  )}
+                  {product.variantPricing && product.variantPricing.length > 0 && (
+                    <div className="text-xs">
+                      <span className="font-medium text-gray-700">Variant Pricing:</span>
+                      <span className="ml-1 text-gray-600">{product.variantPricing.length} combinations</span>
                     </div>
                   )}
                 </div>
@@ -340,6 +414,93 @@ export default function AdminProductsPage() {
                       placeholder="e.g., 12 pieces, 24 pieces"
                     />
                   </div>
+                </div>
+
+                {/* Variant Pricing Section */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-medium text-gray-900">Variant Pricing</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowVariantPricing(!showVariantPricing)}
+                        className={`px-3 py-1 text-sm rounded-md ${
+                          showVariantPricing 
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                            : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                        }`}
+                      >
+                        {showVariantPricing ? 'Disable' : 'Enable'} Variant Pricing
+                      </button>
+                      {showVariantPricing && (
+                        <button
+                          type="button"
+                          onClick={generateVariantCombinations}
+                          className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200"
+                        >
+                          Auto Generate
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {showVariantPricing && (
+                    <div className="space-y-4">
+                      <div className="text-sm text-gray-600">
+                        Set different prices for different combinations of sizes, colors, and packs.
+                      </div>
+                      
+                      {variantPricing.map((variant, index) => (
+                        <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2">
+                            <input
+                              type="text"
+                              value={variant.size || ''}
+                              onChange={(e) => updateVariantPrice(index, 'size', e.target.value)}
+                              placeholder="Size"
+                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <input
+                              type="text"
+                              value={variant.color || ''}
+                              onChange={(e) => updateVariantPrice(index, 'color', e.target.value)}
+                              placeholder="Color"
+                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <input
+                              type="text"
+                              value={variant.pack || ''}
+                              onChange={(e) => updateVariantPrice(index, 'pack', e.target.value)}
+                              placeholder="Pack"
+                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <input
+                              type="number"
+                              value={variant.price}
+                              onChange={(e) => updateVariantPrice(index, 'price', Number(e.target.value))}
+                              placeholder="Price"
+                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeVariantPrice(index)}
+                            className="px-2 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      
+                      <button
+                        type="button"
+                        onClick={addVariantPrice}
+                        className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700"
+                      >
+                        + Add Variant Price
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
