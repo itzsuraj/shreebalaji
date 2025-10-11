@@ -12,6 +12,7 @@ interface SidebarProps {
 export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [isCustomersOpen, setIsCustomersOpen] = useState(false);
+  const [isProductsOpen, setIsProductsOpen] = useState(false);
 
   const navigation = [
     {
@@ -40,7 +41,12 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
-      )
+      ),
+      children: [
+        { name: 'All Products', href: '/admin/products' },
+        { name: 'Seed Products', href: '/admin/seed-products' },
+        { name: 'Product Analytics', href: '/admin/products' }
+      ]
     },
     {
       name: 'Customers',
@@ -52,8 +58,8 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
       ),
       children: [
         { name: 'All Customers', href: '/admin/customers' },
-        { name: 'Customer Details', href: '/admin/customers/details' },
-        { name: 'Customer Orders', href: '/admin/customers/orders' }
+        { name: 'Customer Analytics', href: '/admin/customers' },
+        { name: 'Customer Insights', href: '/admin/customers' }
       ]
     },
     {
@@ -125,7 +131,13 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
                 {item.children ? (
                   <div>
                     <button
-                      onClick={() => setIsCustomersOpen(!isCustomersOpen)}
+                      onClick={() => {
+                        if (item.name === 'Customers') {
+                          setIsCustomersOpen(!isCustomersOpen);
+                        } else if (item.name === 'Products') {
+                          setIsProductsOpen(!isProductsOpen);
+                        }
+                      }}
                       className={`
                         w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors
                         ${isActive(item.href) 
@@ -139,7 +151,11 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
                         {item.name}
                       </div>
                       <svg 
-                        className={`w-4 h-4 transition-transform ${isCustomersOpen ? 'rotate-180' : ''}`}
+                        className={`w-4 h-4 transition-transform ${
+                          (item.name === 'Customers' && isCustomersOpen) || 
+                          (item.name === 'Products' && isProductsOpen) 
+                            ? 'rotate-180' : ''
+                        }`}
                         fill="none" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
@@ -147,7 +163,8 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    {isCustomersOpen && (
+                    {((item.name === 'Customers' && isCustomersOpen) || 
+                      (item.name === 'Products' && isProductsOpen)) && (
                       <div className="ml-6 mt-1 space-y-1">
                         {item.children.map((child) => (
                           <Link
