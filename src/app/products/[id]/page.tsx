@@ -1,6 +1,4 @@
-import Image from 'next/image';
 import { Star, ArrowLeft } from 'lucide-react';
-import { products } from '@/data/products';
 import { notFound } from 'next/navigation';
 import { getProductImage } from '@/utils/imageUtils';
 import ProductActions from './ProductActions';
@@ -10,10 +8,28 @@ import ProductStructuredData from './ProductStructuredData';
 import ZoomableImage from '@/components/ui/ZoomableImage';
 import Accordion from '@/components/ui/Accordion';
 
+async function getProduct(id: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/products/${id}`, {
+      cache: 'no-store' // Always fetch fresh data
+    });
+    
+    if (!response.ok) {
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.product;
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    return null;
+  }
+}
+
 // Generate metadata for each product
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
-  const product = products.find(p => p.id === resolvedParams.id);
+  const product = await getProduct(resolvedParams.id);
 
   if (!product) {
     return {
@@ -55,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const product = products.find(p => p.id === resolvedParams.id);
+  const product = await getProduct(resolvedParams.id);
 
   if (!product) {
     notFound();
@@ -110,15 +126,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               sizes={product.sizes}
               colors={product.colors}
               packs={product.packs}
+              variantPricing={product.variantPricing}
             />
 
             {/* Features and Specifications in Accordion */}
             <div className="space-y-4">
               {/* Features Accordion */}
-              {product.features && (
+              {product.features && Array.isArray(product.features) && (
                 <Accordion title="Key Features" defaultOpen={true}>
                   <ul className="space-y-2">
-                    {product.features.map((feature, index) => (
+                    {product.features.map((feature: string, index: number) => (
                       <li key={index} className="flex items-center">
                         <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
                         {feature}
@@ -129,13 +146,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               )}
 
               {/* Specifications Accordion */}
-              {product.specifications && (
+              {product.specifications && typeof product.specifications === 'object' && (
                 <Accordion title="Specifications">
                   <div className="space-y-2">
                     {Object.entries(product.specifications).map(([key, value]) => (
                       <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
                         <span className="font-medium text-gray-700">{key}</span>
-                        <span className="text-gray-600">{value}</span>
+                        <span className="text-gray-600">{String(value)}</span>
                       </div>
                     ))}
                   </div>
@@ -145,35 +162,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Related Products Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {products
-              .filter(p => p.category === product.category && p.id !== product.id)
-              .slice(0, 4)
-              .map(related => (
-                <Link
-                  key={related.id}
-                  href={`/products/${related.id}`}
-                  className="block bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
-                >
-                  <div className="relative h-40 w-full">
-                    <Image
-                      src={getProductImage(related)}
-                      alt={related.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 truncate">{related.name}</h3>
-                    <p className="text-blue-600 font-bold">₹{related.price.toLocaleString()}</p>
-                  </div>
-                </Link>
-              ))}
-          </div>
-        </div>
       </div>
     </>
   );

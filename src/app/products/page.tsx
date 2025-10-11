@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { products } from '@/data/products';
 import ProductsClient from './ProductsClient';
 import ProductsStructuredData from './ProductsStructuredData';
 
@@ -38,10 +37,30 @@ interface ProductsPageProps {
   searchParams: Promise<{ search?: string; category?: string }>;
 }
 
+async function getProducts() {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/products`, {
+      cache: 'no-store' // Always fetch fresh data
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+    
+    const data = await response.json();
+    return data.products || [];
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
   const searchQuery = params.search || '';
   const category = params.category || '';
+  
+  const products = await getProducts();
   
   return (
     <>

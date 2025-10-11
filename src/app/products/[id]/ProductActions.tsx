@@ -15,9 +15,15 @@ interface ProductActionsProps {
   sizes?: string[];
   colors?: string[];
   packs?: string[];
+  variantPricing?: Array<{
+    size?: string;
+    color?: string;
+    pack?: string;
+    price: number;
+  }>;
 }
 
-export default function ProductActions({ productName, productId, price, image, category, sizes = [], colors = [], packs = [] }: ProductActionsProps) {
+export default function ProductActions({ productName, productId, price, image, category, sizes = [], colors = [], packs = [], variantPricing = [] }: ProductActionsProps) {
   const { addItem } = useCart();
   const router = useRouter();
   const [added, setAdded] = useState(false);
@@ -26,19 +32,48 @@ export default function ProductActions({ productName, productId, price, image, c
   const [selectedPack, setSelectedPack] = useState<string>(packs[0] || '');
   const [qty, setQty] = useState<number>(1);
 
+  // Calculate current price based on variant selection
+  const getCurrentPrice = () => {
+    if (variantPricing.length === 0) {
+      return price;
+    }
+
+    const selectedVariant = variantPricing.find(variant => 
+      variant.size === selectedSize && 
+      variant.color === selectedColor && 
+      variant.pack === selectedPack
+    );
+
+    return selectedVariant ? selectedVariant.price : price;
+  };
+
+  const currentPrice = getCurrentPrice();
+
   const handleAddToCart = () => {
-    addItem({ productId, name: productName, price, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack });
+    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack });
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
   };
 
   const handleBuyNow = () => {
-    addItem({ productId, name: productName, price, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack });
+    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack });
     router.push('/checkout');
   };
 
   return (
     <div className="flex flex-col space-y-3 relative">
+      {/* Dynamic Price Display */}
+      {variantPricing.length > 0 && (
+        <div className="bg-blue-50 p-3 rounded-lg">
+          <div className="text-sm text-gray-600 mb-1">Selected Variant Price:</div>
+          <div className="text-2xl font-bold text-blue-600">₹{currentPrice.toLocaleString()}</div>
+          {currentPrice !== price && (
+            <div className="text-sm text-gray-500">
+              Base price: ₹{price.toLocaleString()}
+            </div>
+          )}
+        </div>
+      )}
       {sizes.length > 0 && (
         <div>
           <span className="block text-sm font-medium mb-1">Size</span>
