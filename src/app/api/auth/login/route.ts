@@ -1,3 +1,7 @@
+// COMMENTED OUT - User login API disabled
+// Keeping phone + order ID tracking only
+
+/*
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 
@@ -60,4 +64,19 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+*/
+
+// Disabled login API - redirect to track order
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: Request) {
+  return new Response(
+    JSON.stringify({ 
+      error: 'Login disabled. Use phone + order ID tracking instead.' 
+    }),
+    { 
+      status: 403,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
 }

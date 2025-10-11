@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, User, LogIn } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface OrderStatus {
@@ -30,7 +30,8 @@ export default function TrackOrderPage() {
   const [order, setOrder] = useState<OrderStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [trackingMethod, setTrackingMethod] = useState<'quick' | 'login'>('quick');
+  // Removed login option - keeping only quick track
+  // const [trackingMethod, setTrackingMethod] = useState<'quick' | 'login'>('quick');
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,63 +120,12 @@ export default function TrackOrderPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Track Your Order</h1>
-          <p className="text-gray-600">Choose how you&apos;d like to track your order</p>
+          <p className="text-gray-600">Enter your Order ID and Phone Number to check the status of your order</p>
         </div>
 
-        {/* Tracking Method Selection */}
+        {/* Order Tracking Form */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Choose Tracking Method</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              onClick={() => setTrackingMethod('quick')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                trackingMethod === 'quick'
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-left">
-                <div className="flex items-center mb-2">
-                  <Search className="h-5 w-5 mr-2" />
-                  <h3 className="font-semibold">Quick Track</h3>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">Enter Order ID + Phone Number</p>
-                <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• No account needed</li>
-                  <li>• Fast and simple</li>
-                  <li>• Track single order</li>
-                </ul>
-              </div>
-            </button>
-            
-            <button
-              onClick={() => setTrackingMethod('login')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                trackingMethod === 'login'
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-left">
-                <div className="flex items-center mb-2">
-                  <User className="h-5 w-5 mr-2" />
-                  <h3 className="font-semibold">Login & Track</h3>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">Create account for full features</p>
-                <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• View order history</li>
-                  <li>• Reorder easily</li>
-                  <li>• Save addresses</li>
-                </ul>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Track Form */}
-        {trackingMethod === 'quick' && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Quick Order Tracking</h2>
+          <h2 className="text-xl font-semibold mb-4">Order Tracking</h2>
             <form onSubmit={handleSearch} className="space-y-4">
               <div>
                 <label htmlFor="orderId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -221,39 +171,7 @@ export default function TrackOrderPage() {
                 {isLoading ? 'Searching...' : 'Track Order'}
               </button>
             </form>
-          </div>
-        )}
-
-        {/* Login Track Option */}
-        {trackingMethod === 'login' && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Login to Track Orders</h2>
-            <div className="text-center py-8">
-              <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Create Account or Login</h3>
-              <p className="text-gray-600 mb-6">
-                Create an account to view all your orders, reorder easily, and manage your profile.
-              </p>
-              <div className="space-y-3">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <LogIn className="h-5 w-5 mr-2" />
-                  Create Account
-                </Link>
-                <div className="text-sm text-gray-500">or</div>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <LogIn className="h-5 w-5 mr-2" />
-                  Login to Existing Account
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Order Details */}
         {order && (
@@ -309,21 +227,7 @@ export default function TrackOrderPage() {
               </div>
             </div>
 
-            {trackingMethod === 'quick' && (
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Want more features?</h4>
-                <p className="text-sm text-blue-700 mb-3">
-                  Create an account to view your order history, reorder easily, and save your addresses.
-                </p>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  <User className="h-4 w-4 mr-1" />
-                  Create Account
-                </Link>
-              </div>
-            )}
+            {/* Removed account creation prompt - keeping simple phone + order ID tracking */}
           </div>
         )}
       </div>
