@@ -2,16 +2,57 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { products } from "@/data/products";
 import { Star, ShoppingCart } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from "@/utils/imageUtils";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 
 export default function HomeClient() {
   const { addItem } = useCart();
   const router = useRouter();
+  const [products, setProducts] = useState<Array<{
+    _id: string;
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    category: string;
+    image: string;
+    sizes: string[];
+    colors: string[];
+    packs: string[];
+    variantPricing: Array<{
+      size?: string;
+      color?: string;
+      pack?: string;
+      price: number;
+    }>;
+    inStock: boolean;
+    rating: number;
+    reviews: number;
+  }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data.products || []);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   // Memoize product filtering to avoid recalculation
   const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => ({
     featuredProducts: products.slice(0, 8),
@@ -19,7 +60,7 @@ export default function HomeClient() {
     zipperProducts: products.filter(p => p.category === 'zippers').slice(0, 3),
     elasticProducts: products.filter(p => p.category === 'elastic').slice(0, 3),
     cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
-  }), []);
+  }), [products]);
 
   const handleAddToCart = (product: typeof products[0]) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
@@ -29,6 +70,89 @@ export default function HomeClient() {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
     router.push('/checkout');
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no products
+  if (products.length === 0) {
+    return (
+      <div className="min-h-screen">
+        {/* Hero Section */}
+        <section className="relative h-[600px] flex items-center">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/banner.png"
+              alt="Shree Balaji Enterprises Banner"
+              fill
+              className="object-cover shadow-2xl"
+              priority
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+              quality={75}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+            />
+            <div className="absolute inset-0 bg-black opacity-40 shadow-inner"></div>
+          </div>
+          <div className="container mx-auto px-4 relative z-10 text-center">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Premium Garment Accessories
+            </h1>
+            <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
+              Leading manufacturer of quality buttons, zippers, elastic bands, and cotton cords for the garment industry.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                href="/products" 
+                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                View Products
+              </Link>
+              <Link 
+                href="/contact" 
+                className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
+              >
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* No Products Message */}
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Products Coming Soon</h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              We&apos;re currently setting up our product catalog. Please contact us for specific requirements or check back soon.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                href="/contact" 
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Contact Sales
+              </Link>
+              <Link 
+                href="/enquiries" 
+                className="bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              >
+                Submit Enquiry
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
