@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
-import { Star, ShoppingCart, ArrowLeft, Check } from 'lucide-react';
+import { Star, ShoppingCart, ArrowLeft, Check, Search, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from '@/utils/imageUtils';
 import Toast from '@/components/ui/Toast';
@@ -24,6 +24,7 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [searchTerm, setSearchTerm] = useState<string>(searchQuery);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   const categories = ['all', ...new Set(products.map(product => product.category))];
 
@@ -166,6 +167,23 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
     updateURL(category);
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchTerm = e.target.value;
+    setSearchTerm(newSearchTerm);
+    setIsSearching(true);
+    
+    // Debounce search to avoid too many URL updates
+    setTimeout(() => {
+      updateURL(selectedCategory, newSearchTerm);
+      setIsSearching(false);
+    }, 300);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    updateURL(selectedCategory, '');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Back Button */}
@@ -184,33 +202,39 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
       {/* Search Bar */}
       <div className="mb-6">
         <div className="relative max-w-md">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <Search className="w-5 h-5" />
+          </div>
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => {
-              const newSearchTerm = e.target.value;
-              setSearchTerm(newSearchTerm);
-              updateURL(selectedCategory, newSearchTerm);
-            }}
+            onChange={handleSearchChange}
             placeholder="Search products... (e.g., 'buttons for denim jackets')"
-            className="w-full pl-4 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           {searchTerm && (
             <button
-              onClick={() => {
-                setSearchTerm('');
-                updateURL(selectedCategory, '');
-              }}
+              onClick={clearSearch}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              title="Clear search"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
         {searchTerm && (
-          <p className="text-sm text-gray-600 mt-2">
-            Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
-          </p>
+          <div className="mt-2 flex items-center space-x-2">
+            {isSearching ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <p className="text-sm text-gray-600">Searching...</p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">
+                Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} for &quot;{searchTerm}&quot;
+              </p>
+            )}
+          </div>
         )}
       </div>
       
@@ -270,12 +294,28 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
                 }
               </p>
               {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Clear Search
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={clearSearch}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Clear Search
+                  </button>
+                  <div className="text-sm text-gray-500">
+                    <p className="mb-2">Try searching for:</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {['buttons', 'zippers', 'elastic', 'cords', 'metal', 'plastic', 'wooden'].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          onClick={() => setSearchTerm(suggestion)}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           ) : (
