@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface AdminOrderItem {
   _id: string;
@@ -49,14 +49,14 @@ export default function AdminOrdersPage() {
     totalRevenue: 0
   });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch('/api/admin/orders');
     const data = await res.json();
     setOrders(data.orders || []);
     calculateStats(data.orders || []);
     setLoading(false);
-  };
+  }, []);
 
   const calculateStats = (ordersList: AdminOrderItem[]) => {
     const newStats = {
@@ -70,7 +70,7 @@ export default function AdminOrdersPage() {
     setStats(newStats);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const updateStatus = async (id: string, status: string) => {
     const res = await fetch(`/api/admin/orders/${id}`, { 

@@ -43,11 +43,11 @@ export default function AdminHome() {
         const orders = ordersData.orders || [];
         const products = productsData.products || [];
         
-        const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.totalInPaise, 0) / 100;
-        const pendingOrders = orders.filter((order: any) => 
+        const totalRevenue = orders.reduce((sum: number, order: { totalInPaise: number }) => sum + order.totalInPaise, 0) / 100;
+        const pendingOrders = orders.filter((order: { status: string }) => 
           ['processing', 'shipped'].includes(order.status)
         ).length;
-        const completedOrders = orders.filter((order: any) => 
+        const completedOrders = orders.filter((order: { status: string }) => 
           order.status === 'delivered'
         ).length;
         
