@@ -8,9 +8,9 @@ interface AdminProductForm {
   price: number;
   category: string;
   image?: string;
-  sizes?: string;
-  colors?: string;
-  packs?: string;
+  sizes?: string[];
+  colors?: string[];
+  packs?: string[];
   variantPricing?: Array<{
     size?: string;
     color?: string;
@@ -42,9 +42,27 @@ interface AdminProductRow {
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<AdminProductRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState<AdminProductForm>({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+  const [form, setForm] = useState<AdminProductForm>({ 
+    name: '', 
+    price: 0, 
+    category: 'buttons', 
+    description: '', 
+    image: '', 
+    sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
+    colors: ['Brown', 'Black', 'White'], 
+    packs: ['24 Pieces', '200 Pieces'] 
+  });
   const [editingProduct, setEditingProduct] = useState<AdminProductRow | null>(null);
-  const [editForm, setEditForm] = useState<AdminProductForm>({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+  const [editForm, setEditForm] = useState<AdminProductForm>({ 
+    name: '', 
+    price: 0, 
+    category: 'buttons', 
+    description: '', 
+    image: '', 
+    sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
+    colors: ['Brown', 'Black', 'White'], 
+    packs: ['24 Pieces', '200 Pieces'] 
+  });
   const [showVariantPricing, setShowVariantPricing] = useState(false);
   const [variantPricing, setVariantPricing] = useState<Array<{
     size?: string;
@@ -52,6 +70,8 @@ export default function AdminProductsPage() {
     pack?: string;
     price: number;
   }>>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -69,13 +89,22 @@ export default function AdminProductsPage() {
       price: Number(form.price),
       category: form.category,
       image: form.image,
-      sizes: form.sizes ? form.sizes.split(',').map(s => s.trim()) : [],
-      colors: form.colors ? form.colors.split(',').map(s => s.trim()) : [],
-      packs: form.packs ? form.packs.split(',').map(s => s.trim()) : [],
+      sizes: form.sizes || [],
+      colors: form.colors || [],
+      packs: form.packs || [],
     };
     const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
-      setForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+      setForm({ 
+        name: '', 
+        price: 0, 
+        category: 'buttons', 
+        description: '', 
+        image: '', 
+        sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
+        colors: ['Brown', 'Black', 'White'], 
+        packs: ['24 Pieces', '200 Pieces'] 
+      });
       load();
     }
   };
@@ -94,9 +123,9 @@ export default function AdminProductsPage() {
       price: product.price,
       category: product.category,
       image: product.image || '',
-      sizes: product.sizes ? product.sizes.join(', ') : '',
-      colors: product.colors ? product.colors.join(', ') : '',
-      packs: product.packs ? product.packs.join(', ') : ''
+      sizes: product.sizes || ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'],
+      colors: product.colors || ['Brown', 'Black', 'White'],
+      packs: product.packs || ['24 Pieces', '200 Pieces']
     });
     setVariantPricing(product.variantPricing || []);
     setShowVariantPricing((product.variantPricing && product.variantPricing.length > 0) || false);
@@ -111,9 +140,9 @@ export default function AdminProductsPage() {
       price: Number(editForm.price),
       category: editForm.category,
       image: editForm.image,
-      sizes: editForm.sizes ? editForm.sizes.split(',').map(s => s.trim()) : [],
-      colors: editForm.colors ? editForm.colors.split(',').map(s => s.trim()) : [],
-      packs: editForm.packs ? editForm.packs.split(',').map(s => s.trim()) : [],
+      sizes: editForm.sizes || [],
+      colors: editForm.colors || [],
+      packs: editForm.packs || [],
       variantPricing: showVariantPricing ? variantPricing : undefined,
     };
     
@@ -125,7 +154,16 @@ export default function AdminProductsPage() {
     
     if (res.ok) {
       setEditingProduct(null);
-      setEditForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+      setEditForm({ 
+        name: '', 
+        price: 0, 
+        category: 'buttons', 
+        description: '', 
+        image: '', 
+        sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
+        colors: ['Brown', 'Black', 'White'], 
+        packs: ['24 Pieces', '200 Pieces'] 
+      });
       setShowVariantPricing(false);
       setVariantPricing([]);
       load();
@@ -134,7 +172,16 @@ export default function AdminProductsPage() {
 
   const cancelEdit = () => {
     setEditingProduct(null);
-    setEditForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+    setEditForm({ 
+      name: '', 
+      price: 0, 
+      category: 'buttons', 
+      description: '', 
+      image: '', 
+      sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
+      colors: ['Brown', 'Black', 'White'], 
+      packs: ['24 Pieces', '200 Pieces'] 
+    });
     setShowVariantPricing(false);
     setVariantPricing([]);
   };
@@ -154,9 +201,9 @@ export default function AdminProductsPage() {
   };
 
   const generateVariantCombinations = () => {
-    const sizes = editForm.sizes ? editForm.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
-    const colors = editForm.colors ? editForm.colors.split(',').map(s => s.trim()).filter(s => s) : [];
-    const packs = editForm.packs ? editForm.packs.split(',').map(s => s.trim()).filter(s => s) : [];
+    const sizes = editForm.sizes || [];
+    const colors = editForm.colors || [];
+    const packs = editForm.packs || [];
 
     const combinations: Array<{ size?: string; color?: string; pack?: string; price: number }> = [];
     
@@ -181,6 +228,56 @@ export default function AdminProductsPage() {
     setVariantPricing(combinations);
   };
 
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setForm({ ...form, image: data.imageUrl });
+        setImagePreview(data.imageUrl);
+      } else {
+        alert('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleImageRemove = () => {
+    setForm({ ...form, image: '' });
+    setImagePreview(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+      
+      handleImageUpload(file);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Products</h1>
@@ -193,9 +290,137 @@ export default function AdminProductsPage() {
           <input className="border rounded px-3 py-2" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
           <input className="border rounded px-3 py-2" placeholder="Image URL" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
           <input className="border rounded px-3 py-2 md:col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <input className="border rounded px-3 py-2" placeholder="Sizes (comma separated)" value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} />
-          <input className="border rounded px-3 py-2" placeholder="Colors (comma separated)" value={form.colors} onChange={(e) => setForm({ ...form, colors: e.target.value })} />
-          <input className="border rounded px-3 py-2" placeholder="Packs (comma separated)" value={form.packs} onChange={(e) => setForm({ ...form, packs: e.target.value })} />
+        </div>
+
+        {/* Image Upload Section */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+          <div className="space-y-4">
+            {/* Image Preview */}
+            {(form.image || imagePreview) && (
+              <div className="relative inline-block">
+                <img
+                  src={form.image || imagePreview || ''}
+                  alt="Product preview"
+                  className="w-32 h-32 object-cover rounded-lg border"
+                />
+                <button
+                  type="button"
+                  onClick={handleImageRemove}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            {/* Upload Options */}
+            <div className="flex space-x-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={uploadingImage}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadingImage && (
+                  <div className="mt-2 text-sm text-blue-600">Uploading...</div>
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Or Enter URL</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={form.image}
+                  onChange={(e) => {
+                    setForm({ ...form, image: e.target.value });
+                    setImagePreview(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Variant Selection */}
+        <div className="mt-4 space-y-4">
+          <h3 className="font-semibold text-gray-700">Product Variants</h3>
+          
+          {/* Sizes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Sizes</label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'].map(size => (
+                <label key={size} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={form.sizes?.includes(size) || false}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setForm({ ...form, sizes: [...(form.sizes || []), size] });
+                      } else {
+                        setForm({ ...form, sizes: (form.sizes || []).filter(s => s !== size) });
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">{size}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Colors */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Colors</label>
+            <div className="grid grid-cols-3 gap-2">
+              {['Brown', 'Black', 'White'].map(color => (
+                <label key={color} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={form.colors?.includes(color) || false}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setForm({ ...form, colors: [...(form.colors || []), color] });
+                      } else {
+                        setForm({ ...form, colors: (form.colors || []).filter(c => c !== color) });
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">{color}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Packs */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Packs</label>
+            <div className="grid grid-cols-2 gap-2">
+              {['24 Pieces', '200 Pieces'].map(pack => (
+                <label key={pack} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={form.packs?.includes(pack) || false}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setForm({ ...form, packs: [...(form.packs || []), pack] });
+                      } else {
+                        setForm({ ...form, packs: (form.packs || []).filter(p => p !== pack) });
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">{pack}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
         <button className="mt-3 bg-blue-600 text-white px-4 py-2 rounded" onClick={createProduct}>Create</button>
       </div>
@@ -233,17 +458,32 @@ export default function AdminProductsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map(product => (
               <div key={product._id} className="bg-white border rounded-lg p-4 shadow-sm">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start space-x-4 mb-3">
+                  {/* Product Image */}
+                  {product.image && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-16 h-16 object-cover rounded-lg border"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
-                    <p className="text-sm text-gray-600 capitalize">{product.category}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">₹{product.price}</div>
-                    <div className={`text-xs px-2 py-1 rounded-full ${
-                      product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
+                        <p className="text-sm text-gray-600 capitalize">{product.category}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">₹{product.price}</div>
+                        <div className={`text-xs px-2 py-1 rounded-full ${
+                          product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {product.inStock ? 'In Stock' : 'Out of Stock'}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -372,6 +612,70 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
 
+                {/* Image Upload Section for Edit */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+                  <div className="space-y-4">
+                    {/* Image Preview */}
+                    {editForm.image && (
+                      <div className="relative inline-block">
+                        <img
+                          src={editForm.image}
+                          alt="Product preview"
+                          className="w-32 h-32 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, image: '' })}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Upload Options */}
+                    <div className="flex space-x-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload New Image</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (!file.type.startsWith('image/')) {
+                                alert('Please select an image file');
+                                return;
+                              }
+                              if (file.size > 5 * 1024 * 1024) {
+                                alert('File size must be less than 5MB');
+                                return;
+                              }
+                              handleImageUpload(file);
+                            }
+                          }}
+                          disabled={uploadingImage}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        {uploadingImage && (
+                          <div className="mt-2 text-sm text-blue-600">Uploading...</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Or Enter URL</label>
+                        <input
+                          type="url"
+                          placeholder="https://example.com/image.jpg"
+                          value={editForm.image}
+                          onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <textarea
@@ -383,36 +687,80 @@ export default function AdminProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Variant Selection for Edit */}
+                <div className="mt-4 space-y-4">
+                  <h4 className="font-semibold text-gray-700">Product Variants</h4>
+                  
+                  {/* Sizes */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma separated)</label>
-                    <input
-                      type="text"
-                      value={editForm.sizes}
-                      onChange={(e) => setEditForm({ ...editForm, sizes: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g., Small, Medium, Large"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sizes</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'].map(size => (
+                        <label key={size} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editForm.sizes?.includes(size) || false}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditForm({ ...editForm, sizes: [...(editForm.sizes || []), size] });
+                              } else {
+                                setEditForm({ ...editForm, sizes: (editForm.sizes || []).filter(s => s !== size) });
+                              }
+                            }}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">{size}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Colors */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Colors (comma separated)</label>
-                    <input
-                      type="text"
-                      value={editForm.colors}
-                      onChange={(e) => setEditForm({ ...editForm, colors: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g., Red, Blue, Green"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Colors</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['Brown', 'Black', 'White'].map(color => (
+                        <label key={color} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editForm.colors?.includes(color) || false}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditForm({ ...editForm, colors: [...(editForm.colors || []), color] });
+                              } else {
+                                setEditForm({ ...editForm, colors: (editForm.colors || []).filter(c => c !== color) });
+                              }
+                            }}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">{color}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Packs */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Packs (comma separated)</label>
-                    <input
-                      type="text"
-                      value={editForm.packs}
-                      onChange={(e) => setEditForm({ ...editForm, packs: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g., 12 pieces, 24 pieces"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Packs</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['24 Pieces', '200 Pieces'].map(pack => (
+                        <label key={pack} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editForm.packs?.includes(pack) || false}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditForm({ ...editForm, packs: [...(editForm.packs || []), pack] });
+                              } else {
+                                setEditForm({ ...editForm, packs: (editForm.packs || []).filter(p => p !== pack) });
+                              }
+                            }}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">{pack}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
