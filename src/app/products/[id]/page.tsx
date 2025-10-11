@@ -10,7 +10,8 @@ import Accordion from '@/components/ui/Accordion';
 
 async function getProduct(id: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/products/${id}`, {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
+    const response = await fetch(`${baseUrl}/api/products/${id}`, {
       cache: 'no-store' // Always fetch fresh data
     });
     

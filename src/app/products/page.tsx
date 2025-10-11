@@ -39,7 +39,9 @@ interface ProductsPageProps {
 
 async function getProducts() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/products`, {
+    // Use relative URL for server-side fetching
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
+    const response = await fetch(`${baseUrl}/api/products`, {
       cache: 'no-store' // Always fetch fresh data
     });
     
