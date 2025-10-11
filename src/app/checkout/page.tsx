@@ -14,6 +14,9 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [gstin, setGstin] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Error states for form validation
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const { items: cartItems, subtotalInPaise, clear } = useCart();
 
@@ -28,10 +31,54 @@ export default function CheckoutPage() {
     document.body.appendChild(script);
   }, []);
 
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+    
+    if (!phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^[6-9]\d{9}$/.test(phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+    
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!address1.trim()) {
+      newErrors.address1 = 'Address is required';
+    }
+    
+    if (!city.trim()) {
+      newErrors.city = 'City is required';
+    }
+    
+    if (!state.trim()) {
+      newErrors.state = 'State is required';
+    }
+    
+    if (!postalCode.trim()) {
+      newErrors.postalCode = 'Postal code is required';
+    } else if (!/^\d{6}$/.test(postalCode.replace(/\D/g, ''))) {
+      newErrors.postalCode = 'Please enter a valid 6-digit postal code';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const createOrder = async () => {
+    // Validate form first
+    if (!validateForm()) {
+      return;
+    }
+    
     // Check minimum order amount
     if (subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100) {
-      alert(`Minimum order amount is ₹${MINIMUM_ORDER_AMOUNT_INR}. Please add more items to your cart.`);
+      setErrors({...errors, orderAmount: `Minimum order amount is ₹${MINIMUM_ORDER_AMOUNT_INR}. Please add more items to your cart.`});
       return;
     }
 
@@ -82,8 +129,14 @@ export default function CheckoutPage() {
         handler: (response: RazorpayHandlerResponse) => void | Promise<void>;
       };
 
+      // Get Razorpay key from meta tag
+      const razorpayKey = document.querySelector('meta[name="razorpay-key"]')?.getAttribute('content');
+      if (!razorpayKey) {
+        throw new Error('Razorpay key not found. Please check environment configuration.');
+      }
+
       const options: RazorpayOptions = {
-        key: 'rzp_live_RReoS5dvMkKg72',
+        key: razorpayKey,
         amount: rzData.order.amount,
         currency: 'INR',
         name: 'Shree Balaji Enterprises',
@@ -122,7 +175,7 @@ export default function CheckoutPage() {
       rzp.open();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Something went wrong';
-      alert(message);
+      setErrors({...errors, payment: message});
     } finally {
       setIsSubmitting(false);
     }
@@ -136,17 +189,130 @@ export default function CheckoutPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4">Billing & Shipping</h2>
           <div className="space-y-3">
-            <input className="w-full border p-3 rounded" placeholder="Full Name" value={fullName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)} />
-            <input className="w-full border p-3 rounded" placeholder="Phone" value={phone} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)} />
-            <input className="w-full border p-3 rounded" placeholder="Email (optional)" value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} />
-            <input className="w-full border p-3 rounded" placeholder="Address Line 1" value={address1} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress1(e.target.value)} />
-            <input className="w-full border p-3 rounded" placeholder="Address Line 2" value={address2} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress2(e.target.value)} />
-            <div className="grid grid-cols-2 gap-3">
-              <input className="w-full border p-3 rounded" placeholder="City" value={city} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCity(e.target.value)} />
-              <input className="w-full border p-3 rounded" placeholder="State" value={state} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setState(e.target.value)} />
+            <div>
+              <input 
+                className={`w-full border p-3 rounded ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`} 
+                placeholder="Full Name" 
+                value={fullName} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setFullName(e.target.value);
+                  if (errors.fullName) {
+                    setErrors({...errors, fullName: ''});
+                  }
+                }} 
+              />
+              {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
             </div>
-            <input className="w-full border p-3 rounded" placeholder="Postal Code" value={postalCode} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPostalCode(e.target.value)} />
-            <input className="w-full border p-3 rounded" placeholder="GSTIN (optional)" value={gstin} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGstin(e.target.value)} />
+            
+            <div>
+              <input 
+                className={`w-full border p-3 rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} 
+                placeholder="Phone" 
+                value={phone} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setPhone(e.target.value);
+                  if (errors.phone) {
+                    setErrors({...errors, phone: ''});
+                  }
+                }} 
+              />
+              {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+            </div>
+            
+            <div>
+              <input 
+                className={`w-full border p-3 rounded ${errors.email ? 'border-red-500' : 'border-gray-300'}`} 
+                placeholder="Email (optional)" 
+                value={email} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setEmail(e.target.value);
+                  if (errors.email) {
+                    setErrors({...errors, email: ''});
+                  }
+                }} 
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            </div>
+            
+            <div>
+              <input 
+                className={`w-full border p-3 rounded ${errors.address1 ? 'border-red-500' : 'border-gray-300'}`} 
+                placeholder="Address Line 1" 
+                value={address1} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setAddress1(e.target.value);
+                  if (errors.address1) {
+                    setErrors({...errors, address1: ''});
+                  }
+                }} 
+              />
+              {errors.address1 && <p className="text-red-500 text-sm mt-1">{errors.address1}</p>}
+            </div>
+            
+            <div>
+              <input 
+                className="w-full border p-3 rounded border-gray-300" 
+                placeholder="Address Line 2" 
+                value={address2} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress2(e.target.value)} 
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <input 
+                  className={`w-full border p-3 rounded ${errors.city ? 'border-red-500' : 'border-gray-300'}`} 
+                  placeholder="City" 
+                  value={city} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setCity(e.target.value);
+                    if (errors.city) {
+                      setErrors({...errors, city: ''});
+                    }
+                  }} 
+                />
+                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+              </div>
+              
+              <div>
+                <input 
+                  className={`w-full border p-3 rounded ${errors.state ? 'border-red-500' : 'border-gray-300'}`} 
+                  placeholder="State" 
+                  value={state} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setState(e.target.value);
+                    if (errors.state) {
+                      setErrors({...errors, state: ''});
+                    }
+                  }} 
+                />
+                {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
+              </div>
+            </div>
+            
+            <div>
+              <input 
+                className={`w-full border p-3 rounded ${errors.postalCode ? 'border-red-500' : 'border-gray-300'}`} 
+                placeholder="Postal Code" 
+                value={postalCode} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setPostalCode(e.target.value);
+                  if (errors.postalCode) {
+                    setErrors({...errors, postalCode: ''});
+                  }
+                }} 
+              />
+              {errors.postalCode && <p className="text-red-500 text-sm mt-1">{errors.postalCode}</p>}
+            </div>
+            
+            <div>
+              <input 
+                className="w-full border p-3 rounded border-gray-300" 
+                placeholder="GSTIN (optional)" 
+                value={gstin} 
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGstin(e.target.value)} 
+              />
+            </div>
           </div>
         </div>
 
@@ -164,9 +330,19 @@ export default function CheckoutPage() {
               <span>₹{(subtotalInPaise/100).toFixed(2)}</span>
             </div>
             <p className="text-xs text-gray-600">GST 18% and shipping calculated at next step</p>
-            {subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100 && (
+            {errors.orderAmount && (
+              <p className="text-xs text-red-600 mt-2">
+                {errors.orderAmount}
+              </p>
+            )}
+            {subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100 && !errors.orderAmount && (
               <p className="text-xs text-red-600 mt-2">
                 Minimum order amount: ₹{MINIMUM_ORDER_AMOUNT_INR}
+              </p>
+            )}
+            {errors.payment && (
+              <p className="text-xs text-red-600 mt-2">
+                {errors.payment}
               </p>
             )}
           </div>
