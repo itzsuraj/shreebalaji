@@ -48,9 +48,9 @@ export default function AdminProductsPage() {
     category: 'buttons', 
     description: '', 
     image: '', 
-    sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
-    colors: ['Brown', 'Black', 'White'], 
-    packs: ['24 Pieces', '200 Pieces'] 
+    sizes: [], 
+    colors: [], 
+    packs: [] 
   });
   const [editingProduct, setEditingProduct] = useState<AdminProductRow | null>(null);
   const [editForm, setEditForm] = useState<AdminProductForm>({ 
@@ -59,11 +59,10 @@ export default function AdminProductsPage() {
     category: 'buttons', 
     description: '', 
     image: '', 
-    sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
-    colors: ['Brown', 'Black', 'White'], 
-    packs: ['24 Pieces', '200 Pieces'] 
+    sizes: [], 
+    colors: [], 
+    packs: [] 
   });
-  const [showVariantPricing, setShowVariantPricing] = useState(false);
   const [variantPricing, setVariantPricing] = useState<Array<{
     size?: string;
     color?: string;
@@ -72,6 +71,14 @@ export default function AdminProductsPage() {
   }>>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // New variant dropdown states
+  const [newVariant, setNewVariant] = useState({
+    size: '',
+    color: '',
+    pack: '',
+    price: 0
+  });
 
   const load = async () => {
     setLoading(true);
@@ -89,9 +96,7 @@ export default function AdminProductsPage() {
       price: Number(form.price),
       category: form.category,
       image: form.image,
-      sizes: form.sizes || [],
-      colors: form.colors || [],
-      packs: form.packs || [],
+      variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
     };
     const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
@@ -101,10 +106,12 @@ export default function AdminProductsPage() {
         category: 'buttons', 
         description: '', 
         image: '', 
-        sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
-        colors: ['Brown', 'Black', 'White'], 
-        packs: ['24 Pieces', '200 Pieces'] 
+        sizes: [], 
+        colors: [], 
+        packs: [] 
       });
+      setVariantPricing([]);
+      setNewVariant({ size: '', color: '', pack: '', price: 0 });
       load();
     }
   };
@@ -123,12 +130,12 @@ export default function AdminProductsPage() {
       price: product.price,
       category: product.category,
       image: product.image || '',
-      sizes: product.sizes || ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'],
-      colors: product.colors || ['Brown', 'Black', 'White'],
-      packs: product.packs || ['24 Pieces', '200 Pieces']
+      sizes: product.sizes || [],
+      colors: product.colors || [],
+      packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setShowVariantPricing((product.variantPricing && product.variantPricing.length > 0) || false);
+    setNewVariant({ size: '', color: '', pack: '', price: 0 });
   };
 
   const updateProduct = async () => {
@@ -140,10 +147,7 @@ export default function AdminProductsPage() {
       price: Number(editForm.price),
       category: editForm.category,
       image: editForm.image,
-      sizes: editForm.sizes || [],
-      colors: editForm.colors || [],
-      packs: editForm.packs || [],
-      variantPricing: showVariantPricing ? variantPricing : undefined,
+      variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
     };
     
     const res = await fetch(`/api/admin/products/${editingProduct._id}`, { 
@@ -160,12 +164,12 @@ export default function AdminProductsPage() {
         category: 'buttons', 
         description: '', 
         image: '', 
-        sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
-        colors: ['Brown', 'Black', 'White'], 
-        packs: ['24 Pieces', '200 Pieces'] 
+        sizes: [], 
+        colors: [], 
+        packs: [] 
       });
-      setShowVariantPricing(false);
       setVariantPricing([]);
+      setNewVariant({ size: '', color: '', pack: '', price: 0 });
       load();
     }
   };
@@ -178,55 +182,14 @@ export default function AdminProductsPage() {
       category: 'buttons', 
       description: '', 
       image: '', 
-      sizes: ['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'], 
-      colors: ['Brown', 'Black', 'White'], 
-      packs: ['24 Pieces', '200 Pieces'] 
+      sizes: [], 
+      colors: [], 
+      packs: [] 
     });
-    setShowVariantPricing(false);
     setVariantPricing([]);
+    setNewVariant({ size: '', color: '', pack: '', price: 0 });
   };
 
-  const addVariantPrice = () => {
-    setVariantPricing([...variantPricing, { price: 0 }]);
-  };
-
-  const removeVariantPrice = (index: number) => {
-    setVariantPricing(variantPricing.filter((_, i) => i !== index));
-  };
-
-  const updateVariantPrice = (index: number, field: string, value: string | number) => {
-    const updated = [...variantPricing];
-    updated[index] = { ...updated[index], [field]: value };
-    setVariantPricing(updated);
-  };
-
-  const generateVariantCombinations = () => {
-    const sizes = editForm.sizes || [];
-    const colors = editForm.colors || [];
-    const packs = editForm.packs || [];
-
-    const combinations: Array<{ size?: string; color?: string; pack?: string; price: number }> = [];
-    
-    // Generate all possible combinations
-    const allSizes = sizes.length > 0 ? sizes : [''];
-    const allColors = colors.length > 0 ? colors : [''];
-    const allPacks = packs.length > 0 ? packs : [''];
-
-    allSizes.forEach(size => {
-      allColors.forEach(color => {
-        allPacks.forEach(pack => {
-          combinations.push({
-            size: size || undefined,
-            color: color || undefined,
-            pack: pack || undefined,
-            price: editForm.price
-          });
-        });
-      });
-    });
-
-    setVariantPricing(combinations);
-  };
 
   const handleImageUpload = async (file: File) => {
     setUploadingImage(true);
@@ -276,6 +239,40 @@ export default function AdminProductsPage() {
       
       handleImageUpload(file);
     }
+  };
+
+  // New variant dropdown functions
+  const addVariantCombination = () => {
+    if (!newVariant.size || !newVariant.color || !newVariant.pack || newVariant.price <= 0) {
+      alert('Please fill all fields and set a valid price');
+      return;
+    }
+
+    const combination = {
+      size: newVariant.size,
+      color: newVariant.color,
+      pack: newVariant.pack,
+      price: newVariant.price
+    };
+
+    // Check if combination already exists
+    const exists = variantPricing.some(v => 
+      v.size === combination.size && 
+      v.color === combination.color && 
+      v.pack === combination.pack
+    );
+
+    if (exists) {
+      alert('This combination already exists');
+      return;
+    }
+
+    setVariantPricing([...variantPricing, combination]);
+    setNewVariant({ size: '', color: '', pack: '', price: 0 });
+  };
+
+  const removeVariantCombination = (index: number) => {
+    setVariantPricing(variantPricing.filter((_, i) => i !== index));
   };
 
   return (
@@ -346,81 +343,105 @@ export default function AdminProductsPage() {
           </div>
         </div>
         
-        {/* Variant Selection */}
+        {/* Variant Pricing System */}
         <div className="mt-4 space-y-4">
-          <h3 className="font-semibold text-gray-700">Product Variants</h3>
+          <h3 className="font-semibold text-gray-700">Product Variants with Pricing</h3>
           
-          {/* Sizes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Sizes</label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'].map(size => (
-                <label key={size} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={form.sizes?.includes(size) || false}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setForm({ ...form, sizes: [...(form.sizes || []), size] });
-                      } else {
-                        setForm({ ...form, sizes: (form.sizes || []).filter(s => s !== size) });
-                      }
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">{size}</span>
-                </label>
-              ))}
+          {/* Add New Variant Combination */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium text-gray-800 mb-3">Add Variant Combination</h4>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                <select
+                  value={newVariant.size}
+                  onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Size</option>
+                  <option value="10mm (16L)">10mm (16L)</option>
+                  <option value="11mm (18L)">11mm (18L)</option>
+                  <option value="12mm (20L)">12mm (20L)</option>
+                  <option value="15mm (24L)">15mm (24L)</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <select
+                  value={newVariant.color}
+                  onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Color</option>
+                  <option value="Brown">Brown</option>
+                  <option value="Black">Black</option>
+                  <option value="White">White</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pack</label>
+                <select
+                  value={newVariant.pack}
+                  onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Pack</option>
+                  <option value="24 Pieces">24 Pieces</option>
+                  <option value="200 Pieces">200 Pieces</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                <input
+                  type="number"
+                  value={newVariant.price}
+                  onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+              
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={addVariantCombination}
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Add
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Colors */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Colors</label>
-            <div className="grid grid-cols-3 gap-2">
-              {['Brown', 'Black', 'White'].map(color => (
-                <label key={color} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={form.colors?.includes(color) || false}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setForm({ ...form, colors: [...(form.colors || []), color] });
-                      } else {
-                        setForm({ ...form, colors: (form.colors || []).filter(c => c !== color) });
-                      }
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">{color}</span>
-                </label>
-              ))}
+          {/* Display Added Variants */}
+          {variantPricing.length > 0 && (
+            <div className="bg-white border rounded-lg p-4">
+              <h4 className="font-medium text-gray-800 mb-3">Added Variants ({variantPricing.length})</h4>
+              <div className="space-y-2">
+                {variantPricing.map((variant, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm font-medium">{variant.size}</span>
+                      <span className="text-sm text-gray-600">{variant.color}</span>
+                      <span className="text-sm text-gray-600">{variant.pack}</span>
+                      <span className="text-sm font-bold text-green-600">₹{variant.price}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeVariantCombination(index)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Packs */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Packs</label>
-            <div className="grid grid-cols-2 gap-2">
-              {['24 Pieces', '200 Pieces'].map(pack => (
-                <label key={pack} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={form.packs?.includes(pack) || false}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setForm({ ...form, packs: [...(form.packs || []), pack] });
-                      } else {
-                        setForm({ ...form, packs: (form.packs || []).filter(p => p !== pack) });
-                      }
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">{pack}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
         <button className="mt-3 bg-blue-600 text-white px-4 py-2 rounded" onClick={createProduct}>Create</button>
       </div>
@@ -493,28 +514,22 @@ export default function AdminProductsPage() {
                 )}
                 
                 <div className="space-y-2 mb-3">
-                  {product.sizes && product.sizes.length > 0 && (
+                  {product.variantPricing && product.variantPricing.length > 0 && (
                     <div className="text-xs">
-                      <span className="font-medium text-gray-700">Sizes:</span>
-                      <span className="ml-1 text-gray-600">{product.sizes.join(', ')}</span>
-                    </div>
-                  )}
-                  {product.colors && product.colors.length > 0 && (
-                    <div className="text-xs">
-                      <span className="font-medium text-gray-700">Colors:</span>
-                      <span className="ml-1 text-gray-600">{product.colors.join(', ')}</span>
-                    </div>
-                  )}
-                  {product.packs && product.packs.length > 0 && (
-                    <div className="text-xs">
-                      <span className="font-medium text-gray-700">Packs:</span>
-                      <span className="ml-1 text-gray-600">{product.packs.join(', ')}</span>
+                      <span className="font-medium text-gray-700">Variants:</span>
+                      <span className="ml-1 text-gray-600">{product.variantPricing.length} combinations</span>
                     </div>
                   )}
                   {product.variantPricing && product.variantPricing.length > 0 && (
-                    <div className="text-xs">
-                      <span className="font-medium text-gray-700">Variant Pricing:</span>
-                      <span className="ml-1 text-gray-600">{product.variantPricing.length} combinations</span>
+                    <div className="text-xs max-h-20 overflow-y-auto">
+                      {product.variantPricing.slice(0, 3).map((variant, index) => (
+                        <div key={index} className="text-xs text-gray-500">
+                          {variant.size} - {variant.color} - {variant.pack}: ₹{variant.price}
+                        </div>
+                      ))}
+                      {product.variantPricing.length > 3 && (
+                        <div className="text-xs text-gray-400">+{product.variantPricing.length - 3} more...</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -687,169 +702,107 @@ export default function AdminProductsPage() {
                   />
                 </div>
 
-                {/* Variant Selection for Edit */}
+                {/* Variant Pricing System for Edit */}
                 <div className="mt-4 space-y-4">
-                  <h4 className="font-semibold text-gray-700">Product Variants</h4>
+                  <h4 className="font-semibold text-gray-700">Product Variants with Pricing</h4>
                   
-                  {/* Sizes */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sizes</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {['10mm (16L)', '11mm (18L)', '12mm (20L)', '15mm (24L)'].map(size => (
-                        <label key={size} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={editForm.sizes?.includes(size) || false}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setEditForm({ ...editForm, sizes: [...(editForm.sizes || []), size] });
-                              } else {
-                                setEditForm({ ...editForm, sizes: (editForm.sizes || []).filter(s => s !== size) });
-                              }
-                            }}
-                            className="mr-2"
-                          />
-                          <span className="text-sm">{size}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Colors */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Colors</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['Brown', 'Black', 'White'].map(color => (
-                        <label key={color} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={editForm.colors?.includes(color) || false}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setEditForm({ ...editForm, colors: [...(editForm.colors || []), color] });
-                              } else {
-                                setEditForm({ ...editForm, colors: (editForm.colors || []).filter(c => c !== color) });
-                              }
-                            }}
-                            className="mr-2"
-                          />
-                          <span className="text-sm">{color}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Packs */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Packs</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['24 Pieces', '200 Pieces'].map(pack => (
-                        <label key={pack} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={editForm.packs?.includes(pack) || false}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setEditForm({ ...editForm, packs: [...(editForm.packs || []), pack] });
-                              } else {
-                                setEditForm({ ...editForm, packs: (editForm.packs || []).filter(p => p !== pack) });
-                              }
-                            }}
-                            className="mr-2"
-                          />
-                          <span className="text-sm">{pack}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Variant Pricing Section */}
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-medium text-gray-900">Variant Pricing</h4>
-                    <div className="flex space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowVariantPricing(!showVariantPricing)}
-                        className={`px-3 py-1 text-sm rounded-md ${
-                          showVariantPricing 
-                            ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                            : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        }`}
-                      >
-                        {showVariantPricing ? 'Disable' : 'Enable'} Variant Pricing
-                      </button>
-                      {showVariantPricing && (
-                        <button
-                          type="button"
-                          onClick={generateVariantCombinations}
-                          className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200"
+                  {/* Add New Variant Combination */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h5 className="font-medium text-gray-800 mb-3">Add Variant Combination</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                        <select
+                          value={newVariant.size}
+                          onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          Auto Generate
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {showVariantPricing && (
-                    <div className="space-y-4">
-                      <div className="text-sm text-gray-600">
-                        Set different prices for different combinations of sizes, colors, and packs.
+                          <option value="">Select Size</option>
+                          <option value="10mm (16L)">10mm (16L)</option>
+                          <option value="11mm (18L)">11mm (18L)</option>
+                          <option value="12mm (20L)">12mm (20L)</option>
+                          <option value="15mm (24L)">15mm (24L)</option>
+                        </select>
                       </div>
                       
-                      {variantPricing.map((variant, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2">
-                            <input
-                              type="text"
-                              value={variant.size || ''}
-                              onChange={(e) => updateVariantPrice(index, 'size', e.target.value)}
-                              placeholder="Size"
-                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            <input
-                              type="text"
-                              value={variant.color || ''}
-                              onChange={(e) => updateVariantPrice(index, 'color', e.target.value)}
-                              placeholder="Color"
-                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            <input
-                              type="text"
-                              value={variant.pack || ''}
-                              onChange={(e) => updateVariantPrice(index, 'pack', e.target.value)}
-                              placeholder="Pack"
-                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                            <input
-                              type="number"
-                              value={variant.price}
-                              onChange={(e) => updateVariantPrice(index, 'price', Number(e.target.value))}
-                              placeholder="Price"
-                              className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeVariantPrice(index)}
-                            className="px-2 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                        <select
+                          value={newVariant.color}
+                          onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select Color</option>
+                          <option value="Brown">Brown</option>
+                          <option value="Black">Black</option>
+                          <option value="White">White</option>
+                        </select>
+                      </div>
                       
-                      <button
-                        type="button"
-                        onClick={addVariantPrice}
-                        className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700"
-                      >
-                        + Add Variant Price
-                      </button>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Pack</label>
+                        <select
+                          value={newVariant.pack}
+                          onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select Pack</option>
+                          <option value="24 Pieces">24 Pieces</option>
+                          <option value="200 Pieces">200 Pieces</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newVariant.price}
+                          onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="0"
+                          min="0"
+                        />
+                      </div>
+                      
+                      <div className="flex items-end">
+                        <button
+                          type="button"
+                          onClick={addVariantCombination}
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Display Added Variants */}
+                  {variantPricing.length > 0 && (
+                    <div className="bg-white border rounded-lg p-4">
+                      <h5 className="font-medium text-gray-800 mb-3">Added Variants ({variantPricing.length})</h5>
+                      <div className="space-y-2">
+                        {variantPricing.map((variant, index) => (
+                          <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <div className="flex items-center space-x-4">
+                              <span className="text-sm font-medium">{variant.size}</span>
+                              <span className="text-sm text-gray-600">{variant.color}</span>
+                              <span className="text-sm text-gray-600">{variant.pack}</span>
+                              <span className="text-sm font-bold text-green-600">₹{variant.price}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeVariantCombination(index)}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
+
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
