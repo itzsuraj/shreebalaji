@@ -31,6 +31,8 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<AdminProductRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<AdminProductForm>({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+  const [editingProduct, setEditingProduct] = useState<AdminProductRow | null>(null);
+  const [editForm, setEditForm] = useState<AdminProductForm>({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
 
   const load = async () => {
     setLoading(true);
@@ -63,6 +65,52 @@ export default function AdminProductsPage() {
     if (!confirm('Delete this product?')) return;
     const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
     if (res.ok) load();
+  };
+
+  const startEdit = (product: AdminProductRow) => {
+    setEditingProduct(product);
+    setEditForm({
+      name: product.name,
+      description: product.description || '',
+      price: product.price,
+      category: product.category,
+      image: product.image || '',
+      sizes: product.sizes ? product.sizes.join(', ') : '',
+      colors: product.colors ? product.colors.join(', ') : '',
+      packs: product.packs ? product.packs.join(', ') : ''
+    });
+  };
+
+  const updateProduct = async () => {
+    if (!editingProduct) return;
+    
+    const payload = {
+      name: editForm.name,
+      description: editForm.description,
+      price: Number(editForm.price),
+      category: editForm.category,
+      image: editForm.image,
+      sizes: editForm.sizes ? editForm.sizes.split(',').map(s => s.trim()) : [],
+      colors: editForm.colors ? editForm.colors.split(',').map(s => s.trim()) : [],
+      packs: editForm.packs ? editForm.packs.split(',').map(s => s.trim()) : [],
+    };
+    
+    const res = await fetch(`/api/admin/products/${editingProduct._id}`, { 
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify(payload) 
+    });
+    
+    if (res.ok) {
+      setEditingProduct(null);
+      setEditForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
+      load();
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingProduct(null);
+    setEditForm({ name: '', price: 0, category: 'buttons', description: '', image: '', sizes: '', colors: '', packs: '' });
   };
 
   return (
@@ -161,15 +209,155 @@ export default function AdminProductsPage() {
                   <div className="text-xs text-gray-500">
                     ID: {product._id.slice(-8)}
                   </div>
-                  <button 
-                    onClick={() => remove(product._id)}
-                    className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => startEdit(product)}
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => remove(product._id)}
+                      className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Edit Product</h3>
+                <button
+                  onClick={cancelEdit}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter price"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select
+                      value={editForm.category}
+                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="buttons">Buttons</option>
+                      <option value="zippers">Zippers</option>
+                      <option value="elastic">Elastic</option>
+                      <option value="cords">Cords</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                    <input
+                      type="url"
+                      value={editForm.image}
+                      onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter image URL"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter product description"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma separated)</label>
+                    <input
+                      type="text"
+                      value={editForm.sizes}
+                      onChange={(e) => setEditForm({ ...editForm, sizes: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., Small, Medium, Large"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Colors (comma separated)</label>
+                    <input
+                      type="text"
+                      value={editForm.colors}
+                      onChange={(e) => setEditForm({ ...editForm, colors: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., Red, Blue, Green"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Packs (comma separated)</label>
+                    <input
+                      type="text"
+                      value={editForm.packs}
+                      onChange={(e) => setEditForm({ ...editForm, packs: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., 12 pieces, 24 pieces"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={cancelEdit}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateProduct}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Update Product
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
