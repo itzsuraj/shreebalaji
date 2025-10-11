@@ -193,7 +193,10 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+          <p className="text-gray-600">Manage and track customer orders</p>
+        </div>
         <div className="flex space-x-3">
           <button 
             onClick={exportOrders}
