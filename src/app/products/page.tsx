@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import ProductsClient from './ProductsClient';
 import ProductsStructuredData from './ProductsStructuredData';
+import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 
 export const metadata: Metadata = {
   title: "All Products - Garment Accessories | Shree Balaji Enterprises",
@@ -66,6 +67,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   
   return (
     <>
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: 'https://www.balajisphere.com/' },
+          { name: 'Products', url: 'https://www.balajisphere.com/products' },
+        ]}
+      />
       <ProductsStructuredData products={products} />
       <ProductsClient products={products} searchQuery={searchQuery} initialCategory={category} />
     </>

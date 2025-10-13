@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Search } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { getEmailLink } from '@/utils/emailProtection';
 
@@ -152,6 +152,7 @@ const getSearchSuggestions = (query: string): string[] => {
 
 export default function Header() {
   const { count } = useCart();
+  const pathname = usePathname();
   const [bumpCart, setBumpCart] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -229,9 +230,11 @@ export default function Header() {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setSearchQuery(suggestion);
-    const results = smartSearch(suggestion, sampleProducts);
-    setSearchResults(results);
+    // Navigate directly to products page with the suggested query so real DB search runs
+    router.push(`/products?search=${encodeURIComponent(suggestion)}`);
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
     setShowSuggestions(false);
   };
 
@@ -304,12 +307,14 @@ export default function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <Link href="/cart" className={`relative text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`} title="Cart">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
-              {count > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{count}</span>
-              )}
-            </Link>
+            {!(pathname?.startsWith('/admin')) && (
+              <Link href="/cart" className={`relative text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`} title="Cart">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
+                {count > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{count}</span>
+                )}
+              </Link>
+            )}
             
             <button
               onClick={handleWhatsAppClick}
@@ -329,12 +334,14 @@ export default function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <Link href="/cart" className={`relative text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`} title="Cart">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
-              {count > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{count}</span>
-              )}
-            </Link>
+            {!(pathname?.startsWith('/admin')) && (
+              <Link href="/cart" className={`relative text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`} title="Cart">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
+                {count > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{count}</span>
+                )}
+              </Link>
+            )}
             <button
               onClick={handleWhatsAppClick}
               className="p-2 text-green-600 hover:text-green-700 transition-colors"

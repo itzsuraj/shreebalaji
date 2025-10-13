@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/db';
 import Order from '@/models/Order';
+import Product from '@/models/Product';
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 400 });
     }
 
-    await Order.findByIdAndUpdate(orderId, {
+    const order = await Order.findByIdAndUpdate(orderId, {
       $set: {
         'payment.status': 'paid',
         'payment.razorpayOrderId': razorpay_order_id,
@@ -51,7 +52,32 @@ export async function POST(req: NextRequest) {
         'payment.razorpaySignature': razorpay_signature,
         status: 'processing',
       },
-    });
+    }, { new: true }).lean();
+
+    // Decrement stock after successful payment
+    if (order && Array.isArray((order as unknown as { items: Array<{ productId: string; sku?: string; quantity: number }> }).items)) {
+      for (const it of (order as unknown as { items: Array<{ productId: string; sku?: string; quantity: number }> }).items) {
+        const prod = await Product.findById(it.productId);
+        if (!prod) continue;
+        const hasVariants = Array.isArray((prod as unknown as { variantPricing?: Array<{ sku?: string; stockQty?: number }> }).variantPricing) && (prod as unknown as { variantPricing: Array<{ sku?: string; stockQty?: number }> }).variantPricing.length > 0;
+        if (hasVariants) {
+          const v = (prod as unknown as { variantPricing: Array<{ sku?: string; stockQty?: number }> }).variantPricing.find((vp) => vp.sku && vp.sku === it.sku);
+          if (v && typeof v.stockQty === 'number') {
+            v.stockQty = Math.max(0, v.stockQty - (it.quantity || 0));
+          }
+          // Recompute product inStock
+          const variantHasStock = (prod as unknown as { variantPricing: Array<{ stockQty?: number; inStock?: boolean }> }).variantPricing.some((vp) => (vp?.stockQty ?? 0) > 0 || vp?.inStock === true);
+          (prod as unknown as { inStock: boolean; stockQty?: number }).inStock = Boolean(variantHasStock || (((prod as unknown as { stockQty?: number }).stockQty) ?? 0) > 0);
+          await prod.save();
+        } else {
+          if (typeof (prod as unknown as { stockQty?: number }).stockQty === 'number') {
+            (prod as unknown as { stockQty?: number }).stockQty = Math.max(0, ((prod as unknown as { stockQty?: number }).stockQty || 0) - (it.quantity || 0));
+            (prod as unknown as { inStock: boolean; stockQty?: number }).inStock = (((prod as unknown as { stockQty?: number }).stockQty) ?? 0) > 0;
+            await prod.save();
+          }
+        }
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

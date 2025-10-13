@@ -8,6 +8,7 @@ interface AdminProductForm {
   price: number;
   category: string;
   image?: string;
+  stockQty?: number;
   sizes?: string[];
   colors?: string[];
   packs?: string[];
@@ -16,6 +17,9 @@ interface AdminProductForm {
     color?: string;
     pack?: string;
     price: number;
+    stockQty?: number;
+    inStock?: boolean;
+    sku?: string;
   }>;
 }
 
@@ -27,6 +31,7 @@ interface AdminProductRow {
   description?: string;
   image?: string;
   inStock?: boolean;
+  stockQty?: number;
   sizes?: string[];
   colors?: string[];
   packs?: string[];
@@ -35,6 +40,9 @@ interface AdminProductRow {
     color?: string;
     pack?: string;
     price: number;
+    stockQty?: number;
+    inStock?: boolean;
+    sku?: string;
   }>;
   createdAt?: string;
 }
@@ -48,6 +56,7 @@ export default function AdminProductsPage() {
     category: 'buttons', 
     description: '', 
     image: '', 
+    stockQty: 0,
     sizes: [], 
     colors: [], 
     packs: [] 
@@ -59,6 +68,7 @@ export default function AdminProductsPage() {
     category: 'buttons', 
     description: '', 
     image: '', 
+    stockQty: 0,
     sizes: [], 
     colors: [], 
     packs: [] 
@@ -77,7 +87,9 @@ export default function AdminProductsPage() {
     size: '',
     color: '',
     pack: '',
-    price: 0
+    price: 0,
+    stockQty: 0,
+    sku: ''
   });
 
   const load = async () => {
@@ -96,6 +108,7 @@ export default function AdminProductsPage() {
       price: Number(form.price),
       category: form.category,
       image: form.image,
+      stockQty: Number(form.stockQty || 0),
       variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
     };
     const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -106,12 +119,13 @@ export default function AdminProductsPage() {
         category: 'buttons', 
         description: '', 
         image: '', 
+        stockQty: 0,
         sizes: [], 
         colors: [], 
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', price: 0 });
+      setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
       load();
     }
   };
@@ -130,12 +144,13 @@ export default function AdminProductsPage() {
       price: product.price,
       category: product.category,
       image: product.image || '',
+      stockQty: product.stockQty || 0,
       sizes: product.sizes || [],
       colors: product.colors || [],
       packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setNewVariant({ size: '', color: '', pack: '', price: 0 });
+    setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
   };
 
   const updateProduct = async () => {
@@ -147,6 +162,7 @@ export default function AdminProductsPage() {
       price: Number(editForm.price),
       category: editForm.category,
       image: editForm.image,
+       stockQty: Number(editForm.stockQty || 0),
       variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
     };
     
@@ -164,12 +180,13 @@ export default function AdminProductsPage() {
         category: 'buttons', 
         description: '', 
         image: '', 
+        stockQty: 0,
         sizes: [], 
         colors: [], 
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', price: 0 });
+      setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
       load();
     }
   };
@@ -182,12 +199,13 @@ export default function AdminProductsPage() {
       category: 'buttons', 
       description: '', 
       image: '', 
+      stockQty: 0,
       sizes: [], 
       colors: [], 
       packs: [] 
     });
     setVariantPricing([]);
-    setNewVariant({ size: '', color: '', pack: '', price: 0 });
+    setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
   };
 
 
@@ -242,7 +260,7 @@ export default function AdminProductsPage() {
   };
 
   // New variant dropdown functions
-  const addVariantCombination = () => {
+         const addVariantCombination = () => {
     if (!newVariant.size || !newVariant.color || !newVariant.pack || newVariant.price <= 0) {
       alert('Please fill all fields and set a valid price');
       return;
@@ -252,7 +270,8 @@ export default function AdminProductsPage() {
       size: newVariant.size,
       color: newVariant.color,
       pack: newVariant.pack,
-      price: newVariant.price
+             price: newVariant.price,
+             stockQty: Number(newVariant.stockQty || 0)
     };
 
     // Check if combination already exists
@@ -268,7 +287,7 @@ export default function AdminProductsPage() {
     }
 
     setVariantPricing([...variantPricing, combination]);
-    setNewVariant({ size: '', color: '', pack: '', price: 0 });
+           setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
   };
 
   const removeVariantCombination = (index: number) => {
@@ -286,6 +305,7 @@ export default function AdminProductsPage() {
           <input className="border rounded px-3 py-2" placeholder="Price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
           <input className="border rounded px-3 py-2" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
           <input className="border rounded px-3 py-2" placeholder="Image URL" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+                <input className="border rounded px-3 py-2" placeholder="Stock Quantity" type="number" value={form.stockQty || 0} onChange={(e) => setForm({ ...form, stockQty: Number(e.target.value) })} />
           <input className="border rounded px-3 py-2 md:col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
 
@@ -350,7 +370,7 @@ export default function AdminProductsPage() {
           {/* Add New Variant Combination */}
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-medium text-gray-800 mb-3">Add Variant Combination</h4>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                   <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
                 <select
@@ -404,8 +424,19 @@ export default function AdminProductsPage() {
                   min="0"
                 />
               </div>
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                       <input
+                         type="number"
+                         value={newVariant.stockQty}
+                         onChange={(e) => setNewVariant({ ...newVariant, stockQty: Number(e.target.value) })}
+                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                         placeholder="0"
+                         min="0"
+                       />
+                     </div>
               
-              <div className="flex items-end">
+                     <div className="flex items-end">
                 <button
                   type="button"
                   onClick={addVariantCombination}
@@ -514,17 +545,17 @@ export default function AdminProductsPage() {
                 )}
                 
                 <div className="space-y-2 mb-3">
-                  {product.variantPricing && product.variantPricing.length > 0 && (
+                         {product.variantPricing && product.variantPricing.length > 0 && (
                     <div className="text-xs">
                       <span className="font-medium text-gray-700">Variants:</span>
-                      <span className="ml-1 text-gray-600">{product.variantPricing.length} combinations</span>
+                             <span className="ml-1 text-gray-600">{product.variantPricing.length} combinations</span>
                     </div>
                   )}
                   {product.variantPricing && product.variantPricing.length > 0 && (
                     <div className="text-xs max-h-20 overflow-y-auto">
-                      {product.variantPricing.slice(0, 3).map((variant, index) => (
+                             {product.variantPricing.slice(0, 3).map((variant, index) => (
                         <div key={index} className="text-xs text-gray-500">
-                          {variant.size} - {variant.color} - {variant.pack}: ₹{variant.price}
+                                 {variant.size} - {variant.color} - {variant.pack}: ₹{variant.price} {typeof variant.stockQty === 'number' ? `(Stock: ${variant.stockQty})` : ''}
                         </div>
                       ))}
                       {product.variantPricing.length > 3 && (

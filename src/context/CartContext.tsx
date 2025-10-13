@@ -12,6 +12,7 @@ export interface CartItem {
   size?: string;
   color?: string;
   pack?: string;
+  sku?: string;
 }
 
 interface CartContextValue {
@@ -44,9 +45,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (item: CartItem) => {
     setItems(prev => {
-      const existing = prev.find(i => i.productId === item.productId && i.size === item.size && i.color === item.color && i.pack === item.pack);
+      const existing = prev.find(i => i.productId === item.productId && i.size === item.size && i.color === item.color && i.pack === item.pack && i.sku === item.sku);
       if (existing) {
-        return prev.map(i => (i.productId === item.productId && i.size === item.size && i.color === item.color && i.pack === item.pack) ? { ...i, quantity: i.quantity + item.quantity } : i);
+        return prev.map(i => (i.productId === item.productId && i.size === item.size && i.color === item.color && i.pack === item.pack && i.sku === item.sku) ? { ...i, quantity: i.quantity + item.quantity } : i);
       }
       return [...prev, item];
     });

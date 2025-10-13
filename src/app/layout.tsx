@@ -7,7 +7,7 @@ import { EnquiryProvider } from "@/context/EnquiryContext";
 import { CartProvider } from "@/context/CartContext";
 import StructuredData from "@/components/StructuredData";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import CustomerSupportWidget from "@/components/CustomerSupportWidget";
+import ClientSupportWidget from '@/components/ClientSupportWidget';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -101,16 +101,17 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white text-blue-700 px-3 py-2 rounded shadow">Skip to content</a>
         <GoogleAnalytics />
         <EnquiryProvider>
           <CartProvider>
             <div className="min-h-screen flex flex-col bg-white">
               <Header />
-              <main className="flex-grow bg-white">
+              <main id="main-content" className="flex-grow bg-white">
                 {children}
               </main>
               <Footer />
-              <CustomerSupportWidget />
+              <ClientSupportWidget />
             </div>
           </CartProvider>
         </EnquiryProvider>

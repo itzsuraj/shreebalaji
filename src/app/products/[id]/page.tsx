@@ -7,6 +7,7 @@ import { Metadata } from 'next';
 import ProductStructuredData from './ProductStructuredData';
 import ZoomableImage from '@/components/ui/ZoomableImage';
 import Accordion from '@/components/ui/Accordion';
+import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 
 async function getProduct(id: string) {
   try {
@@ -80,6 +81,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: 'https://www.balajisphere.com/' },
+          { name: 'Products', url: 'https://www.balajisphere.com/products' },
+          { name: product.name, url: `https://www.balajisphere.com/products/${product.id}` },
+        ]}
+      />
       <ProductStructuredData product={product} />
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}

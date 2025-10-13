@@ -6,7 +6,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   await connectToDatabase();
   const { id } = await params;
   const body = await req.json();
-  const updated = await Product.findByIdAndUpdate(id, body, { new: true });
+  type VariantInput = { stockQty?: number; inStock?: boolean };
+  const doc = { ...body } as { stockQty?: number; inStock?: boolean; variantPricing?: VariantInput[] };
+  const variantHasStock = Array.isArray(doc.variantPricing) && doc.variantPricing.some((v) => (v?.stockQty ?? 0) > 0 || v?.inStock === true);
+  const productHasStock = (doc.stockQty ?? 0) > 0;
+  doc.inStock = Boolean(productHasStock || variantHasStock);
+  const updated = await Product.findByIdAndUpdate(id, doc, { new: true });
   return NextResponse.json({ product: updated });
 }
 

@@ -5,10 +5,11 @@ import Link from "next/link";
 import { Star, ShoppingCart } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from "@/utils/imageUtils";
+import type { Product } from "@/types/product";
 import { useMemo, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 
-export default function HomeClient() {
+export default function HomeClient({ initialProducts = [] as Product[] }: { initialProducts?: Product[] }) {
   const { addItem } = useCart();
   const router = useRouter();
   const [products, setProducts] = useState<Array<{
@@ -32,10 +33,15 @@ export default function HomeClient() {
     rating: number;
     reviews: number;
   }>>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
 
   // Fetch products from database
   useEffect(() => {
+    if (initialProducts.length > 0) {
+      setProducts(initialProducts as unknown as typeof products);
+      setLoading(false);
+      return;
+    }
     const fetchProducts = async () => {
       try {
         const response = await fetch('/api/products');
@@ -51,7 +57,7 @@ export default function HomeClient() {
     };
 
     fetchProducts();
-  }, []);
+  }, [initialProducts]);
 
   // Memoize product filtering to avoid recalculation
   const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => ({
@@ -165,10 +171,19 @@ export default function HomeClient() {
             fill
             className="object-cover shadow-2xl"
             priority
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
-            quality={75}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+            fetchPriority="high"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
+            quality={70}
+          />
+          <Image
+            src="/banner.png"
+            alt="Shree Balaji Enterprises Banner"
+            fill
+            className="object-cover shadow-2xl"
+            priority
+            fetchPriority="high"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
+            quality={70}
           />
           <div className="absolute inset-0 bg-black opacity-40 shadow-inner"></div>
         </div>

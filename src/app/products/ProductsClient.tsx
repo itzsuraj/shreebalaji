@@ -346,30 +346,47 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
                   </div>
                 </Link>
                 <div className="px-4 pb-4 relative">
+                  {/* Stock badge */}
+                  <div className={`absolute -top-3 left-4 text-xs px-2 py-0.5 rounded-full shadow ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {product.inStock ? 'In stock' : 'Out of stock'}
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <button 
-                      onClick={() => handleAddToCart(product)}
-                      aria-live="polite"
-                      className={`${addedId===product.id ? 'bg-green-700' : 'bg-green-600'} text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-1 font-medium ${addedId===product.id ? 'scale-[0.98]' : ''}`}
-                    >
-                      {addedId===product.id ? (
-                        <>
-                          <Check className="h-3 w-3" />
-                          Added
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="h-3 w-3" />
-                          Add to Cart
-                        </>
-                      )}
-                    </button>
-                    <button 
-                      onClick={() => handleBuyNow(product)}
-                      className="bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-all font-medium"
-                    >
-                      Buy Now
-                    </button>
+                    {product.variantPricing && product.variantPricing.length > 0 ? (
+                      <Link 
+                        href={`/products/${product.id}`}
+                        className="col-span-2 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium text-center"
+                      >
+                        View options
+                      </Link>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => handleAddToCart(product)}
+                          aria-live="polite"
+                          disabled={!product.inStock}
+                          className={`${addedId===product.id ? 'bg-green-700' : 'bg-green-600'} ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''} text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-1 font-medium ${addedId===product.id ? 'scale-[0.98]' : ''}`}
+                        >
+                          {addedId===product.id ? (
+                            <>
+                              <Check className="h-3 w-3" />
+                              Added
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-3 w-3" />
+                              Add to Cart
+                            </>
+                          )}
+                        </button>
+                        <button 
+                          onClick={() => handleBuyNow(product)}
+                          disabled={!product.inStock}
+                          className={`bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          Buy Now
+                        </button>
+                      </>
+                    )}
                   </div>
                   <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => setAddedId(null)} />
                 </div>

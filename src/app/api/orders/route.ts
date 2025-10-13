@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Order from '@/models/Order';
+import Product from '@/models/Product';
 import { calculateTotals } from '@/lib/config';
 
 interface OrderItemPayload {
@@ -39,6 +40,26 @@ export async function POST(req: NextRequest) {
 
     if (!items?.length) {
       return NextResponse.json({ error: 'No items in order' }, { status: 400 });
+    }
+
+    // Validate stock server-side
+    for (const it of items) {
+      const prod = await Product.findById(it.productId).lean<{ _id: string; stockQty?: number; inStock?: boolean; variantPricing?: Array<{ sku?: string; stockQty?: number; inStock?: boolean }> }>();
+      if (!prod) {
+        return NextResponse.json({ error: `Product not found: ${it.productId}` }, { status: 400 });
+      }
+      const hasVariants = Array.isArray(prod.variantPricing) && prod.variantPricing.length > 0;
+      if (hasVariants) {
+        // If SKU present, try to match; otherwise, rely on product inStock only
+        const v = prod.variantPricing!.find((vp) => vp.sku && vp.sku === it.sku);
+        if (v && typeof v.stockQty === 'number' && v.stockQty < it.quantity) {
+          return NextResponse.json({ error: `Insufficient stock for selected variant of ${it.name}` }, { status: 409 });
+        }
+      } else {
+        if (typeof prod.stockQty === 'number' && prod.stockQty < it.quantity) {
+          return NextResponse.json({ error: `Insufficient stock for ${it.name}` }, { status: 409 });
+        }
+      }
     }
 
     const subtotalInPaise = items.reduce((sum, it) => sum + Math.round(it.price * 100) * it.quantity, 0);

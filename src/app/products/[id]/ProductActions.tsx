@@ -20,6 +20,9 @@ interface ProductActionsProps {
     color?: string;
     pack?: string;
     price: number;
+    stockQty?: number;
+    inStock?: boolean;
+    sku?: string;
   }>;
 }
 
@@ -32,31 +35,40 @@ export default function ProductActions({ productName, productId, price, image, c
   const [selectedPack, setSelectedPack] = useState<string>(packs[0] || '');
   const [qty, setQty] = useState<number>(1);
 
+  // Resolve selected variant
+  const getSelectedVariant = () => {
+    if (variantPricing.length === 0) return undefined;
+    return variantPricing.find(variant => 
+      variant.size === selectedSize && 
+      variant.color === selectedColor && 
+      variant.pack === selectedPack
+    );
+  };
+
+  const selectedVariant = getSelectedVariant();
+
   // Calculate current price based on variant selection
   const getCurrentPrice = () => {
     if (variantPricing.length === 0) {
       return price;
     }
 
-    const selectedVariant = variantPricing.find(variant => 
-      variant.size === selectedSize && 
-      variant.color === selectedColor && 
-      variant.pack === selectedPack
-    );
-
     return selectedVariant ? selectedVariant.price : price;
   };
 
   const currentPrice = getCurrentPrice();
+  const availableStock = typeof selectedVariant?.stockQty === 'number' ? selectedVariant!.stockQty! : undefined;
+  const isVariantInStock = selectedVariant ? (selectedVariant.inStock ?? (Number(availableStock) > 0)) : false;
+  const isActionDisabled = variantPricing.length > 0 && (!selectedVariant || !isVariantInStock || (availableStock !== undefined && qty > availableStock));
 
   const handleAddToCart = () => {
-    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack });
+    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack, sku: selectedVariant?.sku });
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
   };
 
   const handleBuyNow = () => {
-    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack });
+    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack, sku: selectedVariant?.sku });
     router.push('/checkout');
   };
 
@@ -142,14 +154,20 @@ export default function ProductActions({ productName, productId, price, image, c
         <div className="inline-flex items-center border rounded">
           <button type="button" className="px-3 py-1" onClick={() => setQty(q => Math.max(1, q - 1))}>-</button>
           <span className="px-4 select-none">{qty}</span>
-          <button type="button" className="px-3 py-1" onClick={() => setQty(q => q + 1)}>+</button>
+          <button type="button" className="px-3 py-1" onClick={() => setQty(q => availableStock !== undefined ? Math.min(availableStock, q + 1) : q + 1)}>+</button>
         </div>
+        {availableStock !== undefined && (
+          <span className={`text-xs ${availableStock <= 5 ? 'text-red-600' : 'text-gray-500'}`}>
+            {availableStock <= 5 ? `Only ${availableStock} left` : `${availableStock} in stock`}
+          </span>
+        )}
       </div>
       <div className="flex gap-3">
         <button 
           onClick={handleAddToCart}
           aria-live="polite"
-          className={`flex-1 ${added ? 'bg-green-700' : 'bg-green-600'} text-white py-3 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center ${added ? 'scale-[0.98]' : ''}`}
+          disabled={isActionDisabled}
+          className={`flex-1 ${added ? 'bg-green-700' : 'bg-green-600'} text-white py-3 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center ${added ? 'scale-[0.98]' : ''} ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {added ? (
             <>
@@ -165,7 +183,8 @@ export default function ProductActions({ productName, productId, price, image, c
         </button>
         <button
           onClick={handleBuyNow}
-          className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all"
+          disabled={isActionDisabled}
+          className={`flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           Buy Now
         </button>
