@@ -114,17 +114,17 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           </div>
           <div className="container mx-auto px-4 relative z-10 text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              Premium Garment Accessories
+              Premium Garment Accessories Manufacturer Mumbai
             </h1>
             <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
-              Leading manufacturer of quality buttons, zippers, elastic bands, and cotton cords for the garment industry.
+              Leading garment accessories manufacturer in Mumbai. Quality buttons, zippers, elastic bands, and cotton cords for textile industry.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/products" 
                 className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                View Products
+                Browse Garment Accessories
               </Link>
               <Link 
                 href="/contact" 
@@ -258,7 +258,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Featured Products
+            Featured Garment Accessories
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
@@ -341,7 +341,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               href="/products"
               className="inline-flex items-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-lg"
             >
-              View All Products
+              View All Garment Accessories
               <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -401,7 +401,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           {/* Buttons Category */}
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-semibold text-gray-900">Premium Buttons</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Premium Garment Buttons</h3>
               <Link href="/products?category=buttons" className="text-blue-600 hover:text-blue-800 font-semibold">
                 View All Buttons →
               </Link>
@@ -479,7 +479,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           {/* Zippers Category */}
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-semibold text-gray-900">Quality Zippers</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Quality Garment Zippers</h3>
               <Link href="/products?category=zippers" className="text-blue-600 hover:text-blue-800 font-semibold">
                 View All Zippers →
               </Link>
@@ -557,7 +557,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           {/* Elastic Category */}
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-semibold text-gray-900">Elastic Bands</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Garment Elastic Bands</h3>
               <Link href="/products?category=elastic" className="text-blue-600 hover:text-blue-800 font-semibold">
                 View All Elastic →
               </Link>
@@ -635,7 +635,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           {/* Cords Category */}
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-semibold text-gray-900">Cotton Cords</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Garment Cotton Cords</h3>
               <Link href="/products?category=cords" className="text-blue-600 hover:text-blue-800 font-semibold">
                 View All Cords →
               </Link>
@@ -855,7 +855,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               href="/products"
               className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-base sm:text-lg shadow-lg"
             >
-              View All Products
+              View All Garment Accessories
             </Link>
             <Link
               href="/contact"
