@@ -78,6 +78,9 @@ export default function AdminProductsPage() {
     color?: string;
     pack?: string;
     price: number;
+    stockQty?: number;
+    inStock?: boolean;
+    sku?: string;
   }>>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -487,6 +490,23 @@ export default function AdminProductsPage() {
                       <span className="text-sm text-gray-600">{variant.color}</span>
                       <span className="text-sm text-gray-600">{variant.pack}</span>
                       <span className="text-sm font-bold text-green-600">₹{variant.price}</span>
+                      <div className="flex items-center space-x-2">
+                        <label className="text-xs text-gray-500">Stock:</label>
+                        <input
+                          type="number"
+                          value={variant.stockQty || 0}
+                          onChange={(e) => {
+                            const newVariants = [...variantPricing];
+                            newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
+                            setVariantPricing(newVariants);
+                          }}
+                          className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          min="0"
+                        />
+                        <span className={`text-xs px-2 py-1 rounded-full ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {variant.inStock ? 'In Stock' : 'Out of Stock'}
+                        </span>
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -846,6 +866,23 @@ export default function AdminProductsPage() {
                               <span className="text-sm text-gray-600">{variant.color}</span>
                               <span className="text-sm text-gray-600">{variant.pack}</span>
                               <span className="text-sm font-bold text-green-600">₹{variant.price}</span>
+                              <div className="flex items-center space-x-2">
+                                <label className="text-xs text-gray-500">Stock:</label>
+                                <input
+                                  type="number"
+                                  value={variant.stockQty || 0}
+                                  onChange={(e) => {
+                                    const newVariants = [...variantPricing];
+                                    newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
+                                    setVariantPricing(newVariants);
+                                  }}
+                                  className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                  min="0"
+                                />
+                                <span className={`text-xs px-2 py-1 rounded-full ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                  {variant.inStock ? 'In Stock' : 'Out of Stock'}
+                                </span>
+                              </div>
                             </div>
                             <button
                               type="button"
