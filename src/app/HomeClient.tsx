@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, Eye } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from "@/utils/imageUtils";
 import type { Product } from "@/types/product";
@@ -289,20 +289,29 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                   </div>
                 </Link>
                 <div className="px-4 pb-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <button 
                       onClick={() => handleAddToCart(product)}
-                      className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                      className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
                     >
                       <ShoppingCart className="h-4 w-4" />
-                      Add to Cart
+                      <span className="hidden sm:inline">Add to Cart</span>
+                      <span className="sm:hidden">Add</span>
                     </button>
                     <button 
                       onClick={() => handleBuyNow(product)}
-                      className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                      className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
                     >
-                      Buy Now
+                      <span className="hidden sm:inline">Buy Now</span>
+                      <span className="sm:hidden">Buy</span>
                     </button>
+                    <Link 
+                      href={`/products/${product._id}`}
+                      className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                    >
+                      <Eye className="h-4 w-4" />
+                      <span className="hidden sm:inline">View</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -406,20 +415,29 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       <button 
                         onClick={() => handleAddToCart(product)}
-                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                        className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
                       >
                         <ShoppingCart className="h-4 w-4" />
-                        Add to Cart
+                        <span className="hidden sm:inline">Add to Cart</span>
+                        <span className="sm:hidden">Add</span>
                       </button>
                       <button 
                         onClick={() => handleBuyNow(product)}
-                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                        className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
                       >
-                        Buy Now
+                        <span className="hidden sm:inline">Buy Now</span>
+                        <span className="sm:hidden">Buy</span>
                       </button>
+                      <Link 
+                        href={`/products/${product._id}`}
+                        className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">View</span>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -461,20 +479,29 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       <button 
                         onClick={() => handleAddToCart(product)}
-                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                        className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
                       >
                         <ShoppingCart className="h-4 w-4" />
-                        Add to Cart
+                        <span className="hidden sm:inline">Add to Cart</span>
+                        <span className="sm:hidden">Add</span>
                       </button>
                       <button 
                         onClick={() => handleBuyNow(product)}
-                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                        className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
                       >
-                        Buy Now
+                        <span className="hidden sm:inline">Buy Now</span>
+                        <span className="sm:hidden">Buy</span>
                       </button>
+                      <Link 
+                        href={`/products/${product._id}`}
+                        className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">View</span>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -516,20 +543,29 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       <button 
                         onClick={() => handleAddToCart(product)}
-                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                        className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
                       >
                         <ShoppingCart className="h-4 w-4" />
-                        Add to Cart
+                        <span className="hidden sm:inline">Add to Cart</span>
+                        <span className="sm:hidden">Add</span>
                       </button>
                       <button 
                         onClick={() => handleBuyNow(product)}
-                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                        className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
                       >
-                        Buy Now
+                        <span className="hidden sm:inline">Buy Now</span>
+                        <span className="sm:hidden">Buy</span>
                       </button>
+                      <Link 
+                        href={`/products/${product._id}`}
+                        className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">View</span>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -571,20 +607,29 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       <button 
                         onClick={() => handleAddToCart(product)}
-                        className="bg-green-600 text-white py-2.5 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                        className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
                       >
                         <ShoppingCart className="h-4 w-4" />
-                        Add to Cart
+                        <span className="hidden sm:inline">Add to Cart</span>
+                        <span className="sm:hidden">Add</span>
                       </button>
                       <button 
                         onClick={() => handleBuyNow(product)}
-                        className="bg-blue-600 text-white py-2.5 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                        className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
                       >
-                        Buy Now
+                        <span className="hidden sm:inline">Buy Now</span>
+                        <span className="sm:hidden">Buy</span>
                       </button>
+                      <Link 
+                        href={`/products/${product._id}`}
+                        className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">View</span>
+                      </Link>
                     </div>
                   </div>
                 </div>

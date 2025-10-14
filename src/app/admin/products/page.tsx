@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { generateVariantSKU } from '@/utils/skuGenerator';
 
 interface AdminProductForm {
   name: string;
@@ -273,8 +274,10 @@ export default function AdminProductsPage() {
       size: newVariant.size,
       color: newVariant.color,
       pack: newVariant.pack,
-             price: newVariant.price,
-             stockQty: Number(newVariant.stockQty || 0)
+      price: newVariant.price,
+      stockQty: Number(newVariant.stockQty || 0),
+      inStock: Number(newVariant.stockQty || 0) > 0,
+      sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color, newVariant.pack) // Auto-generate SKU
     };
 
     // Check if combination already exists
