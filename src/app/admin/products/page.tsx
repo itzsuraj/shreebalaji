@@ -294,9 +294,36 @@ export default function AdminProductsPage() {
     setVariantPricing(variantPricing.filter((_, i) => i !== index));
   };
 
+  const migrateStockFields = async () => {
+    if (!confirm('This will add default stock values to all products without stock fields. Continue?')) return;
+    
+    try {
+      const res = await fetch('/api/admin/migrate-stock', { method: 'POST' });
+      const data = await res.json();
+      
+      if (data.success) {
+        alert(data.message);
+        load(); // Refresh the product list
+      } else {
+        alert('Migration failed: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Migration error:', error);
+      alert('Migration failed');
+    }
+  };
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Products</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Products</h1>
+        <button
+          onClick={migrateStockFields}
+          className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
+        >
+          Migrate Stock Fields
+        </button>
+      </div>
 
       <div className="border rounded p-4 mb-8">
         <h2 className="font-semibold mb-3">Create Product</h2>
