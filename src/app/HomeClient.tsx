@@ -444,8 +444,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart, Buy Now, and View
-                      <div className="grid grid-cols-3 gap-2">
+                      // Product has no variants - show Add to Cart and Buy Now only
+                      <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
                           className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
@@ -461,13 +461,6 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
                         </button>
-                        <Link 
-                          href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="hidden sm:inline">View</span>
-                        </Link>
                       </div>
                     )}
                   </div>
@@ -522,8 +515,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart, Buy Now, and View
-                      <div className="grid grid-cols-3 gap-2">
+                      // Product has no variants - show Add to Cart and Buy Now only
+                      <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
                           className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
@@ -539,13 +532,6 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
                         </button>
-                        <Link 
-                          href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="hidden sm:inline">View</span>
-                        </Link>
                       </div>
                     )}
                   </div>
@@ -600,8 +586,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart, Buy Now, and View
-                      <div className="grid grid-cols-3 gap-2">
+                      // Product has no variants - show Add to Cart and Buy Now only
+                      <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
                           className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
@@ -617,13 +603,6 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
                         </button>
-                        <Link 
-                          href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="hidden sm:inline">View</span>
-                        </Link>
                       </div>
                     )}
                   </div>
@@ -678,8 +657,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart, Buy Now, and View
-                      <div className="grid grid-cols-3 gap-2">
+                      // Product has no variants - show Add to Cart and Buy Now only
+                      <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
                           className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
@@ -695,13 +674,6 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
                         </button>
-                        <Link 
-                          href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-2 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 font-medium"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="hidden sm:inline">View</span>
-                        </Link>
                       </div>
                     )}
                   </div>
