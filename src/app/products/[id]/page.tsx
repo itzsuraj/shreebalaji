@@ -8,6 +8,7 @@ import ProductStructuredData from './ProductStructuredData';
 import ZoomableImage from '@/components/ui/ZoomableImage';
 import Accordion from '@/components/ui/Accordion';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
+import EnhancedProductDetail from '@/components/EnhancedProductDetail';
 
 async function getProduct(id: string) {
   try {
@@ -99,77 +100,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           Back to Products
         </Link>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <ZoomableImage
-            src={getProductImage(product)}
-            alt={product.name}
-          />
-
-          {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <div className="flex items-center mb-4">
-                <div className="flex items-center">
-                  <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                  <span className="ml-1 text-gray-600">
-                    {product.rating} ({product.reviews} reviews)
-                  </span>
-                </div>
-              </div>
-              <p className="text-2xl font-semibold text-blue-600">
-                ₹{product.price.toLocaleString()}
-              </p>
-            </div>
-
-            <p className="text-gray-600">{product.description}</p>
-
-            {/* Action Buttons */}
-            <ProductActions 
-              productName={product.name} 
-              productId={product.id} 
-              price={product.price}
-              image={getProductImage(product)}
-              category={product.category}
-              sizes={product.sizes}
-              colors={product.colors}
-              packs={product.packs}
-              variantPricing={product.variantPricing}
-            />
-
-            {/* Features and Specifications in Accordion */}
-            <div className="space-y-4">
-              {/* Features Accordion */}
-              {product.features && Array.isArray(product.features) && (
-                <Accordion title="Key Features" defaultOpen={true}>
-                  <ul className="space-y-2">
-                    {product.features.map((feature: string, index: number) => (
-                      <li key={index} className="flex items-center">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </Accordion>
-              )}
-
-              {/* Specifications Accordion */}
-              {product.specifications && typeof product.specifications === 'object' && (
-                <Accordion title="Specifications">
-                  <div className="space-y-2">
-                    {Object.entries(product.specifications).map(([key, value]) => (
-                      <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-b-0">
-                        <span className="font-medium text-gray-700">{key}</span>
-                        <span className="text-gray-600">{String(value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Accordion>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Enhanced Product Detail */}
+        <EnhancedProductDetail product={product} />
 
       </div>
     </>

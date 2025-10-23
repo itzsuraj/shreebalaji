@@ -3,16 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      // WWW to Non-WWW redirects (if accessed via www subdomain)
+      // Non-WWW to WWW redirects (Amazon style)
       {
         source: '/:path*',
         has: [
           {
             type: 'host',
-            value: 'www.balajisphere.com',
+            value: 'balajisphere.com',
           },
         ],
-        destination: 'https://balajisphere.com/:path*',
+        destination: 'https://www.balajisphere.com/:path*',
         permanent: true,
       },
       {
