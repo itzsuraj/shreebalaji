@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { generateVariantSKU } from '@/utils/skuGenerator';
+import Head from 'next/head';
 
 interface AdminProductForm {
   name: string;
@@ -320,7 +321,13 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div>
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+        <title>Product Management - Admin Panel</title>
+      </Head>
+      <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Products</h1>
         <button
@@ -921,7 +928,8 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

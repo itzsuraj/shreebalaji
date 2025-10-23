@@ -2,12 +2,19 @@
 
 import { useState } from 'react';
 import AdminSidebar from '@/components/layout/AdminSidebar';
+import Head from 'next/head';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+        <title>Admin Panel - Shree Balaji Enterprises</title>
+      </Head>
+      <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
@@ -36,7 +43,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </main>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

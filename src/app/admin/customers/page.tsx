@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 
 interface Customer {
   fullName: string;
@@ -72,7 +73,13 @@ export default function AdminCustomersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+        <title>Customer Management - Admin Panel</title>
+      </Head>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -207,6 +214,7 @@ export default function AdminCustomersPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

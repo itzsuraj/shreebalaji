@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 
 interface DashboardStats {
   totalOrders: number;
@@ -97,7 +98,12 @@ export default function AdminHome() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+      </Head>
+      <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -258,7 +264,8 @@ export default function AdminHome() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

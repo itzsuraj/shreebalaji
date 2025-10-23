@@ -9,6 +9,7 @@ import type { Product } from "@/types/product";
 import { useMemo, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import Toast from '@/components/ui/Toast';
+import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 
 export default function HomeClient({ initialProducts = [] as Product[] }: { initialProducts?: Product[] }) {
   const { addItem } = useCart();
@@ -46,7 +47,10 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
     }
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products', {
+          cache: 'force-cache',
+          next: { revalidate: 300 }
+        });
         if (response.ok) {
           const data = await response.json();
           setProducts(data.products || []);
@@ -82,14 +86,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading products...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   // Show empty state if no products
@@ -168,16 +165,6 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       {/* Hero Section */}
       <section className="relative h-[600px] flex items-center">
         <div className="absolute inset-0 z-0">
-          <Image
-            src="/banner.png"
-            alt="Shree Balaji Enterprises Banner"
-            fill
-            className="object-cover shadow-2xl"
-            priority
-            fetchPriority="high"
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
-            quality={70}
-          />
           <Image
             src="/banner.png"
             alt="Shree Balaji Enterprises Banner"
@@ -274,8 +261,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      priority={false}
-                      quality={80}
+                      loading="lazy"
+                      quality={75}
                     />
                   </div>
                   <div className="p-4">

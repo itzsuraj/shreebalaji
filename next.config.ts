@@ -3,16 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      // Non-WWW to WWW redirects (if accessed via non-www subdomain)
+      // WWW to Non-WWW redirects (if accessed via www subdomain)
       {
         source: '/:path*',
         has: [
           {
             type: 'host',
-            value: 'balajisphere.com',
+            value: 'www.balajisphere.com',
           },
         ],
-        destination: 'https://www.balajisphere.com/:path*',
+        destination: 'https://balajisphere.com/:path*',
         permanent: true,
       },
       {
@@ -91,12 +91,22 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react'],
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
   compress: true,
   poweredByHeader: false,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  swcMinify: true,
+  generateEtags: false,
 };
 
 export default nextConfig;

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { products } from '@/data/products';
+import Head from 'next/head';
 
 export default function SeedProductsPage() {
   const [loading, setLoading] = useState(false);
@@ -45,7 +46,13 @@ export default function SeedProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+        <title>Seed Products - Admin Panel</title>
+      </Head>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -186,6 +193,7 @@ export default function SeedProductsPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

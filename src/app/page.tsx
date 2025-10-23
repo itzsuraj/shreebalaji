@@ -6,7 +6,10 @@ import type { Product } from '@/types/product';
 async function getProductsSSR(): Promise<Product[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
-    const res = await fetch(`${baseUrl}/api/products`, { cache: 'no-store' });
+    const res = await fetch(`${baseUrl}/api/products`, { 
+      cache: 'force-cache',
+      next: { revalidate: 300 } // Cache for 5 minutes
+    });
     if (!res.ok) return [] as Product[];
     const data = await res.json();
     return Array.isArray(data.products) ? (data.products as Product[]) : [];

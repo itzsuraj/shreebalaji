@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Head from 'next/head';
 
 interface AdminOrderItem {
   _id: string;
@@ -190,7 +191,13 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+        <title>Order Management - Admin Panel</title>
+      </Head>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -543,7 +550,8 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

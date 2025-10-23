@@ -53,3 +53,6 @@ export function ensureVariantSKU(
   // Fallback to index-based SKU
   return `${productId}-variant-${(index || 0) + 1}`;
 }
+
+
+

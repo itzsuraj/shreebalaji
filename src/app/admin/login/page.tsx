@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Head from 'next/head';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
@@ -27,7 +28,13 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-md">
+    <>
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="googlebot" content="noindex, nofollow" />
+        <title>Admin Login - Shree Balaji Enterprises</title>
+      </Head>
+      <div className="container mx-auto px-4 py-16 max-w-md">
       <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
       <form onSubmit={onSubmit} className="space-y-4">
         <input
@@ -41,9 +48,13 @@ export default function AdminLoginPage() {
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
-    </div>
+      </div>
+    </>
   );
 }
+
+
+
 
 
 
