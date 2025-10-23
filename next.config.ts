@@ -100,6 +100,8 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Fix hydration issues
+  reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
   compiler: {
