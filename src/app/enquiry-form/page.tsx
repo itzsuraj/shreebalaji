@@ -18,7 +18,7 @@ export default function EnquiryFormPage() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Product Enquiry Form</h1>
             <p className="text-lg text-gray-600">
-              Submit your requirements and we'll get back to you with a detailed quote
+              Submit your requirements and we&apos;ll get back to you with a detailed quote
             </p>
           </div>
           

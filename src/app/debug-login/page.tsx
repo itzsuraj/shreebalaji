@@ -26,7 +26,7 @@ export default function DebugLoginPage() {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
               <h3 className="text-sm font-medium text-red-800 mb-2">Development Only</h3>
               <p className="text-sm text-red-700">
-                This page should not be accessible in production. It's intended for development and debugging purposes only.
+                This page should not be accessible in production. It&apos;s intended for development and debugging purposes only.
               </p>
             </div>
             
