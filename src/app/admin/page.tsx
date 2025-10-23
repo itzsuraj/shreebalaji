@@ -10,6 +10,7 @@ interface DashboardStats {
   pendingOrders: number;
   completedOrders: number;
   totalProducts: number;
+  lowStockProducts: number;
   recentOrders: Array<{
     _id: string;
     customer: { fullName: string };
@@ -26,6 +27,7 @@ export default function AdminHome() {
     pendingOrders: 0,
     completedOrders: 0,
     totalProducts: 0,
+    lowStockProducts: 0,
     recentOrders: []
   });
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,14 @@ export default function AdminHome() {
           fetch('/api/admin/orders'),
           fetch('/api/admin/products')
         ]);
+        
+        // Check if responses are ok
+        if (!ordersRes.ok) {
+          throw new Error(`Orders API error: ${ordersRes.status}`);
+        }
+        if (!productsRes.ok) {
+          throw new Error(`Products API error: ${productsRes.status}`);
+        }
         
         const ordersData = await ordersRes.json();
         const productsData = await productsRes.json();
@@ -58,10 +68,21 @@ export default function AdminHome() {
           pendingOrders,
           completedOrders,
           totalProducts: products.length,
+          lowStockProducts: products.filter((product: { inStock: boolean }) => !product.inStock).length,
           recentOrders: orders.slice(0, 5)
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
+        // Set default values on error
+        setStats({
+          totalOrders: 0,
+          totalRevenue: 0,
+          pendingOrders: 0,
+          completedOrders: 0,
+          totalProducts: 0,
+          lowStockProducts: 0,
+          recentOrders: []
+        });
       } finally {
         setLoading(false);
       }
