@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Share2, Truck, Shield, RotateCcw, Package, Ruler, Palette, ShoppingCart, Plus, Minus, Check, AlertCircle } from 'lucide-react';
+import { Star, Heart, Share2, Truck, Shield, RotateCcw, Package, ShoppingCart, Plus, Minus, Check, AlertCircle } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from '@/utils/imageUtils';
 
@@ -58,7 +58,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
+  // const [showShareModal, setShowShareModal] = useState(false);
 
   const images = product.images || [product.image];
   const hasVariants = product.variantPricing && product.variantPricing.length > 0;
@@ -91,12 +91,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       price: currentPrice,
       quantity,
       image: getProductImage(product),
-      category: product.category,
-      variant: selectedVariant ? {
-        size: selectedVariant.size,
-        color: selectedVariant.color,
-        pack: selectedVariant.pack
-      } : undefined
+      category: product.category
     });
   };
 
@@ -209,7 +204,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                   <Heart className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={() => setShowShareModal(true)}
+                  onClick={() => {/* setShowShareModal(true) */}}
                   className="p-2 rounded-full text-gray-400 hover:text-gray-600"
                 >
                   <Share2 className="h-5 w-5" />

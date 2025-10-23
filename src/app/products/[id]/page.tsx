@@ -1,12 +1,9 @@
-import { Star, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getProductImage } from '@/utils/imageUtils';
-import ProductActions from './ProductActions';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import ProductStructuredData from './ProductStructuredData';
-import ZoomableImage from '@/components/ui/ZoomableImage';
-import Accordion from '@/components/ui/Accordion';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import EnhancedProductDetail from '@/components/EnhancedProductDetail';
 
