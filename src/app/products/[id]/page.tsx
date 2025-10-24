@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { getProductImage } from '@/utils/imageUtils';
 import { Metadata } from 'next';
 import ProductStructuredData from './ProductStructuredData';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
@@ -26,9 +25,7 @@ async function getProduct(id: string) {
 }
 
 // Generate metadata for each product
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const resolvedParams = await params;
-  
+export async function generateMetadata(): Promise<Metadata> {
   // Use a simpler approach for metadata to avoid duplicate API calls
   return {
     title: `Product - Shree Balaji Enterprises`,

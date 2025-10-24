@@ -104,7 +104,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       image: getProductImage(product),
       category: product.category
     });
-  }, [hasVariants, selectedVariant, addItem, product.id, product.name, currentPrice, quantity, product.category]);
+  }, [hasVariants, selectedVariant, addItem, product, currentPrice, quantity]);
 
   const toggleSection = useCallback((section: string) => {
     setOpenSections(prev => ({
