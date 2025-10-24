@@ -11,7 +11,7 @@ interface ProductVariant {
   color?: string;
   pack?: string;
   price: number;
-  stock: number;
+  stockQty: number;
   sku: string;
 }
 
@@ -29,6 +29,7 @@ interface Product {
   packs: string[];
   variantPricing: ProductVariant[];
   inStock: boolean;
+  stockQty: number;
   rating: number;
   reviews: number;
   specifications?: {
@@ -63,9 +64,9 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const images = product.images || [product.image];
   const hasVariants = product.variantPricing && product.variantPricing.length > 0;
 
-  // Calculate current price
+  // Calculate current price and stock
   const currentPrice = selectedVariant ? selectedVariant.price : product.price;
-  const currentStock = selectedVariant ? selectedVariant.stock : (product.inStock ? 100 : 0);
+  const currentStock = selectedVariant ? selectedVariant.stockQty : (product.inStock ? (product.stockQty || 0) : 0);
 
   // Update selected variant when options change
   useEffect(() => {
@@ -357,11 +358,21 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                 value={quantity}
                 onChange={(e) => setQuantity(parseInt(e.target.value))}
                 className="w-full max-w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={currentStock === 0}
               >
-                {Array.from({ length: Math.min(10, currentStock) }, (_, i) => i + 1).map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
+                {currentStock > 0 ? (
+                  Array.from({ length: Math.min(10, Math.max(1, currentStock)) }, (_, i) => i + 1).map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))
+                ) : (
+                  <option value="0">Out of Stock</option>
+                )}
               </select>
+              {currentStock > 0 && (
+                <p className="text-sm text-gray-500 mt-1">
+                  {currentStock} available
+                </p>
+              )}
             </div>
 
             {/* Add to Cart Button - Etsy Style */}
