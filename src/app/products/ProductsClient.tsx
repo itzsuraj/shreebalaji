@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -26,10 +26,14 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
   const [searchTerm, setSearchTerm] = useState<string>(searchQuery);
   const [isSearching, setIsSearching] = useState<boolean>(false);
 
-  const categories = ['all', ...new Set(products.map(product => product.category))];
+  // Memoize categories to avoid recalculation
+  const categories = useMemo(() => 
+    ['all', ...new Set(products.map(product => product.category))], 
+    [products]
+  );
 
-  // Smart search function (same as in header)
-  const smartSearch = (query: string, products: Product[]): Product[] => {
+  // Memoize smart search function
+  const smartSearch = useCallback((query: string, products: Product[]): Product[] => {
     if (!query.trim()) return products;
     
     const searchTerm = query.toLowerCase();
@@ -118,35 +122,38 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
       .filter(item => item.score > 0)
       .sort((a, b) => b.score - a.score)
       .map(item => item.product);
-  };
+  }, []);
 
-  const filteredProducts = smartSearch(searchTerm, products)
-    .filter(product => selectedCategory === 'all' || product.category === selectedCategory)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.price - b.price;
-        case 'price-high':
-          return b.price - a.price;
-        case 'rating':
-          return b.rating - a.rating;
-        default:
-          return 0;
-      }
-    });
+  // Memoize filtered products to avoid recalculation on every render
+  const filteredProducts = useMemo(() => {
+    return smartSearch(searchTerm, products)
+      .filter(product => selectedCategory === 'all' || product.category === selectedCategory)
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'price-low':
+            return a.price - b.price;
+          case 'price-high':
+            return b.price - a.price;
+          case 'rating':
+            return b.rating - a.rating;
+          default:
+            return 0;
+        }
+      });
+  }, [smartSearch, searchTerm, products, selectedCategory, sortBy]);
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = useCallback((product: Product) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
     setAddedId(product.id);
     setTimeout(() => setAddedId(null), 1200);
-  };
+  }, [addItem]);
 
-  const handleBuyNow = (product: Product) => {
+  const handleBuyNow = useCallback((product: Product) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
     router.push('/checkout');
-  };
+  }, [addItem, router]);
 
-  const updateURL = (category: string, search?: string) => {
+  const updateURL = useCallback((category: string, search?: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (category === 'all') {
       params.delete('category');
@@ -160,14 +167,14 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
     }
     const newURL = `/products${params.toString() ? `?${params.toString()}` : ''}`;
     router.push(newURL, { scroll: false });
-  };
+  }, [searchParams, searchTerm, router]);
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = useCallback((category: string) => {
     setSelectedCategory(category);
     updateURL(category);
-  };
+  }, [updateURL]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
     setIsSearching(true);
@@ -177,12 +184,12 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
       updateURL(selectedCategory, newSearchTerm);
       setIsSearching(false);
     }, 300);
-  };
+  }, [updateURL, selectedCategory]);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchTerm('');
     updateURL(selectedCategory, '');
-  };
+  }, [updateURL, selectedCategory]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -332,6 +339,9 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
                       alt={product.name}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="lazy"
+                      quality={75}
                     />
                   </div>
                   <div className="p-4">

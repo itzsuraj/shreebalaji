@@ -43,7 +43,8 @@ async function getProducts() {
     // Use relative URL for server-side fetching
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
     const response = await fetch(`${baseUrl}/api/products`, {
-      cache: 'no-store' // Always fetch fresh data
+      cache: 'force-cache',
+      next: { revalidate: 300 } // Cache for 5 minutes
     });
     
     if (!response.ok) {
