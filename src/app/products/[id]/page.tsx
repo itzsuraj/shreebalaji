@@ -86,21 +86,24 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   return (
     <>
       <ProductStructuredData product={product} />
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb Navigation */}
-        <BreadcrumbSchema
-          items={[
-            { name: 'Home', url: '/' },
-            { name: 'Products', url: '/products' },
-            { name: product.category, url: `/products?category=${encodeURIComponent(product.category)}` },
-            { name: product.name, url: `/products/${product.id}` },
-          ]}
-          showVisualBreadcrumb={true}
-        />
-        
-        {/* Enhanced Product Detail */}
-        <EnhancedProductDetail product={product} />
-
+      <div className="min-h-screen bg-white">
+        <div className="container mx-auto px-4 py-6">
+          {/* Breadcrumb Navigation */}
+          <div className="mb-8">
+            <BreadcrumbSchema
+              items={[
+                { name: 'Home', url: '/' },
+                { name: 'Products', url: '/products' },
+                { name: product.category, url: `/products?category=${encodeURIComponent(product.category)}` },
+                { name: product.name, url: `/products/${product.id}` },
+              ]}
+              showVisualBreadcrumb={true}
+            />
+          </div>
+          
+          {/* Enhanced Product Detail */}
+          <EnhancedProductDetail product={product} />
+        </div>
       </div>
     </>
   );
