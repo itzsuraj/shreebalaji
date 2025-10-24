@@ -487,16 +487,13 @@ export default function AdminProductsPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                <select
+                <input
+                  type="text"
                   value={newVariant.color}
                   onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                  placeholder="Enter color (e.g., Navy Blue)"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Color</option>
-                  {form.colors?.map((color, index) => (
-                    <option key={index} value={color}>{color}</option>
-                  ))}
-                </select>
+                />
               </div>
               
               <div>
@@ -874,16 +871,13 @@ export default function AdminProductsPage() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                        <select
+                        <input
+                          type="text"
                           value={newVariant.color}
                           onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                          placeholder="Enter color (e.g., Navy Blue)"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Color</option>
-                          {form.colors?.map((color, index) => (
-                            <option key={index} value={color}>{color}</option>
-                          ))}
-                        </select>
+                        />
                       </div>
                       
                       <div>
