@@ -70,15 +70,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Dynamic product pages from DB
+  // Dynamic product pages from DB (excluding specific products)
   await connectToDatabase();
   const dbProducts = (await Product.find({}, { _id: 1, updatedAt: 1 }).lean()) as Array<{ _id: unknown; updatedAt?: string | Date }>;
-  const productPages = dbProducts.map((p) => ({
-    url: `${baseUrl}/products/${String(p._id)}`,
-    lastModified: p.updatedAt ? new Date(p.updatedAt as string | Date) : new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+  
+  // Exclude specific product IDs from sitemap
+  const excludedProductIds = ['8', '9', '10', '11', '12', '13', '14', '15'];
+  
+  const productPages = dbProducts
+    .filter((p) => !excludedProductIds.includes(String(p._id)))
+    .map((p) => ({
+      url: `${baseUrl}/products/${String(p._id)}`,
+      lastModified: p.updatedAt ? new Date(p.updatedAt as string | Date) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    }))
 
   // Blog posts
   const blogPosts = [

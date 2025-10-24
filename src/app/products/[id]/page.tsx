@@ -46,6 +46,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     alternates: {
       canonical: canonicalUrl,
     },
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
+    },
     openGraph: {
       title: `${product.name} - Shree Balaji Enterprises`,
       description: product.description,
