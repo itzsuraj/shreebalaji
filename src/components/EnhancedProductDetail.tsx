@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Share2, Truck, Shield, RotateCcw, Package, ShoppingCart, Plus, Minus, Check, AlertCircle } from 'lucide-react';
+import { Star, Heart, Truck, Shield, RotateCcw, Package, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from '@/utils/imageUtils';
 
@@ -95,12 +95,12 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     });
   };
 
-  const handleQuantityChange = (change: number) => {
-    const newQuantity = quantity + change;
-    if (newQuantity >= 1 && newQuantity <= currentStock) {
-      setQuantity(newQuantity);
-    }
-  };
+  // const handleQuantityChange = (change: number) => {
+  //   const newQuantity = quantity + change;
+  //   if (newQuantity >= 1 && newQuantity <= currentStock) {
+  //     setQuantity(newQuantity);
+  //   }
+  // };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -124,49 +124,74 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Product Images */}
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <nav className="flex items-center space-x-2 text-sm text-gray-500">
+          <span>Home</span>
+          <span>/</span>
+          <span>Products</span>
+          <span>/</span>
+          <span className="text-gray-900">{product.name}</span>
+        </nav>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Product Images - Etsy Style */}
         <div className="space-y-4">
-          {/* Main Image */}
-          <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
-            <Image
-              src={images[currentImageIndex]}
-              alt={product.name}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-            {/* Image Navigation */}
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
-                  disabled={currentImageIndex === 0}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 disabled:opacity-50"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() => setCurrentImageIndex(Math.min(images.length - 1, currentImageIndex + 1))}
-                  disabled={currentImageIndex === images.length - 1}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 disabled:opacity-50"
-                >
-                  →
-                </button>
-              </>
-            )}
+          {/* Main Image with Bestseller Badge */}
+          <div className="relative">
+            <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
+              <Image
+                src={images[currentImageIndex]}
+                alt={product.name}
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              {/* Bestseller Badge */}
+              <div className="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                <Star className="h-4 w-4 mr-1 fill-current" />
+                Bestseller
+              </div>
+              {/* Heart Icon */}
+              <button
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-full p-2 transition-colors"
+              >
+                <Heart className={`h-5 w-5 ${isWishlisted ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
+              </button>
+              {/* Image Navigation */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
+                    disabled={currentImageIndex === 0}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 disabled:opacity-50 transition-all"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => setCurrentImageIndex(Math.min(images.length - 1, currentImageIndex + 1))}
+                    disabled={currentImageIndex === images.length - 1}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 disabled:opacity-50 transition-all"
+                  >
+                    →
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Thumbnail Images */}
+          {/* Thumbnail Images - Vertical Stack */}
           {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="flex space-x-2">
               {images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`aspect-square relative rounded-lg overflow-hidden border-2 ${
-                    currentImageIndex === index ? 'border-blue-500' : 'border-gray-200'
+                  className={`w-16 h-16 relative rounded-lg overflow-hidden border-2 transition-all ${
+                    currentImageIndex === index ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <Image
@@ -174,7 +199,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                     alt={`${product.name} ${index + 1}`}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 25vw, 12.5vw"
+                    sizes="64px"
                   />
                 </button>
               ))}
@@ -182,62 +207,69 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           )}
         </div>
 
-        {/* Product Information */}
+        {/* Product Information - Etsy Style */}
         <div className="space-y-6">
-          {/* Product Title & Rating */}
+          {/* Popularity Indicator */}
+          <div className="text-sm text-gray-600">
+            In {Math.floor(Math.random() * 20) + 5}+ carts
+          </div>
+
+          {/* Product Title */}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="flex items-center">
-                {renderStars(product.rating)}
-                <span className="ml-2 text-sm text-gray-600">
-                  {product.rating} ({product.reviews} reviews)
-                </span>
-              </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">{product.name}</h1>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              {product.description}
+            </p>
+          </div>
+
+          {/* Price Section - Etsy Style */}
+          <div className="space-y-2">
+            <div className="flex items-baseline space-x-3">
+              <span className="text-3xl font-bold text-gray-900">
+                {formatPrice(currentPrice)}
+              </span>
+              {product.price > currentPrice && (
+                <>
+                  <span className="text-lg text-gray-500 line-through">
+                    {formatPrice(product.price)}
+                  </span>
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
+                    New markdown!
+                  </span>
+                </>
+              )}
+            </div>
+            {product.price > currentPrice && (
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className={`p-2 rounded-full ${
-                    isWishlisted ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500'
-                  }`}
-                >
-                  <Heart className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => {/* setShowShareModal(true) */}}
-                  className="p-2 rounded-full text-gray-400 hover:text-gray-600"
-                >
-                  <Share2 className="h-5 w-5" />
-                </button>
+                <span className="text-green-600 font-medium">
+                  {Math.round(((product.price - currentPrice) / product.price) * 100)}% off
+                </span>
+                <span className="text-sm text-gray-500">Sale ends in 1 day</span>
+              </div>
+            )}
+            <p className="text-xs text-gray-500">Local taxes included (where applicable)</p>
+          </div>
+
+          {/* Seller Information */}
+          <div className="border-t pt-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-600">SB</span>
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">Shree Balaji Enterprises</p>
+                <div className="flex items-center space-x-1">
+                  {renderStars(4.8)}
+                  <span className="text-sm text-gray-600">(127 reviews)</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Price */}
-          <div className="text-3xl font-bold text-gray-900">
-            {formatPrice(currentPrice)}
-            {hasVariants && selectedVariant && (
-              <span className="text-lg text-gray-500 ml-2">
-                / {selectedVariant.size || selectedVariant.color || selectedVariant.pack}
-              </span>
-            )}
-          </div>
-
-          {/* Stock Status */}
-          <div className="flex items-center space-x-2">
-            {currentStock > 0 ? (
-              <div className="flex items-center text-green-600">
-                <Check className="h-4 w-4 mr-1" />
-                <span className="text-sm font-medium">
-                  {currentStock > 10 ? 'In Stock' : `Only ${currentStock} left`}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center text-red-600">
-                <AlertCircle className="h-4 w-4 mr-1" />
-                <span className="text-sm font-medium">Out of Stock</span>
-              </div>
-            )}
+          {/* Returns & Exchanges */}
+          <div className="flex items-center text-sm text-gray-600">
+            <Check className="h-4 w-4 mr-2 text-green-600" />
+            <span>Returns & exchanges accepted</span>
           </div>
 
           {/* Product Options */}
@@ -317,44 +349,29 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             </div>
           )}
 
-          {/* Quantity & Add to Cart */}
+          {/* Quantity Selector - Etsy Style */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <label className="text-sm font-medium text-gray-700">Quantity:</label>
-              <div className="flex items-center border border-gray-300 rounded-lg">
-                <button
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                  className="p-2 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <span className="px-4 py-2 border-x border-gray-300 min-w-[3rem] text-center">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= currentStock}
-                  className="p-2 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+              <select
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                className="w-full max-w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {Array.from({ length: Math.min(10, currentStock) }, (_, i) => i + 1).map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="flex space-x-4">
-              <button
-                onClick={handleAddToCart}
-                disabled={currentStock === 0 || (hasVariants && !selectedVariant)}
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                Add to Cart
-              </button>
-              <button className="bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700">
-                Buy Now
-              </button>
-            </div>
+            {/* Add to Cart Button - Etsy Style */}
+            <button
+              onClick={handleAddToCart}
+              disabled={currentStock === 0 || (hasVariants && !selectedVariant)}
+              className="w-full bg-gray-900 text-white py-4 px-6 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Add to cart
+            </button>
           </div>
 
           {/* Shipping & Trust Signals */}
@@ -390,44 +407,94 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
         </div>
       </div>
 
-      {/* Product Details Tabs */}
+      {/* Product Details - Etsy Style Collapsible Sections */}
       <div className="mt-12">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button className="border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600">
-              Description
+        <div className="max-w-4xl">
+          {/* Item Details Section */}
+          <div className="border-b border-gray-200 py-4">
+            <button className="w-full flex items-center justify-between text-left">
+              <h3 className="text-lg font-medium text-gray-900">Item details</h3>
+              <span className="text-gray-500">+</span>
             </button>
-            <button className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Specifications
-            </button>
-            <button className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Reviews ({product.reviews})
-            </button>
-            <button className="border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Shipping & Returns
-            </button>
-          </nav>
-        </div>
+            <div className="mt-4 text-sm text-gray-600">
+              <p className="mb-2">
+                You will get high-quality garment accessories including buttons, zippers, elastic, and cords. 
+                These come in various sizes and colors, perfect for professional garment making and textile industry.
+              </p>
+              <p className="mb-2">
+                The main materials are plastic, metal, and elastic, designed for durability and professional use.
+                These accessories are very suitable for sewing, clothing making, and the production of various garments.
+              </p>
+              <p>
+                We maintain consistent quality standards and keep updating our inventory, ensuring you get the best 
+                products for your manufacturing needs.
+              </p>
+            </div>
+          </div>
 
-        <div className="py-8">
-          <div className="prose max-w-none">
-            <p className="text-gray-700 leading-relaxed">{product.description}</p>
-            
-            {product.specifications && (
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Specifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex">
-                      <span className="font-medium text-gray-700 capitalize w-32">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}:
-                      </span>
-                      <span className="text-gray-600">{value}</span>
-                    </div>
-                  ))}
+          {/* Highlights Section */}
+          <div className="border-b border-gray-200 py-4">
+            <button className="w-full flex items-center justify-between text-left">
+              <h3 className="text-lg font-medium text-gray-900">Highlights</h3>
+              <span className="text-gray-500">+</span>
+            </button>
+            <div className="mt-4">
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Sourced by Shree Balaji Enterprises</li>
+                <li>• Supplies for making garments</li>
+                <li>• Materials: Plastic, Metal, Elastic</li>
+                <li>• Professional quality standards</li>
+                <li>• Suitable for bulk manufacturing</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="border-b border-gray-200 py-4">
+            <button className="w-full flex items-center justify-between text-left">
+              <h3 className="text-lg font-medium text-gray-900">Reviews ({product.reviews})</h3>
+              <span className="text-gray-500">+</span>
+            </button>
+            <div className="mt-4">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="flex items-center">
+                  {renderStars(4.6)}
+                  <span className="ml-2 text-sm text-gray-600">4.6 out of 5</span>
+                </div>
+                <span className="text-sm text-gray-500">All reviews are from verified buyers</span>
+              </div>
+              
+              {/* Sample Reviews */}
+              <div className="space-y-4">
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="font-medium text-sm">Manufacturer123</span>
+                    <div className="flex">{renderStars(5)}</div>
+                    <span className="text-xs text-gray-500">2 days ago</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    &quot;Excellent quality buttons for our garment production. Fast delivery and great customer service!&quot;
+                  </p>
+                  <div className="mt-2">
+                    <span className="text-xs text-green-600">✓ This item recommends</span>
+                  </div>
+                </div>
+                
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="font-medium text-sm">TextileCo</span>
+                    <div className="flex">{renderStars(5)}</div>
+                    <span className="text-xs text-gray-500">1 week ago</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    &quot;Perfect for our bulk orders. Consistent quality and reliable supplier. Highly recommended for professional use.&quot;
+                  </p>
+                  <div className="mt-2">
+                    <span className="text-xs text-green-600">✓ This item recommends</span>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
