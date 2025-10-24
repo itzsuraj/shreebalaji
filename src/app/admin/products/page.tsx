@@ -87,6 +87,11 @@ export default function AdminProductsPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
+  // Stock management states
+  const [showStockManagement, setShowStockManagement] = useState(false);
+  const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
+  const [bulkStockUpdate, setBulkStockUpdate] = useState<Record<string, number>>({});
+  
   // New variant dropdown states
   const [newVariant, setNewVariant] = useState({
     size: '',
@@ -301,6 +306,69 @@ export default function AdminProductsPage() {
     setVariantPricing(variantPricing.filter((_, i) => i !== index));
   };
 
+  // Stock management functions
+  const updateProductStock = async (productId: string, newStock: number) => {
+    try {
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stockQty: newStock, inStock: newStock > 0 })
+      });
+      
+      if (response.ok) {
+        const updatedProducts = products.map(p => 
+          p._id === productId 
+            ? { ...p, stockQty: newStock, inStock: newStock > 0 }
+            : p
+        );
+        setProducts(updatedProducts);
+      } else {
+        alert('Failed to update stock');
+      }
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      alert('Error updating stock');
+    }
+  };
+
+  const handleBulkStockUpdate = async () => {
+    try {
+      const updates = Object.entries(bulkStockUpdate).map(([productId, stock]) => ({
+        productId,
+        stockQty: stock,
+        inStock: stock > 0
+      }));
+
+      const response = await fetch('/api/admin/products/bulk-stock', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates })
+      });
+
+      if (response.ok) {
+        alert('Bulk stock update completed');
+        setBulkStockUpdate({});
+        load();
+      } else {
+        alert('Failed to update stock');
+      }
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      alert('Error updating stock');
+    }
+  };
+
+  const filteredProducts = products.filter(product => {
+    switch (stockFilter) {
+      case 'low':
+        return (product.stockQty || 0) < 10 && (product.stockQty || 0) > 0;
+      case 'out':
+        return (product.stockQty || 0) === 0;
+      default:
+        return true;
+    }
+  });
+
   const migrateStockFields = async () => {
     if (!confirm('This will add default stock values to all products without stock fields. Continue?')) return;
     
@@ -330,12 +398,24 @@ export default function AdminProductsPage() {
       <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Products</h1>
-        <button
-          onClick={migrateStockFields}
-          className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
-        >
-          Migrate Stock Fields
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setShowStockManagement(!showStockManagement)}
+            className={`px-4 py-2 rounded text-sm ${
+              showStockManagement 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-600 text-white hover:bg-gray-700'
+            }`}
+          >
+            {showStockManagement ? 'Hide Stock Management' : 'Stock Management'}
+          </button>
+          <button
+            onClick={migrateStockFields}
+            className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
+          >
+            Migrate Stock Fields
+          </button>
+        </div>
       </div>
 
       <div className="border rounded p-4 mb-8">
@@ -589,6 +669,94 @@ export default function AdminProductsPage() {
         </div>
         <button className="mt-3 bg-blue-600 text-white px-4 py-2 rounded" onClick={createProduct}>Create</button>
       </div>
+
+      {/* Stock Management Section */}
+      {showStockManagement && (
+        <div className="border rounded p-6 mb-8 bg-gray-50">
+          <h2 className="text-xl font-semibold mb-4">Stock Management</h2>
+          
+          {/* Stock Filters */}
+          <div className="mb-4">
+            <div className="flex space-x-4 mb-4">
+              <button
+                onClick={() => setStockFilter('all')}
+                className={`px-4 py-2 rounded ${
+                  stockFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'
+                }`}
+              >
+                All Products
+              </button>
+              <button
+                onClick={() => setStockFilter('low')}
+                className={`px-4 py-2 rounded ${
+                  stockFilter === 'low' ? 'bg-yellow-600 text-white' : 'bg-white border'
+                }`}
+              >
+                Low Stock (&lt;10)
+              </button>
+              <button
+                onClick={() => setStockFilter('out')}
+                className={`px-4 py-2 rounded ${
+                  stockFilter === 'out' ? 'bg-red-600 text-white' : 'bg-white border'
+                }`}
+              >
+                Out of Stock
+              </button>
+            </div>
+          </div>
+
+          {/* Bulk Stock Update */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Bulk Stock Update</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredProducts.map(product => (
+                <div key={product._id} className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium truncate">{product.name}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      (product.stockQty || 0) > 10 ? 'bg-green-100 text-green-800' :
+                      (product.stockQty || 0) > 0 ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {product.stockQty || 0} in stock
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="0"
+                      value={bulkStockUpdate[product._id] || product.stockQty || 0}
+                      onChange={(e) => setBulkStockUpdate({
+                        ...bulkStockUpdate,
+                        [product._id]: Number(e.target.value)
+                      })}
+                      className="flex-1 px-2 py-1 text-sm border rounded"
+                      placeholder="Stock Qty"
+                    />
+                    <button
+                      onClick={() => updateProductStock(product._id, bulkStockUpdate[product._id] || product.stockQty || 0)}
+                      className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {Object.keys(bulkStockUpdate).length > 0 && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleBulkStockUpdate}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Update All Selected ({Object.keys(bulkStockUpdate).length} products)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-32">
