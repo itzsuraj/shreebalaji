@@ -403,6 +403,65 @@ export default function AdminProductsPage() {
           </div>
         </div>
         
+        {/* Color Management */}
+        <div className="mt-4 space-y-4">
+          <h3 className="font-semibold text-gray-700">Color Management</h3>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-4">
+              <input
+                type="text"
+                placeholder="Add custom color (e.g., Navy Blue, Forest Green)"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    const color = e.currentTarget.value.trim();
+                    if (color && !form.colors?.includes(color)) {
+                      setForm({ ...form, colors: [...(form.colors || []), color] });
+                      e.currentTarget.value = '';
+                    }
+                  }
+                }}
+              />
+              <button
+                onClick={() => {
+                  const input = document.querySelector('input[placeholder*="Add custom color"]') as HTMLInputElement;
+                  const color = input?.value.trim();
+                  if (color && !form.colors?.includes(color)) {
+                    setForm({ ...form, colors: [...(form.colors || []), color] });
+                    input.value = '';
+                  }
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Add Color
+              </button>
+            </div>
+            
+            {/* Display added colors */}
+            {form.colors && form.colors.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Added Colors:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {form.colors.map((color, index) => (
+                    <div key={index} className="flex items-center bg-white border border-gray-300 rounded-md px-3 py-1">
+                      <span className="text-sm text-gray-700">{color}</span>
+                      <button
+                        onClick={() => {
+                          const newColors = form.colors?.filter((_, i) => i !== index) || [];
+                          setForm({ ...form, colors: newColors });
+                        }}
+                        className="ml-2 text-red-600 hover:text-red-800"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Variant Pricing System */}
         <div className="mt-4 space-y-4">
           <h3 className="font-semibold text-gray-700">Product Variants with Pricing</h3>
@@ -434,9 +493,9 @@ export default function AdminProductsPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Color</option>
-                  <option value="Brown">Brown</option>
-                  <option value="Black">Black</option>
-                  <option value="White">White</option>
+                  {form.colors?.map((color, index) => (
+                    <option key={index} value={color}>{color}</option>
+                  ))}
                 </select>
               </div>
               
@@ -821,9 +880,9 @@ export default function AdminProductsPage() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select Color</option>
-                          <option value="Brown">Brown</option>
-                          <option value="Black">Black</option>
-                          <option value="White">White</option>
+                          {form.colors?.map((color, index) => (
+                            <option key={index} value={color}>{color}</option>
+                          ))}
                         </select>
                       </div>
                       
