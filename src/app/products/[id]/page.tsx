@@ -85,19 +85,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      {/* SEO Structured Data */}
-      <BreadcrumbSchema
-        items={[
-          { name: 'Home', url: 'https://www.balajisphere.com/' },
-          { name: 'Products', url: 'https://www.balajisphere.com/products' },
-          { name: product.category, url: `https://www.balajisphere.com/products?category=${encodeURIComponent(product.category)}` },
-          { name: product.name, url: `https://www.balajisphere.com/products/${product.id}` },
-        ]}
-        showVisualBreadcrumb={false}
-      />
       <ProductStructuredData product={product} />
       <div className="container mx-auto px-4 py-8">
-        {/* Visual Breadcrumb Navigation */}
+        {/* Breadcrumb Navigation */}
         <BreadcrumbSchema
           items={[
             { name: 'Home', url: '/' },

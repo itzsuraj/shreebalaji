@@ -201,42 +201,50 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             Our Product Categories
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
-                </svg>
+            <Link href="/products?category=buttons" className="block">
+              <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Buttons</h3>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Metal, plastic, and wooden buttons for all garment types</p>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Buttons</h3>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Metal, plastic, and wooden buttons for all garment types</p>
-            </div>
-            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            </Link>
+            <Link href="/products?category=zippers" className="block">
+              <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Zippers</h3>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Nylon coil, invisible, and decorative zippers</p>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Zippers</h3>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Nylon coil, invisible, and decorative zippers</p>
-            </div>
-            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+            </Link>
+            <Link href="/products?category=elastic" className="block">
+              <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Elastic</h3>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed">High-quality elastic bands for waistbands and cuffs</p>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Elastic</h3>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed">High-quality elastic bands for waistbands and cuffs</p>
-            </div>
-            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            </Link>
+            <Link href="/products?category=cords" className="block">
+              <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Cords</h3>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Cotton cords and drawstrings for various applications</p>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Cords</h3>
-              <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Cotton cords and drawstrings for various applications</p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

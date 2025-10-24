@@ -59,7 +59,9 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    itemDetails: true, // Keep first accordion open by default
+  });
   // const [showShareModal, setShowShareModal] = useState(false);
 
   const images = product.images || [product.image];
