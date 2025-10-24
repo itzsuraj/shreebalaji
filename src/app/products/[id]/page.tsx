@@ -1,7 +1,5 @@
-import { ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { getProductImage } from '@/utils/imageUtils';
-import Link from 'next/link';
 import { Metadata } from 'next';
 import ProductStructuredData from './ProductStructuredData';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
@@ -87,23 +85,28 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
+      {/* SEO Structured Data */}
       <BreadcrumbSchema
         items={[
           { name: 'Home', url: 'https://www.balajisphere.com/' },
           { name: 'Products', url: 'https://www.balajisphere.com/products' },
+          { name: product.category, url: `https://www.balajisphere.com/products?category=${encodeURIComponent(product.category)}` },
           { name: product.name, url: `https://www.balajisphere.com/products/${product.id}` },
         ]}
+        showVisualBreadcrumb={false}
       />
       <ProductStructuredData product={product} />
       <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Link 
-          href="/products" 
-          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Products
-        </Link>
+        {/* Visual Breadcrumb Navigation */}
+        <BreadcrumbSchema
+          items={[
+            { name: 'Home', url: '/' },
+            { name: 'Products', url: '/products' },
+            { name: product.category, url: `/products?category=${encodeURIComponent(product.category)}` },
+            { name: product.name, url: `/products/${product.id}` },
+          ]}
+          showVisualBreadcrumb={true}
+        />
         
         {/* Enhanced Product Detail */}
         <EnhancedProductDetail product={product} />

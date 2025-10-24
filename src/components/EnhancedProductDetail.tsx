@@ -59,6 +59,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   // const [showShareModal, setShowShareModal] = useState(false);
 
   const images = product.images || [product.image];
@@ -94,6 +95,13 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       image: getProductImage(product),
       category: product.category
     });
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   // const handleQuantityChange = (change: number) => {
@@ -423,89 +431,110 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
         <div className="max-w-4xl">
           {/* Item Details Section */}
           <div className="border-b border-gray-200 py-4">
-            <button className="w-full flex items-center justify-between text-left">
+            <button 
+              onClick={() => toggleSection('itemDetails')}
+              className="w-full flex items-center justify-between text-left hover:bg-gray-50 p-2 rounded"
+            >
               <h3 className="text-lg font-medium text-gray-900">Item details</h3>
-              <span className="text-gray-500">+</span>
+              <span className="text-gray-500 transform transition-transform duration-200">
+                {openSections.itemDetails ? '−' : '+'}
+              </span>
             </button>
-            <div className="mt-4 text-sm text-gray-600">
-              <p className="mb-2">
-                You will get high-quality garment accessories including buttons, zippers, elastic, and cords. 
-                These come in various sizes and colors, perfect for professional garment making and textile industry.
-              </p>
-              <p className="mb-2">
-                The main materials are plastic, metal, and elastic, designed for durability and professional use.
-                These accessories are very suitable for sewing, clothing making, and the production of various garments.
-              </p>
-              <p>
-                We maintain consistent quality standards and keep updating our inventory, ensuring you get the best 
-                products for your manufacturing needs.
-              </p>
-            </div>
+            {openSections.itemDetails && (
+              <div className="mt-4 text-sm text-gray-600 animate-fadeIn">
+                <p className="mb-2">
+                  You will get high-quality garment accessories including buttons, zippers, elastic, and cords. 
+                  These come in various sizes and colors, perfect for professional garment making and textile industry.
+                </p>
+                <p className="mb-2">
+                  The main materials are plastic, metal, and elastic, designed for durability and professional use.
+                  These accessories are very suitable for sewing, clothing making, and the production of various garments.
+                </p>
+                <p>
+                  We maintain consistent quality standards and keep updating our inventory, ensuring you get the best 
+                  products for your manufacturing needs.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Highlights Section */}
           <div className="border-b border-gray-200 py-4">
-            <button className="w-full flex items-center justify-between text-left">
+            <button 
+              onClick={() => toggleSection('highlights')}
+              className="w-full flex items-center justify-between text-left hover:bg-gray-50 p-2 rounded"
+            >
               <h3 className="text-lg font-medium text-gray-900">Highlights</h3>
-              <span className="text-gray-500">+</span>
+              <span className="text-gray-500 transform transition-transform duration-200">
+                {openSections.highlights ? '−' : '+'}
+              </span>
             </button>
-            <div className="mt-4">
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Sourced by Shree Balaji Enterprises</li>
-                <li>• Supplies for making garments</li>
-                <li>• Materials: Plastic, Metal, Elastic</li>
-                <li>• Professional quality standards</li>
-                <li>• Suitable for bulk manufacturing</li>
-              </ul>
-            </div>
+            {openSections.highlights && (
+              <div className="mt-4 animate-fadeIn">
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Sourced by Shree Balaji Enterprises</li>
+                  <li>• Supplies for making garments</li>
+                  <li>• Materials: Plastic, Metal, Elastic</li>
+                  <li>• Professional quality standards</li>
+                  <li>• Suitable for bulk manufacturing</li>
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Reviews Section */}
           <div className="border-b border-gray-200 py-4">
-            <button className="w-full flex items-center justify-between text-left">
+            <button 
+              onClick={() => toggleSection('reviews')}
+              className="w-full flex items-center justify-between text-left hover:bg-gray-50 p-2 rounded"
+            >
               <h3 className="text-lg font-medium text-gray-900">Reviews ({product.reviews})</h3>
-              <span className="text-gray-500">+</span>
+              <span className="text-gray-500 transform transition-transform duration-200">
+                {openSections.reviews ? '−' : '+'}
+              </span>
             </button>
-            <div className="mt-4">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center">
-                  {renderStars(4.6)}
-                  <span className="ml-2 text-sm text-gray-600">4.6 out of 5</span>
-                </div>
-                <span className="text-sm text-gray-500">All reviews are from verified buyers</span>
-              </div>
-              
-              {/* Sample Reviews */}
-              <div className="space-y-4">
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="font-medium text-sm">Manufacturer123</span>
-                    <div className="flex">{renderStars(5)}</div>
-                    <span className="text-xs text-gray-500">2 days ago</span>
+            {openSections.reviews && (
+              <div className="mt-4 animate-fadeIn">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="flex items-center">
+                    {renderStars(4.6)}
+                    <span className="ml-2 text-sm text-gray-600">4.6 out of 5</span>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    &quot;Excellent quality buttons for our garment production. Fast delivery and great customer service!&quot;
-                  </p>
-                  <div className="mt-2">
-                    <span className="text-xs text-green-600">✓ This item recommends</span>
-                  </div>
+                  <span className="text-sm text-gray-500">All reviews are from verified buyers</span>
                 </div>
                 
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="font-medium text-sm">TextileCo</span>
-                    <div className="flex">{renderStars(5)}</div>
-                    <span className="text-xs text-gray-500">1 week ago</span>
+                {/* Sample Reviews */}
+                <div className="space-y-4">
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="font-medium text-sm">Manufacturer123</span>
+                      <div className="flex">{renderStars(5)}</div>
+                      <span className="text-xs text-gray-500">2 days ago</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      &quot;Excellent quality buttons for our garment production. Fast delivery and great customer service!&quot;
+                    </p>
+                    <div className="mt-2">
+                      <span className="text-xs text-green-600">✓ This item recommends</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    &quot;Perfect for our bulk orders. Consistent quality and reliable supplier. Highly recommended for professional use.&quot;
-                  </p>
-                  <div className="mt-2">
-                    <span className="text-xs text-green-600">✓ This item recommends</span>
+                  
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="font-medium text-sm">TextileCo</span>
+                      <div className="flex">{renderStars(5)}</div>
+                      <span className="text-xs text-gray-500">1 week ago</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      &quot;Perfect for our bulk orders. Consistent quality and reliable supplier. Highly recommended for professional use.&quot;
+                    </p>
+                    <div className="mt-2">
+                      <span className="text-xs text-green-600">✓ This item recommends</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
