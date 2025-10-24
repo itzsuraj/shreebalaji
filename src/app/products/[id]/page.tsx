@@ -9,7 +9,8 @@ async function getProduct(id: string) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
     const response = await fetch(`${baseUrl}/api/products/${id}`, {
-      cache: 'no-store' // Always fetch fresh data
+      cache: 'force-cache',
+      next: { revalidate: 300 } // Cache for 5 minutes
     });
     
     if (!response.ok) {
@@ -27,23 +28,11 @@ async function getProduct(id: string) {
 // Generate metadata for each product
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
-  const product = await getProduct(resolvedParams.id);
-
-  if (!product) {
-    return {
-      title: 'Product Not Found - Shree Balaji Enterprises',
-    };
-  }
-
-  const canonicalUrl = `https://www.balajisphere.com/products/${resolvedParams.id}`;
-
+  
+  // Use a simpler approach for metadata to avoid duplicate API calls
   return {
-    title: `${product.name} - Shree Balaji Enterprises`,
-    description: product.description,
-    keywords: `${product.name}, ${product.category} manufacturer Mumbai, ${product.category} supplier India, ${product.category} wholesale, garment accessories ${product.category}, quality ${product.category} Mumbai, professional ${product.category} supplier, ${product.category} bulk order, garment accessories manufacturer, textile accessories ${product.category}, Mumbai garment accessories, India garment accessories supplier`,
-    alternates: {
-      canonical: canonicalUrl,
-    },
+    title: `Product - Shree Balaji Enterprises`,
+    description: 'High-quality garment accessories and textile supplies',
     robots: {
       index: false,
       follow: false,
@@ -51,26 +40,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         index: false,
         follow: false,
       },
-    },
-    openGraph: {
-      title: `${product.name} - Shree Balaji Enterprises`,
-      description: product.description,
-      url: canonicalUrl,
-      images: [
-        {
-          url: getProductImage(product),
-          width: 800,
-          height: 600,
-          alt: product.name,
-        },
-      ],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${product.name} - Shree Balaji Enterprises`,
-      description: product.description,
-      images: [getProductImage(product)],
     },
   };
 }

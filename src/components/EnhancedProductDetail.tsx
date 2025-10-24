@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { Star, Heart, Truck, Shield, RotateCcw, Package, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -64,12 +64,19 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   });
   // const [showShareModal, setShowShareModal] = useState(false);
 
-  const images = product.images || [product.image];
-  const hasVariants = product.variantPricing && product.variantPricing.length > 0;
+  // Memoize expensive calculations
+  const images = useMemo(() => product.images || [product.image], [product.images, product.image]);
+  const hasVariants = useMemo(() => product.variantPricing && product.variantPricing.length > 0, [product.variantPricing]);
 
   // Calculate current price and stock
-  const currentPrice = selectedVariant ? selectedVariant.price : product.price;
-  const currentStock = selectedVariant ? selectedVariant.stockQty : (product.inStock ? (product.stockQty || 0) : 0);
+  const currentPrice = useMemo(() => 
+    selectedVariant ? selectedVariant.price : product.price, 
+    [selectedVariant, product.price]
+  );
+  const currentStock = useMemo(() => 
+    selectedVariant ? selectedVariant.stockQty : (product.inStock ? (product.stockQty || 0) : 0),
+    [selectedVariant, product.inStock, product.stockQty]
+  );
 
   // Update selected variant when options change
   useEffect(() => {
@@ -83,7 +90,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     }
   }, [selectedSize, selectedColor, selectedPack, product.variantPricing, hasVariants]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
     if (hasVariants && !selectedVariant) {
       alert('Please select all required options');
       return;
@@ -97,14 +104,14 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       image: getProductImage(product),
       category: product.category
     });
-  };
+  }, [hasVariants, selectedVariant, addItem, product.id, product.name, currentPrice, quantity, product.category]);
 
-  const toggleSection = (section: string) => {
+  const toggleSection = useCallback((section: string) => {
     setOpenSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
-  };
+  }, []);
 
   // const handleQuantityChange = (change: number) => {
   //   const newQuantity = quantity + change;
