@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -16,7 +16,88 @@ interface ProductsClientProps {
   initialCategory?: string;
 }
 
-export default function ProductsClient({ products, searchQuery = '', initialCategory = '' }: ProductsClientProps) {
+// Memoized ProductCard component for better performance
+const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow }: {
+  product: Product;
+  addedId: string | null;
+  handleAddToCart: (product: Product) => void;
+  handleBuyNow: (product: Product) => void;
+}) => (
+  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <Link href={`/products/${product.id}`}>
+      <div className="relative h-48">
+        <Image
+          src={getProductImage(product)}
+          alt={product.name}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          loading="lazy"
+          quality={75}
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 leading-tight line-clamp-2">{product.name}</h3>
+        <div className="flex items-center mb-2">
+          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+          <span className="ml-1 text-sm text-gray-700 font-medium">
+            {product.rating} ({product.reviews} reviews)
+          </span>
+        </div>
+        <p className="text-blue-600 font-bold text-lg mb-2">₹{product.price.toLocaleString()}</p>
+      </div>
+    </Link>
+    <div className="px-4 pb-4 relative">
+      {/* Stock badge */}
+      <div className={`absolute -top-3 left-4 text-xs px-2 py-0.5 rounded-full shadow ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        {product.inStock ? 'In stock' : 'Out of stock'}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {product.variantPricing && product.variantPricing.length > 0 ? (
+          <Link 
+            href={`/products/${product.id}`}
+            className="col-span-2 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium text-center"
+          >
+            View options
+          </Link>
+        ) : (
+          <>
+            <button 
+              onClick={() => handleAddToCart(product)}
+              aria-live="polite"
+              disabled={!product.inStock}
+              className={`${addedId===product.id ? 'bg-green-700' : 'bg-green-600'} ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''} text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-1 font-medium ${addedId===product.id ? 'scale-[0.98]' : ''}`}
+            >
+              {addedId===product.id ? (
+                <>
+                  <Check className="h-3 w-3" />
+                  Added
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-3 w-3" />
+                  Add to Cart
+                </>
+              )}
+            </button>
+            <button 
+              onClick={() => handleBuyNow(product)}
+              disabled={!product.inStock}
+              className={`bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Buy Now
+            </button>
+          </>
+        )}
+      </div>
+      <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => {}} />
+    </div>
+  </div>
+));
+
+ProductCard.displayName = 'ProductCard';
+
+function ProductsClient({ products, searchQuery = '', initialCategory = '' }: ProductsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addItem } = useCart();
@@ -25,6 +106,8 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
   const [sortBy, setSortBy] = useState<string>('featured');
   const [searchTerm, setSearchTerm] = useState<string>(searchQuery);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage] = useState<number>(12);
 
   // Memoize categories to avoid recalculation
   const categories = useMemo(() => 
@@ -32,52 +115,52 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
     [products]
   );
 
-  // Memoize smart search function
+  // Optimized search function with early returns and caching
   const smartSearch = useCallback((query: string, products: Product[]): Product[] => {
     if (!query.trim()) return products;
     
     const searchTerm = query.toLowerCase();
     
-    // Natural language processing for common queries
+    // Early return for very short queries
+    if (searchTerm.length < 2) return products;
+    
+    // Cache for natural language mapping
     const naturalLanguageMap: Record<string, string> = {
-      'button': 'buttons',
-      'buttons': 'buttons',
-      'zipper': 'zippers',
-      'zippers': 'zippers',
-      'elastic': 'elastic',
-      'cord': 'cords',
-      'cords': 'cords',
-      'denim': 'metal',
-      'heavy': 'metal',
-      'light': 'plastic',
-      'wood': 'wooden',
-      'invisible': 'invisible',
-      'nylon': 'nylon',
-      'cotton': 'cotton',
-      'satin': 'satin',
-      'metal': 'metal',
-      'plastic': 'plastic',
+      'button': 'buttons', 'buttons': 'buttons',
+      'zipper': 'zippers', 'zippers': 'zippers',
+      'elastic': 'elastic', 'cord': 'cords', 'cords': 'cords',
+      'denim': 'metal', 'heavy': 'metal', 'light': 'plastic',
+      'wood': 'wooden', 'invisible': 'invisible', 'nylon': 'nylon',
+      'cotton': 'cotton', 'satin': 'satin', 'metal': 'metal', 'plastic': 'plastic',
     };
 
-    // Enhanced search with multiple criteria and scoring
-    const scoredProducts = products.map(product => {
+    // Pre-compute search terms for better performance
+    const isProductNameQuery = searchTerm.length > 10 || searchTerm.includes('(') || searchTerm.includes(')');
+    const isPriceQuery = searchTerm.includes('cheap') || searchTerm.includes('budget') || 
+                        searchTerm.includes('premium') || searchTerm.includes('luxury');
+
+    // Use for loop instead of map for better performance
+    const results: Array<{ product: Product; score: number }> = [];
+    
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
       let score = 0;
+      
       const productName = product.name.toLowerCase();
       const productDescription = product.description.toLowerCase();
       const productCategory = product.category.toLowerCase();
       
-      // Exact name match (highest priority)
+      // Exact name match (highest priority) - early return
       if (productName === searchTerm) {
-        score += 1000;
+        results.push({ product, score: 1000 });
+        continue;
       }
       
       // Starts with search term
       if (productName.startsWith(searchTerm)) {
         score += 500;
-      }
-      
-      // Contains search term in name
-      if (productName.includes(searchTerm)) {
+      } else if (productName.includes(searchTerm)) {
+        // Contains search term in name
         score += 100;
       }
       
@@ -86,40 +169,40 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
         score += 50;
       }
       
-      // Description match
-      if (productDescription.includes(searchTerm)) {
+      // Description match (only if not already found in name)
+      if (score < 100 && productDescription.includes(searchTerm)) {
         score += 25;
       }
       
-      // Natural language processing (only for specific queries, not product names)
-      const isProductNameQuery = searchTerm.length > 10 || searchTerm.includes('(') || searchTerm.includes(')');
-      if (!isProductNameQuery) {
-        const naturalLanguageMatch = Object.entries(naturalLanguageMap).some(([key, value]) => {
+      // Natural language processing (only for specific queries)
+      if (!isProductNameQuery && score < 100) {
+        for (const [key, value] of Object.entries(naturalLanguageMap)) {
           if (searchTerm.includes(key)) {
-            return productName.includes(value) || 
-                   productDescription.includes(value) ||
-                   productCategory.includes(value);
+            if (productName.includes(value) || productDescription.includes(value) || productCategory.includes(value)) {
+              score += 30;
+              break;
+            }
           }
-          return false;
-        });
-        if (naturalLanguageMatch) {
-          score += 30;
         }
       }
 
       // Price range queries
-      if (searchTerm.includes('cheap') || searchTerm.includes('budget')) {
-        if (product.price < 150) score += 20;
-      } else if (searchTerm.includes('premium') || searchTerm.includes('luxury')) {
-        if (product.price > 200) score += 20;
+      if (isPriceQuery) {
+        if ((searchTerm.includes('cheap') || searchTerm.includes('budget')) && product.price < 150) {
+          score += 20;
+        } else if ((searchTerm.includes('premium') || searchTerm.includes('luxury')) && product.price > 200) {
+          score += 20;
+        }
       }
 
-      return { product, score };
-    });
+      // Only add if score > 0
+      if (score > 0) {
+        results.push({ product, score });
+      }
+    }
 
-    // Filter products with score > 0 and sort by score (highest first)
-    return scoredProducts
-      .filter(item => item.score > 0)
+    // Sort by score (highest first) and return products
+    return results
       .sort((a, b) => b.score - a.score)
       .map(item => item.product);
   }, []);
@@ -141,6 +224,20 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
         }
       });
   }, [smartSearch, searchTerm, products, selectedCategory, sortBy]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = useMemo(() => 
+    filteredProducts.slice(startIndex, endIndex), 
+    [filteredProducts, startIndex, endIndex]
+  );
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, sortBy]);
 
   const handleAddToCart = useCallback((product: Product) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
@@ -327,85 +424,68 @@ export default function ProductsClient({ products, searchQuery = '', initialCate
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredProducts.map(product => (
-              <div
-                key={product.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <Link href={`/products/${product.id}`}>
-                  <div className="relative h-48">
-                    <Image
-                      src={getProductImage(product)}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      loading="lazy"
-                      quality={75}
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 leading-tight line-clamp-2">{product.name}</h3>
-                    <div className="flex items-center mb-2">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="ml-1 text-sm text-gray-700 font-medium">
-                        {product.rating} ({product.reviews} reviews)
-                      </span>
-                    </div>
-                    <p className="text-blue-600 font-bold text-lg mb-2">₹{product.price.toLocaleString()}</p>
-                  </div>
-                </Link>
-                <div className="px-4 pb-4 relative">
-                  {/* Stock badge */}
-                  <div className={`absolute -top-3 left-4 text-xs px-2 py-0.5 rounded-full shadow ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {product.inStock ? 'In stock' : 'Out of stock'}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {product.variantPricing && product.variantPricing.length > 0 ? (
-                      <Link 
-                        href={`/products/${product.id}`}
-                        className="col-span-2 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium text-center"
-                      >
-                        View options
-                      </Link>
-                    ) : (
-                      <>
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          aria-live="polite"
-                          disabled={!product.inStock}
-                          className={`${addedId===product.id ? 'bg-green-700' : 'bg-green-600'} ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''} text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-1 font-medium ${addedId===product.id ? 'scale-[0.98]' : ''}`}
-                        >
-                          {addedId===product.id ? (
-                            <>
-                              <Check className="h-3 w-3" />
-                              Added
-                            </>
-                          ) : (
-                            <>
-                              <ShoppingCart className="h-3 w-3" />
-                              Add to Cart
-                            </>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleBuyNow(product)}
-                          disabled={!product.inStock}
-                          className={`bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          Buy Now
-                        </button>
-                      </>
-                    )}
-                  </div>
-                  <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => setAddedId(null)} />
-                </div>
-              </div>
-            ))}
+              {paginatedProducts.map(product => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  addedId={addedId}
+                  handleAddToCart={handleAddToCart}
+                  handleBuyNow={handleBuyNow}
+                />
+              ))}
             </div>
           )}
+
+          {/* Pagination Controls */}
+          {filteredProducts.length > itemsPerPage && (
+            <div className="mt-8 flex justify-center">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                          currentPage === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Results info */}
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+          </div>
         </div>
       </div>
     </div>
   );
-} 
+}
+
+export default memo(ProductsClient); 
