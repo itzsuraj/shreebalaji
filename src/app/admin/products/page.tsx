@@ -87,8 +87,6 @@ export default function AdminProductsPage() {
     inStock?: boolean;
     sku?: string;
   }>>([]);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   // Stock management states
   const [showStockManagement, setShowStockManagement] = useState(false);
@@ -294,58 +292,8 @@ export default function AdminProductsPage() {
     setVariantPricing([]);
     setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
   };
-
-
-  const handleImageUpload = async (file: File) => {
-    setUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const response = await fetch('/api/admin/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setForm({ ...form, image: data.imageUrl });
-        setImagePreview(data.imageUrl);
-        showSuccess(data.message || 'Image uploaded successfully');
-      } else {
-        const errorData = await response.json().catch(() => null);
-        showError(errorData?.error || 'Failed to upload image');
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      showError('Error uploading image. Please try again.');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
-    setImagePreview(null);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        showWarning('Please select an image file');
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showWarning('File size must be less than 5MB');
-        return;
-      }
-      
-      handleImageUpload(file);
-    }
   };
 
   // New variant dropdown functions
@@ -509,15 +457,14 @@ export default function AdminProductsPage() {
           <input className="border rounded px-3 py-2 md:col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </div>
 
-        {/* Image Upload Section */}
+        {/* Image URL Section */}
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
           <div className="space-y-4">
-            {/* Image Preview */}
-            {(form.image || imagePreview) && (
+            {form.image && (
               <div className="relative inline-block">
                 <img
-                  src={form.image || imagePreview || ''}
+                  src={form.image}
                   alt="Product preview"
                   className="w-32 h-32 object-cover rounded-lg border"
                 />
@@ -530,35 +477,15 @@ export default function AdminProductsPage() {
                 </button>
               </div>
             )}
-
-            {/* Upload Options */}
-            <div className="flex space-x-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={uploadingImage}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                {uploadingImage && (
-                  <div className="mt-2 text-sm text-blue-600">Uploading...</div>
-                )}
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Or Enter URL</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={form.image}
-                  onChange={(e) => {
-                    setForm({ ...form, image: e.target.value });
-                    setImagePreview(e.target.value);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Enter Image URL</label>
+              <input
+                type="url"
+                placeholder="https://example.com/image.jpg"
+                value={form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
         </div>
@@ -1135,44 +1062,15 @@ export default function AdminProductsPage() {
                       </div>
                     )}
 
-                    {/* Upload Options */}
-                    <div className="flex space-x-4">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload New Image</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              if (!file.type.startsWith('image/')) {
-                                showWarning('Please select an image file');
-                                return;
-                              }
-                              if (file.size > 5 * 1024 * 1024) {
-                                showWarning('File size must be less than 5MB');
-                                return;
-                              }
-                              handleImageUpload(file);
-                            }
-                          }}
-                          disabled={uploadingImage}
-                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                        />
-                        {uploadingImage && (
-                          <div className="mt-2 text-sm text-blue-600">Uploading...</div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Or Enter URL</label>
-                        <input
-                          type="url"
-                          placeholder="https://example.com/image.jpg"
-                          value={editForm.image}
-                          onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Enter Image URL</label>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/image.jpg"
+                        value={editForm.image}
+                        onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
                     </div>
                   </div>
                 </div>
