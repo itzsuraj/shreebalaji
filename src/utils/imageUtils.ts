@@ -1,11 +1,28 @@
 export const getProductImage = (product: { image?: string; category: string }) => {
   // If product has a specific image, use it
   if (product.image && !product.image.includes('icon.svg')) {
-    // Ensure the image path starts with / if it's a local path
-    let imagePath = product.image;
+    let imagePath = product.image.trim();
     
-    const isAbsolutePath = imagePath.startsWith('http') || imagePath.startsWith('/') || imagePath.startsWith('data:') || imagePath.startsWith('blob:');
-    // If it's a local path (not a full URL or data/blob URI), ensure it starts with /
+    const canonicalHosts = [
+      'https://www.balajisphere.com',
+      'http://www.balajisphere.com',
+      'https://balajisphere.com',
+      'http://balajisphere.com',
+    ];
+    
+    for (const host of canonicalHosts) {
+      if (imagePath.startsWith(host)) {
+        imagePath = imagePath.slice(host.length);
+        break;
+      }
+    }
+    
+    const isAbsolutePath =
+      imagePath.startsWith('http') ||
+      imagePath.startsWith('/') ||
+      imagePath.startsWith('data:') ||
+      imagePath.startsWith('blob:');
+    
     if (!isAbsolutePath) {
       imagePath = `/${imagePath}`;
     }

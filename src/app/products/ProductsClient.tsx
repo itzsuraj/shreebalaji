@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useMemo, useCallback, memo, useEffect } from 'react';
+import { useState, useMemo, memo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
-import { Star, ShoppingCart, ArrowLeft, Check, Search, X, Eye, Heart, Filter, SlidersHorizontal } from 'lucide-react';
+import { Star, ArrowLeft, Search, X, Eye, Heart, Filter, SlidersHorizontal } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from '@/utils/imageUtils';
-import Toast from '@/components/ui/Toast';
 import QuickViewModal from '@/components/ui/QuickViewModal';
 
 interface ProductsClientProps {
@@ -18,11 +17,8 @@ interface ProductsClientProps {
 }
 
 // Enhanced ProductCard with modern UI/UX
-const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow, onQuickView }: {
+const ProductCard = memo(({ product, onQuickView }: {
   product: Product;
-  addedId: string | null;
-  handleAddToCart: (product: Product) => void;
-  handleBuyNow: (product: Product) => void;
   onQuickView: (product: Product) => void;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -91,8 +87,8 @@ const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow, onQ
           <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Quick View & Add to Cart Overlay */}
-        <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center gap-3 transition-all duration-300 ${
+        {/* Quick View Overlay */}
+        <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center transition-all duration-300 ${
           isHovered ? 'opacity-100' : 'opacity-0'
         }`}>
           <button
@@ -104,21 +100,6 @@ const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow, onQ
           >
             <Eye className="h-4 w-4" />
             Quick View
-          </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              handleAddToCart(product);
-            }}
-            disabled={!product.inStock}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-lg ${
-              product.inStock
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-400 text-white cursor-not-allowed'
-            }`}
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Add to Cart
           </button>
         </div>
       </div>
@@ -157,53 +138,12 @@ const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow, onQ
           </span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          {product.variantPricing && product.variantPricing.length > 0 ? (
-            <Link 
-              href={`/products/${product.id}`}
-              className="col-span-2 bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
-            >
-              View Options
-            </Link>
-          ) : (
-            <>
-              <button 
-                onClick={() => handleAddToCart(product)}
-                disabled={!product.inStock}
-                className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
-                  addedId === product.id
-                    ? 'bg-green-600 text-white'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                } ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''} ${
-                  addedId === product.id ? 'scale-95' : ''
-                }`}
-              >
-                {addedId === product.id ? (
-                  <>
-                    <Check className="h-4 w-4" />
-                    Added
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-4 w-4" />
-                    Add to Cart
-                  </>
-                )}
-              </button>
-              <button 
-                onClick={() => handleBuyNow(product)}
-                disabled={!product.inStock}
-                className={`bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors ${
-                  !product.inStock ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                Buy Now
-              </button>
-            </>
-          )}
-        </div>
-        <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => {}} />
+        <Link 
+          href={`/products/${product.id}`}
+          className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg text-sm font-semibold text-center hover:bg-blue-700 transition-colors"
+        >
+          View Product
+        </Link>
       </div>
     </div>
   );
@@ -369,17 +309,6 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, sortBy]);
-
-  const handleAddToCart = useCallback((product: Product) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
-    setAddedId(product.id);
-    setTimeout(() => setAddedId(null), 1200);
-  }, [addItem]);
-
-  const handleBuyNow = useCallback((product: Product) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
-    router.push('/checkout');
-  }, [addItem, router]);
 
   const handleQuickView = useCallback((product: Product) => {
     setQuickViewProduct(product);
@@ -650,14 +579,11 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
                   {paginatedProducts.map(product => (
                     <ProductCard
                       key={product.id}
                       product={product}
-                      addedId={addedId}
-                      handleAddToCart={handleAddToCart}
-                      handleBuyNow={handleBuyNow}
                       onQuickView={handleQuickView}
                     />
                   ))}

@@ -136,7 +136,7 @@ export default function AdminProductsPage() {
       description: form.description,
       price: Number(form.price),
       category: form.category,
-      image: form.image,
+      image: form.image?.trim() || '',
       stockQty: Number(form.stockQty || 0),
       variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
     };
@@ -246,7 +246,7 @@ export default function AdminProductsPage() {
       description: editForm.description,
       price: Number(editForm.price),
       category: editForm.category,
-      image: editForm.image,
+      image: editForm.image?.trim() || '',
        stockQty: Number(editForm.stockQty || 0),
       variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
     };
