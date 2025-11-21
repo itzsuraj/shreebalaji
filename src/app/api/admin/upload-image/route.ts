@@ -27,28 +27,43 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadsDir)) {
-      mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    // Generate unique filename
     const timestamp = Date.now();
     const filename = `${timestamp}-${file.name}`;
     const path = join(uploadsDir, filename);
 
-    // Write file to disk
-    await writeFile(path, buffer);
+    try {
+      // Create uploads directory if it doesn't exist
+      if (!existsSync(uploadsDir)) {
+        mkdirSync(uploadsDir, { recursive: true });
+      }
 
-    // Return the public URL
-    const imageUrl = `/uploads/${filename}`;
-    
-    return NextResponse.json({ 
-      success: true, 
-      imageUrl,
-      message: 'Image uploaded successfully' 
-    });
+      // Write file to disk
+      await writeFile(path, buffer);
+
+      // Return the public URL
+      const imageUrl = `/uploads/${filename}`;
+      
+      return NextResponse.json({ 
+        success: true, 
+        imageUrl,
+        message: 'Image uploaded successfully',
+        storage: 'disk'
+      });
+    } catch (writeError) {
+      const errorCode = (writeError as NodeJS.ErrnoException)?.code;
+      if (errorCode === 'EROFS' || errorCode === 'EACCES') {
+        console.warn('Filesystem is read-only, falling back to inline image storage');
+        const base64Image = `data:${file.type};base64,${buffer.toString('base64')}`;
+        return NextResponse.json({
+          success: true,
+          imageUrl: base64Image,
+          message: 'Image stored inline because server storage is read-only',
+          storage: 'inline'
+        });
+      }
+      throw writeError;
+    }
 
   } catch (error) {
     console.error('Error uploading image:', error);

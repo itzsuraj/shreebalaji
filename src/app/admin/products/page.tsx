@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { generateVariantSKU } from '@/utils/skuGenerator';
 import Head from 'next/head';
 import DeleteModal from '@/components/ui/DeleteModal';
+import Toast from '@/components/ui/Toast';
+import { useToast } from '@/hooks/useToast';
 
 interface AdminProductForm {
   name: string;
@@ -119,6 +121,7 @@ export default function AdminProductsPage() {
     stockQty: 0,
     sku: ''
   });
+  const { toast, hideToast, showError, showSuccess, showWarning, showInfo } = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -308,12 +311,14 @@ export default function AdminProductsPage() {
         const data = await response.json();
         setForm({ ...form, image: data.imageUrl });
         setImagePreview(data.imageUrl);
+        showSuccess(data.message || 'Image uploaded successfully');
       } else {
-        alert('Failed to upload image');
+        const errorData = await response.json().catch(() => null);
+        showError(errorData?.error || 'Failed to upload image');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      showError('Error uploading image. Please try again.');
     } finally {
       setUploadingImage(false);
     }
@@ -329,13 +334,13 @@ export default function AdminProductsPage() {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        showWarning('Please select an image file');
         return;
       }
       
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+        showWarning('File size must be less than 5MB');
         return;
       }
       
@@ -346,7 +351,7 @@ export default function AdminProductsPage() {
   // New variant dropdown functions
          const addVariantCombination = () => {
     if (!newVariant.size || !newVariant.color || !newVariant.pack || newVariant.price <= 0) {
-      alert('Please fill all fields and set a valid price');
+      showWarning('Please fill all fields and set a valid price');
       return;
     }
 
@@ -368,7 +373,7 @@ export default function AdminProductsPage() {
     );
 
     if (exists) {
-      alert('This combination already exists');
+      showInfo('This combination already exists');
       return;
     }
 
@@ -396,12 +401,13 @@ export default function AdminProductsPage() {
             : p
         );
         setProducts(updatedProducts);
+        showSuccess('Stock updated successfully');
       } else {
-        alert('Failed to update stock');
+        showError('Failed to update stock');
       }
     } catch (error) {
       console.error('Error updating stock:', error);
-      alert('Error updating stock');
+      showError('Error updating stock');
     }
   };
 
@@ -420,15 +426,15 @@ export default function AdminProductsPage() {
       });
 
       if (response.ok) {
-        alert('Bulk stock update completed');
+        showSuccess('Bulk stock update completed');
         setBulkStockUpdate({});
         load();
       } else {
-        alert('Failed to update stock');
+        showError('Failed to update stock');
       }
     } catch (error) {
       console.error('Error updating stock:', error);
-      alert('Error updating stock');
+      showError('Error updating stock');
     }
   };
 
@@ -451,14 +457,14 @@ export default function AdminProductsPage() {
       const data = await res.json();
       
       if (data.success) {
-        alert(data.message);
+        showSuccess(data.message || 'Stock migration completed');
         load(); // Refresh the product list
       } else {
-        alert('Migration failed: ' + data.error);
+        showError(`Migration failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Migration error:', error);
-      alert('Migration failed');
+      showError('Migration failed');
     }
   };
 
@@ -1140,11 +1146,11 @@ export default function AdminProductsPage() {
                             const file = e.target.files?.[0];
                             if (file) {
                               if (!file.type.startsWith('image/')) {
-                                alert('Please select an image file');
+                                showWarning('Please select an image file');
                                 return;
                               }
                               if (file.size > 5 * 1024 * 1024) {
-                                alert('File size must be less than 5MB');
+                                showWarning('File size must be less than 5MB');
                                 return;
                               }
                               handleImageUpload(file);
@@ -1332,6 +1338,12 @@ export default function AdminProductsPage() {
         isDeleting={isDeleting}
         isBulk={deleteModal.isBulk}
         count={deleteModal.count}
+      />
+      <Toast
+        message={toast.message}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+        type={toast.type}
       />
       </div>
     </>

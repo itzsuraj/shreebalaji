@@ -4,8 +4,9 @@ export const getProductImage = (product: { image?: string; category: string }) =
     // Ensure the image path starts with / if it's a local path
     let imagePath = product.image;
     
-    // If it's a local path (not a full URL), ensure it starts with /
-    if (!imagePath.startsWith('http') && !imagePath.startsWith('/')) {
+    const isAbsolutePath = imagePath.startsWith('http') || imagePath.startsWith('/') || imagePath.startsWith('data:') || imagePath.startsWith('blob:');
+    // If it's a local path (not a full URL or data/blob URI), ensure it starts with /
+    if (!isAbsolutePath) {
       imagePath = `/${imagePath}`;
     }
     
