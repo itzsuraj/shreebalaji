@@ -2,13 +2,13 @@
 
 import dynamic from 'next/dynamic';
 
-// Lazy-load the heavy floating widget on the client only
-const CustomerSupportWidget = dynamic(() => import('./CustomerSupportWidget'), {
+// Lazy-load the AI chatbot on the client only
+const AIChatbot = dynamic(() => import('./AIChatbot'), {
   ssr: false,
 });
 
 export default function ClientSupportWidget() {
-  return <CustomerSupportWidget />;
+  return <AIChatbot />;
 }
 
 

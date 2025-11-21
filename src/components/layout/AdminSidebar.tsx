@@ -122,8 +122,9 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
       <div className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        flex flex-col
       `}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,7 +143,7 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
+        <nav className="flex-1 overflow-y-auto px-3 py-6">
           <div className="space-y-1">
             {navigation.map((item) => (
               <div key={item.name}>
@@ -225,7 +226,7 @@ export default function AdminSidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* User section */}
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200">
+        <div className="flex-shrink-0 w-full p-4 border-t border-gray-200 bg-white">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
