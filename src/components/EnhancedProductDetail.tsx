@@ -65,8 +65,13 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   // const [showShareModal, setShowShareModal] = useState(false);
 
   // Memoize expensive calculations
-  const images = useMemo(() => product.images || [product.image], [product.images, product.image]);
+  const productImage = useMemo(() => getProductImage(product), [product.image, product.category]);
+  const images = useMemo(() => {
+    const mainImage = productImage;
+    return product.images && product.images.length > 0 ? product.images : [mainImage];
+  }, [product.images, productImage]);
   const hasVariants = useMemo(() => product.variantPricing && product.variantPricing.length > 0, [product.variantPricing]);
+  const [imageError, setImageError] = useState(false);
 
   // Calculate current price and stock
   const currentPrice = useMemo(() => 
@@ -149,12 +154,17 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           <div className="relative">
             <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
               <Image
-                src={images[currentImageIndex]}
+                src={imageError ? getProductImage({ category: product.category, image: undefined }) : images[currentImageIndex] || productImage}
                 alt={product.name}
                 fill
                 className="object-cover"
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
+                onError={() => {
+                  if (!imageError) {
+                    setImageError(true);
+                  }
+                }}
               />
               {/* Bestseller Badge */}
               <div className="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">

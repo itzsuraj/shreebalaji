@@ -29,12 +29,13 @@ export async function GET(request: NextRequest) {
       ];
     }
     
-    // Get orders with pagination
+    // Get orders with pagination - include all fields
     const skip = (page - 1) * limit;
     const orders = await Order.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .select('+timeline +fulfillment +internalNotes +customerNotes +tags')
       .lean();
     
     // Get total count for pagination

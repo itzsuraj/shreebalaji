@@ -3,26 +3,70 @@
 import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import DeleteModal from '@/components/ui/DeleteModal';
+import ShopifyOrderDetail from '@/components/admin/ShopifyOrderDetail';
 // import OrderManagementDashboard from '@/components/admin/OrderManagementDashboard';
 
 interface AdminOrderItem {
   _id: string;
+  orderNumber?: string;
   status: string;
   totalInPaise: number;
-  payment: { status: string; method: string };
-  customer: { fullName: string; phone: string; city: string; email?: string };
+  subtotalInPaise: number;
+  shippingInPaise: number;
+  gstInPaise: number;
+  payment: { status: string; method: string; razorpayOrderId?: string; razorpayPaymentId?: string };
+  customer: { 
+    fullName: string; 
+    phone: string; 
+    city: string; 
+    email?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+    gstin?: string;
+  };
   items: Array<{
-    productName: string;
+    productId: string;
+    name: string;
     quantity: number;
     price: number;
+    image?: string;
     size?: string;
     color?: string;
     pack?: string;
+    category?: string;
+    sku?: string;
   }>;
   createdAt: string;
   updatedAt: string;
   trackingNumber?: string;
   estimatedDelivery?: string;
+  fulfillment?: {
+    status: string;
+    trackingNumber?: string;
+    carrier?: string;
+    trackingUrl?: string;
+    shippedAt?: string;
+    deliveredAt?: string;
+    estimatedDelivery?: string;
+    items?: Array<{
+      itemIndex: number;
+      quantity: number;
+      fulfilledAt?: string;
+    }>;
+  };
+  timeline?: Array<{
+    status: string;
+    timestamp: string;
+    note?: string;
+    updatedBy?: string;
+  }>;
+  internalNotes?: string;
+  customerNotes?: string;
+  notes?: string;
+  tags?: string[];
 }
 
 interface OrderStats {
@@ -429,10 +473,10 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        #{order._id.slice(-8)}
+                        {order.orderNumber || `#${order._id.slice(-8)}`}
                       </div>
                       <div className="text-sm text-gray-500">
-                        ID: {order._id}
+                        ID: {order._id.slice(-8)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -445,7 +489,7 @@ export default function AdminOrdersPage() {
                         {order.items?.length || 0} item(s)
                       </div>
                       <div className="text-sm text-gray-500">
-                        {order.items?.[0]?.productName}
+                        {order.items?.[0]?.name}
                         {order.items?.length > 1 && ` +${order.items.length - 1} more`}
                       </div>
                     </td>
@@ -455,7 +499,8 @@ export default function AdminOrdersPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 capitalize">{order.payment?.method}</div>
                       <div className={`text-sm ${
-                        order.payment?.status === 'captured' ? 'text-green-600' : 'text-red-600'
+                        order.payment?.status === 'paid' || order.payment?.status === 'captured' ? 'text-green-600' : 
+                        order.payment?.status === 'pending' ? 'text-yellow-600' : 'text-red-600'
                       }`}>
                         {order.payment?.status}
                       </div>
@@ -502,111 +547,36 @@ export default function AdminOrdersPage() {
         )}
       </div>
 
-      {/* Order Details Modal */}
+      {/* Shopify-style Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Order Details</h3>
-                <button
-                  onClick={() => setSelectedOrder(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <span className="sr-only">Close</span>
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Order ID</label>
-                    <p className="text-sm text-gray-900">{selectedOrder._id}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
-                      {selectedOrder.status}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Customer Information</label>
-                  <div className="mt-1 text-sm text-gray-900">
-                    <p><strong>Name:</strong> {selectedOrder.customer?.fullName}</p>
-                    <p><strong>Phone:</strong> {selectedOrder.customer?.phone}</p>
-                    <p><strong>Email:</strong> {selectedOrder.customer?.email || 'N/A'}</p>
-                    <p><strong>City:</strong> {selectedOrder.customer?.city}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Order Items</label>
-                  <div className="mt-1 space-y-2">
-                    {selectedOrder.items?.map((item, index) => (
-                      <div key={index} className="border rounded p-3">
-                        <p className="font-medium">{item.productName}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                        {item.size && <p className="text-sm text-gray-600">Size: {item.size}</p>}
-                        {item.color && <p className="text-sm text-gray-600">Color: {item.color}</p>}
-                        {item.pack && <p className="text-sm text-gray-600">Pack: {item.pack}</p>}
-                        <p className="text-sm font-medium">Price: ₹{(item.price / 100).toFixed(2)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Payment Method</label>
-                    <p className="text-sm text-gray-900 capitalize">{selectedOrder.payment?.method}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Payment Status</label>
-                    <p className={`text-sm ${
-                      selectedOrder.payment?.status === 'captured' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {selectedOrder.payment?.status}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Order Date</label>
-                    <p className="text-sm text-gray-900">{formatDate(selectedOrder.createdAt)}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Total Amount</label>
-                    <p className="text-lg font-bold text-gray-900">₹{(selectedOrder.totalInPaise / 100).toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => setSelectedOrder(null)}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    // Add functionality to print or export order
-                    window.print();
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Print Order
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ShopifyOrderDetail
+          order={{
+            ...selectedOrder,
+            items: selectedOrder.items.map(item => ({
+              productId: item.productId || '',
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              image: item.image,
+              size: item.size,
+              color: item.color,
+              pack: item.pack,
+              category: item.category,
+              sku: item.sku,
+            })),
+            customer: {
+              ...selectedOrder.customer,
+              addressLine1: selectedOrder.customer.addressLine1 || '',
+              state: selectedOrder.customer.state || '',
+              postalCode: selectedOrder.customer.postalCode || '',
+            },
+            payment: {
+              ...selectedOrder.payment,
+            },
+          }}
+          onClose={() => setSelectedOrder(null)}
+          onUpdate={load}
+        />
       )}
 
       {/* Delete Confirmation Modal */}

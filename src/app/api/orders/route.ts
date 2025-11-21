@@ -74,6 +74,12 @@ export async function POST(req: NextRequest) {
       customer,
       payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'pending' : 'pending' },
       status: 'created',
+      timeline: [{
+        status: 'created',
+        timestamp: new Date(),
+        note: 'Order created',
+        updatedBy: 'system',
+      }],
     });
 
     return NextResponse.json({ orderId: order._id, totalInPaise: order.totalInPaise });

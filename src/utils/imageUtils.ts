@@ -1,7 +1,15 @@
 export const getProductImage = (product: { image?: string; category: string }) => {
   // If product has a specific image, use it
   if (product.image && !product.image.includes('icon.svg')) {
-    return product.image;
+    // Ensure the image path starts with / if it's a local path
+    let imagePath = product.image;
+    
+    // If it's a local path (not a full URL), ensure it starts with /
+    if (!imagePath.startsWith('http') && !imagePath.startsWith('/')) {
+      imagePath = `/${imagePath}`;
+    }
+    
+    return imagePath;
   }
   
   // Otherwise, use category-based fallback icons

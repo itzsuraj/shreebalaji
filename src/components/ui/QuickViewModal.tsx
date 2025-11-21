@@ -55,6 +55,11 @@ export default function QuickViewModal({
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    onError={(e) => {
+                      // Fallback to category icon
+                      const target = e.target as HTMLImageElement;
+                      target.src = getProductImage({ category: product.category, image: undefined });
+                    }}
                   />
                 </div>
 
