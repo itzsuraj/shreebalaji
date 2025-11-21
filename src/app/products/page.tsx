@@ -44,7 +44,7 @@ async function getProducts() {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
     const response = await fetch(`${baseUrl}/api/products`, {
       cache: 'force-cache',
-      next: { revalidate: 300 } // Cache for 5 minutes
+      next: { revalidate: 30 } // Cache for 30 seconds - faster updates
     });
     
     if (!response.ok) {

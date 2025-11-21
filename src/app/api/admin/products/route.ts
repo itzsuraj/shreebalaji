@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
 
@@ -18,6 +19,11 @@ export async function POST(req: NextRequest) {
   const productHasStock = (doc.stockQty ?? 0) > 0;
   doc.inStock = Boolean(productHasStock || variantHasStock);
   const created = await Product.create(doc);
+  
+  // Revalidate cache after creating new product
+  revalidatePath('/products');
+  revalidatePath('/');
+  
   return NextResponse.json({ product: created });
 }
 

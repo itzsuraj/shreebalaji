@@ -5,10 +5,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
-import { Star, ShoppingCart, ArrowLeft, Check, Search, X } from 'lucide-react';
+import { Star, ShoppingCart, ArrowLeft, Check, Search, X, Eye, Heart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage } from '@/utils/imageUtils';
 import Toast from '@/components/ui/Toast';
+import QuickViewModal from '@/components/ui/QuickViewModal';
 
 interface ProductsClientProps {
   products: Product[];
@@ -16,84 +17,178 @@ interface ProductsClientProps {
   initialCategory?: string;
 }
 
-// Memoized ProductCard component for better performance
-const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow }: {
+// Enhanced ProductCard with modern UI/UX
+const ProductCard = memo(({ product, addedId, handleAddToCart, handleBuyNow, onQuickView }: {
   product: Product;
   addedId: string | null;
   handleAddToCart: (product: Product) => void;
   handleBuyNow: (product: Product) => void;
-}) => (
-  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-    <Link href={`/products/${product.id}`}>
-      <div className="relative h-48">
-        <Image
-          src={getProductImage(product)}
-          alt={product.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          loading="lazy"
-          quality={75}
-        />
+  onQuickView: (product: Product) => void;
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  return (
+    <div 
+      className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Container with Hover Effects */}
+      <div className="relative h-64 overflow-hidden bg-gray-50">
+        <Link href={`/products/${product.id}`}>
+          <div className="relative w-full h-full transform transition-transform duration-500 group-hover:scale-105">
+            <Image
+              src={getProductImage(product)}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
+              quality={85}
+            />
+          </div>
+        </Link>
+        
+        {/* Stock Badge */}
+        <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold shadow-md ${
+          product.inStock 
+            ? 'bg-green-500 text-white' 
+            : 'bg-red-500 text-white'
+        }`}>
+          {product.inStock ? 'In Stock' : 'Out of Stock'}
+        </div>
+
+        {/* Wishlist Button */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            setIsWishlisted(!isWishlisted);
+          }}
+          className={`absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all duration-300 ${
+            isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          } ${isWishlisted ? 'text-red-500' : 'text-gray-600 hover:text-red-500'}`}
+        >
+          <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
+        </button>
+
+        {/* Quick View & Add to Cart Overlay */}
+        <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center gap-3 transition-all duration-300 ${
+          isHovered ? 'opacity-100' : 'opacity-0'
+        }`}>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onQuickView(product);
+            }}
+            className="px-4 py-2 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg"
+          >
+            <Eye className="h-4 w-4" />
+            Quick View
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              handleAddToCart(product);
+            }}
+            disabled={!product.inStock}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-lg ${
+              product.inStock
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-gray-400 text-white cursor-not-allowed'
+            }`}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Add to Cart
+          </button>
+        </div>
       </div>
-      <div className="p-4">
-        <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-900 leading-tight line-clamp-2">{product.name}</h3>
-        <div className="flex items-center mb-2">
-          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span className="ml-1 text-sm text-gray-700 font-medium">
-            {product.rating} ({product.reviews} reviews)
+
+      {/* Product Info */}
+      <div className="p-5">
+        <Link href={`/products/${product.id}`}>
+          <h3 className="text-lg font-bold mb-2 text-gray-900 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+            {product.name}
+          </h3>
+        </Link>
+        
+        {/* Rating */}
+        <div className="flex items-center gap-1 mb-3">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${
+                  i < Math.floor(product.rating)
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="ml-1 text-sm text-gray-600 font-medium">
+            {product.rating} ({product.reviews})
           </span>
         </div>
-        <p className="text-blue-600 font-bold text-lg mb-2">₹{product.price.toLocaleString()}</p>
-      </div>
-    </Link>
-    <div className="px-4 pb-4 relative">
-      {/* Stock badge */}
-      <div className={`absolute -top-3 left-4 text-xs px-2 py-0.5 rounded-full shadow ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-        {product.inStock ? 'In stock' : 'Out of stock'}
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {product.variantPricing && product.variantPricing.length > 0 ? (
-          <Link 
-            href={`/products/${product.id}`}
-            className="col-span-2 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium text-center"
-          >
-            View options
-          </Link>
-        ) : (
-          <>
-            <button 
-              onClick={() => handleAddToCart(product)}
-              aria-live="polite"
-              disabled={!product.inStock}
-              className={`${addedId===product.id ? 'bg-green-700' : 'bg-green-600'} ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''} text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-all flex items-center justify-center gap-1 font-medium ${addedId===product.id ? 'scale-[0.98]' : ''}`}
+
+        {/* Price */}
+        <div className="mb-4">
+          <span className="text-2xl font-bold text-blue-600">
+            ₹{product.price.toLocaleString()}
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          {product.variantPricing && product.variantPricing.length > 0 ? (
+            <Link 
+              href={`/products/${product.id}`}
+              className="col-span-2 bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
             >
-              {addedId===product.id ? (
-                <>
-                  <Check className="h-3 w-3" />
-                  Added
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="h-3 w-3" />
-                  Add to Cart
-                </>
-              )}
-            </button>
-            <button 
-              onClick={() => handleBuyNow(product)}
-              disabled={!product.inStock}
-              className={`bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700 transition-colors font-medium ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              Buy Now
-            </button>
-          </>
-        )}
+              View Options
+            </Link>
+          ) : (
+            <>
+              <button 
+                onClick={() => handleAddToCart(product)}
+                disabled={!product.inStock}
+                className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all ${
+                  addedId === product.id
+                    ? 'bg-green-600 text-white'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                } ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''} ${
+                  addedId === product.id ? 'scale-95' : ''
+                }`}
+              >
+                {addedId === product.id ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Added
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4" />
+                    Add to Cart
+                  </>
+                )}
+              </button>
+              <button 
+                onClick={() => handleBuyNow(product)}
+                disabled={!product.inStock}
+                className={`bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors ${
+                  !product.inStock ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Buy Now
+              </button>
+            </>
+          )}
+        </div>
+        <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => {}} />
       </div>
-      <Toast message={`${product.name} added to cart`} isVisible={addedId===product.id} onClose={() => {}} />
     </div>
-  </div>
-));
+  );
+});
 
 ProductCard.displayName = 'ProductCard';
 
@@ -108,6 +203,8 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(12);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   // Memoize categories to avoid recalculation
   const categories = useMemo(() => 
@@ -249,6 +346,17 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
     router.push('/checkout');
   }, [addItem, router]);
+
+  const handleQuickView = useCallback((product: Product) => {
+    setQuickViewProduct(product);
+    setIsQuickViewOpen(true);
+  }, []);
+
+  const handleQuickViewAddToCart = useCallback((product: Product) => {
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    setAddedId(product.id);
+    setTimeout(() => setAddedId(null), 2000);
+  }, [addItem]);
 
   const updateURL = useCallback((category: string, search?: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -423,7 +531,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {paginatedProducts.map(product => (
                 <ProductCard
                   key={product.id}
@@ -431,6 +539,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                   addedId={addedId}
                   handleAddToCart={handleAddToCart}
                   handleBuyNow={handleBuyNow}
+                  onQuickView={handleQuickView}
                 />
               ))}
             </div>
@@ -479,11 +588,23 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
           )}
 
           {/* Results info */}
-          <div className="mt-4 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-gray-600">
             Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
           </div>
         </div>
       </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewProduct(null);
+        }}
+        onAddToCart={handleQuickViewAddToCart}
+        addedToCart={quickViewProduct ? addedId === quickViewProduct.id : false}
+      />
     </div>
   );
 }

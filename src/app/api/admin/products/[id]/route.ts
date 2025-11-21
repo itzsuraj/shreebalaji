@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
 
@@ -12,6 +13,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const productHasStock = (doc.stockQty ?? 0) > 0;
   doc.inStock = Boolean(productHasStock || variantHasStock);
   const updated = await Product.findByIdAndUpdate(id, doc, { new: true });
+  
+  // Revalidate cache for immediate visibility
+  revalidatePath('/products');
+  revalidatePath('/');
+  revalidatePath(`/products/${id}`);
+  
   return NextResponse.json({ product: updated });
 }
 
@@ -19,6 +26,12 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   await connectToDatabase();
   const { id } = await params;
   await Product.findByIdAndDelete(id);
+  
+  // Revalidate cache after deletion
+  revalidatePath('/products');
+  revalidatePath('/');
+  revalidatePath(`/products/${id}`);
+  
   return NextResponse.json({ ok: true });
 }
 

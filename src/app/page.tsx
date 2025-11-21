@@ -8,7 +8,7 @@ async function getProductsSSR(): Promise<Product[]> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
     const res = await fetch(`${baseUrl}/api/products`, { 
       cache: 'force-cache',
-      next: { revalidate: 300 } // Cache for 5 minutes
+      next: { revalidate: 30 } // Cache for 30 seconds - faster updates
     });
     if (!res.ok) return [] as Product[];
     const data = await res.json();
