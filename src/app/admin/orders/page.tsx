@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
+import DeleteModal from '@/components/ui/DeleteModal';
 // import OrderManagementDashboard from '@/components/admin/OrderManagementDashboard';
 
 interface AdminOrderItem {
@@ -42,6 +43,18 @@ export default function AdminOrdersPage() {
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState('');
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    orderId: string | null;
+    isBulk: boolean;
+    count: number;
+  }>({
+    isOpen: false,
+    orderId: null,
+    isBulk: false,
+    count: 0
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [stats, setStats] = useState<OrderStats>({
     total: 0,
     processing: 0,
@@ -83,10 +96,48 @@ export default function AdminOrdersPage() {
     if (res.ok) load();
   };
 
-  const remove = async (id: string) => {
-    if (!confirm('Delete this order?')) return;
-    const res = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
-    if (res.ok) load();
+  const handleDeleteClick = (id: string) => {
+    setDeleteModal({
+      isOpen: true,
+      orderId: id,
+      isBulk: false,
+      count: 1
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedOrders.length === 0) return;
+    setDeleteModal({
+      isOpen: true,
+      orderId: null,
+      isBulk: true,
+      count: selectedOrders.length
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      if (deleteModal.isBulk && selectedOrders.length > 0) {
+        const res = await fetch('/api/admin/orders/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: selectedOrders })
+        });
+        if (res.ok) {
+          setSelectedOrders([]);
+          load();
+        }
+      } else if (deleteModal.orderId) {
+        const res = await fetch(`/api/admin/orders/${deleteModal.orderId}`, { method: 'DELETE' });
+        if (res.ok) load();
+      }
+      setDeleteModal({ isOpen: false, orderId: null, isBulk: false, count: 0 });
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSelectOrder = (orderId: string, checked: boolean) => {
@@ -318,6 +369,12 @@ export default function AdminOrdersPage() {
               >
                 Apply
               </button>
+              <button
+                onClick={handleBulkDeleteClick}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete Selected
+              </button>
             </div>
             <button
               onClick={() => setSelectedOrders([])}
@@ -430,7 +487,7 @@ export default function AdminOrdersPage() {
                           <option value="cancelled">Cancelled</option>
                         </select>
                         <button
-                          onClick={() => remove(order._id)}
+                          onClick={() => handleDeleteClick(order._id)}
                           className="text-red-600 hover:text-red-900"
                         >
                           Delete
@@ -551,6 +608,21 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => !isDeleting && setDeleteModal({ isOpen: false, orderId: null, isBulk: false, count: 0 })}
+        onConfirm={handleDeleteConfirm}
+        title={deleteModal.isBulk ? "Delete Multiple Orders" : "Delete Order"}
+        message={deleteModal.isBulk 
+          ? "Are you sure you want to delete the selected orders?"
+          : "Are you sure you want to delete this order?"
+        }
+        isDeleting={isDeleting}
+        isBulk={deleteModal.isBulk}
+        count={deleteModal.count}
+      />
       </div>
     </>
   );

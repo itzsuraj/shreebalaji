@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { generateVariantSKU } from '@/utils/skuGenerator';
 import Head from 'next/head';
+import DeleteModal from '@/components/ui/DeleteModal';
 
 interface AdminProductForm {
   name: string;
@@ -92,6 +93,23 @@ export default function AdminProductsPage() {
   const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
   const [bulkStockUpdate, setBulkStockUpdate] = useState<Record<string, number>>({});
   
+  // Delete modal states
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    productId: string | null;
+    productName: string | null;
+    isBulk: boolean;
+    count: number;
+  }>({
+    isOpen: false,
+    productId: null,
+    productName: null,
+    isBulk: false,
+    count: 0
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  
   // New variant dropdown states
   const [newVariant, setNewVariant] = useState({
     size: '',
@@ -140,10 +158,66 @@ export default function AdminProductsPage() {
     }
   };
 
-  const remove = async (id: string) => {
-    if (!confirm('Delete this product?')) return;
-    const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-    if (res.ok) load();
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteModal({
+      isOpen: true,
+      productId: id,
+      productName: name,
+      isBulk: false,
+      count: 1
+    });
+  };
+
+  const handleBulkDeleteClick = () => {
+    if (selectedProducts.length === 0) return;
+    setDeleteModal({
+      isOpen: true,
+      productId: null,
+      productName: null,
+      isBulk: true,
+      count: selectedProducts.length
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      if (deleteModal.isBulk && selectedProducts.length > 0) {
+        const res = await fetch('/api/admin/products/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: selectedProducts })
+        });
+        if (res.ok) {
+          setSelectedProducts([]);
+          load();
+        }
+      } else if (deleteModal.productId) {
+        const res = await fetch(`/api/admin/products/${deleteModal.productId}`, { method: 'DELETE' });
+        if (res.ok) load();
+      }
+      setDeleteModal({ isOpen: false, productId: null, productName: null, isBulk: false, count: 0 });
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSelectProduct = (productId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, productId]);
+    } else {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(products.map(p => p._id));
+    } else {
+      setSelectedProducts([]);
+    }
   };
 
   const startEdit = (product: AdminProductRow) => {
@@ -779,7 +853,30 @@ export default function AdminProductsPage() {
       ) : (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">All Products ({products.length})</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.length === products.length && products.length > 0}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <h2 className="text-lg font-semibold">All Products ({products.length})</h2>
+              </div>
+              {selectedProducts.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">
+                    {selectedProducts.length} selected
+                  </span>
+                  <button
+                    onClick={handleBulkDeleteClick}
+                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
+            </div>
             <button 
               onClick={load}
               className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
@@ -790,7 +887,16 @@ export default function AdminProductsPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map(product => (
-              <div key={product._id} className="bg-white border rounded-lg p-4 shadow-sm">
+              <div key={product._id} className="bg-white border rounded-lg p-4 shadow-sm relative">
+                {/* Checkbox for selection */}
+                <div className="absolute top-2 left-2 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product._id)}
+                    onChange={(e) => handleSelectProduct(product._id, e.target.checked)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                </div>
                 <div className="flex items-start space-x-4 mb-3">
                   {/* Product Image */}
                   {product.image && (
@@ -891,7 +997,7 @@ export default function AdminProductsPage() {
                       Edit
                     </button>
                     <button 
-                      onClick={() => remove(product._id)}
+                      onClick={() => handleDeleteClick(product._id, product.name)}
                       className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200"
                     >
                       Delete
@@ -1211,6 +1317,22 @@ export default function AdminProductsPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => !isDeleting && setDeleteModal({ isOpen: false, productId: null, productName: null, isBulk: false, count: 0 })}
+        onConfirm={handleDeleteConfirm}
+        title={deleteModal.isBulk ? "Delete Multiple Products" : "Delete Product"}
+        message={deleteModal.isBulk 
+          ? "Are you sure you want to delete the selected products?"
+          : "Are you sure you want to delete this product?"
+        }
+        itemName={deleteModal.productName || undefined}
+        isDeleting={isDeleting}
+        isBulk={deleteModal.isBulk}
+        count={deleteModal.count}
+      />
       </div>
     </>
   );

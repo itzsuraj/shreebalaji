@@ -5,7 +5,19 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        disallow: ['/admin/', '/api/', '/_next/', '/static/', '/shop'],
+        disallow: [
+          '/admin/',
+          '/api/',
+          '/_next/',
+          '/static/',
+          '/shop',
+          '/Shree',
+          '/bulk-enquiry',
+          '/contactus',
+          '/web/login',
+          '/blog/zipper-installation',
+          '/cart',
+        ],
       },
     ],
     sitemap: 'https://www.balajisphere.com/sitemap.xml',

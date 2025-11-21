@@ -15,8 +15,16 @@ Disallow: /products/15
 Disallow: /admin/
 Disallow: /debug-login/
 Disallow: /enquiry-form/
+Disallow: /Shree
+Disallow: /bulk-enquiry
+Disallow: /contactus
+Disallow: /web/login
+Disallow: /blog/zipper-installation
+Disallow: /cart
 
 # Block API routes
 Disallow: /api/
 
 Sitemap: https://www.balajisphere.com/sitemap.xml
+
+
