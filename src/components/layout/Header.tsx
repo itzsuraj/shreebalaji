@@ -262,6 +262,29 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow relative">
+      {/* Top Navigation Bar - Matching Template */}
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-10 text-sm">
+            <div className="flex items-center space-x-4">
+              <Link href="/account" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Account
+              </Link>
+              <Link href="/track-order" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Track Order
+              </Link>
+              <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Support
+              </Link>
+            </div>
+            <div className="hidden md:flex items-center space-x-4 text-gray-600">
+              <span className="text-xs">India</span>
+              <span className="text-xs">INR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">

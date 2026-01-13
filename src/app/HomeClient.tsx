@@ -41,6 +41,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   // Fetch products from database
   useEffect(() => {
     if (initialProducts.length > 0) {
+      console.log('HomeClient: Setting products from initialProducts:', initialProducts.length);
       setProducts(initialProducts as unknown as typeof products);
       setLoading(false);
       return;
@@ -66,13 +67,18 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   }, [initialProducts]);
 
   // Memoize product filtering to avoid recalculation
-  const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => ({
-    featuredProducts: products.slice(0, 8),
-    buttonProducts: products.filter(p => p.category === 'buttons').slice(0, 3),
-    zipperProducts: products.filter(p => p.category === 'zippers').slice(0, 3),
-    elasticProducts: products.filter(p => p.category === 'elastic').slice(0, 3),
-    cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
-  }), [products]);
+  const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => {
+    console.log('HomeClient: Filtering products. Total:', products.length);
+    const featured = products.slice(0, 8);
+    console.log('HomeClient: Featured products:', featured.length);
+    return {
+      featuredProducts: featured,
+      buttonProducts: products.filter(p => p.category === 'buttons').slice(0, 3),
+      zipperProducts: products.filter(p => p.category === 'zippers').slice(0, 3),
+      elasticProducts: products.filter(p => p.category === 'elastic').slice(0, 3),
+      cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
+    };
+  }, [products]);
 
   const handleAddToCart = (product: typeof products[0]) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
@@ -162,35 +168,52 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[600px] flex items-center">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/banner.png"
-            alt="Shree Balaji Enterprises Banner"
-            fill
-            className="object-cover shadow-2xl"
-            priority
-            fetchPriority="high"
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
-            quality={70}
-          />
-          <div className="absolute inset-0 bg-black opacity-40 shadow-inner"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10 text-white">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            Quality Garment Accessories
-          </h1>
-          <p className="text-lg sm:text-xl mb-8 leading-relaxed">
-            Premium buttons, zippers, elastic, and cords for professional garment making
-          </p>
-          <Link
-            href="/products"
-            className="bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-base sm:text-lg shadow-lg"
-          >
-            Browse Products
-          </Link>
+      {/* Hero Section - Matching Template Design */}
+      <section className="relative min-h-[600px] flex items-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            {/* Left Content */}
+            <div className="relative z-10">
+              {/* NEW RELEASED Tag */}
+              <div className="inline-block bg-white px-4 py-2 rounded-md shadow-sm mb-6">
+                <span className="text-sm font-semibold text-gray-900">NEW RELEASED</span>
+              </div>
+              
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight text-gray-900">
+                Premium Garment
+              </h1>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight text-gray-900">
+                Accessories Collection
+              </h2>
+              <p className="text-lg sm:text-xl mb-8 leading-relaxed text-emerald-700 font-medium">
+                Quality buttons, zippers, elastic, and cords for professional garment making
+              </p>
+              
+              <Link
+                href="/products"
+                className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-lg transition-colors font-semibold text-lg shadow-lg group"
+              >
+                Shop Now
+                <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+            
+            {/* Right Image */}
+            <div className="relative h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-2xl">
+              <Image
+                src="/banner.png"
+                alt="Shree Balaji Enterprises Banner"
+                fill
+                className="object-cover"
+                priority
+                fetchPriority="high"
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
+                quality={85}
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -250,6 +273,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       </section>
 
       {/* Featured Products */}
+      {featuredProducts.length > 0 && (
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -259,7 +283,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             {featuredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 <Link href={`/products/${product.id}`}>
                   <div className="relative h-48">
@@ -327,10 +351,10 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           <div className="text-center mt-12">
             <Link
               href="/products"
-              className="inline-flex items-center bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-lg"
+              className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-lg transition-colors font-semibold text-lg shadow-lg group"
             >
               View All Garment Accessories
-              <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
@@ -340,35 +364,36 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           </div>
         </div>
       </section>
+      )}
 
       {/* Why Choose Us */}
-      <section className="py-16 bg-blue-50">
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-green-50">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-gray-900">
             Why Choose Our Accessories?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Premium Quality</h3>
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed">All our accessories meet the highest quality standards for professional garment making.</p>
             </div>
-            <div className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-900">Fast Delivery</h3>
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Quick processing and delivery to keep your production schedule on track.</p>
             </div>
-            <div className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
@@ -810,24 +835,27 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       </section>
 
       {/* Call to Action */}
-      <section className="py-16 bg-blue-600">
+      <section className="py-16 bg-gradient-to-br from-teal-600 to-emerald-600">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight">
             Ready to Start Your Project?
           </h2>
-          <p className="text-white mb-6 sm:mb-8 text-base sm:text-lg leading-relaxed">
+          <p className="text-white mb-6 sm:mb-8 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
             Browse our complete range of garment accessories and enquire about bulk pricing for your production needs. Contact us today for expert guidance and competitive quotes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/products"
-              className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-base sm:text-lg shadow-lg"
+              className="inline-flex items-center bg-white text-teal-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg shadow-lg group"
             >
-              View All Garment Accessories
+              View All Products
+              <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </Link>
             <Link
               href="/contact"
-              className="bg-transparent text-white border-2 border-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors font-semibold text-base sm:text-lg"
+              className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg hover:bg-white hover:text-teal-600 transition-colors font-semibold text-lg"
             >
               Contact Us
             </Link>

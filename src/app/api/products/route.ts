@@ -6,8 +6,16 @@ export async function GET() {
   try {
     await connectToDatabase();
     
-    // Only return active products for storefront
-    const products = await Product.find({ status: 'active' }).sort({ createdAt: -1 });
+    // Only return active products for storefront, or all products if none are active
+    let products = await Product.find({ status: 'active' }).sort({ createdAt: -1 });
+    
+    // If no active products, fetch all products (for debugging/development)
+    if (!products || products.length === 0) {
+      console.log('API: No active products found, fetching all products...');
+      products = await Product.find({}).sort({ createdAt: -1 });
+    }
+    
+    console.log(`API: Returning ${products?.length || 0} products`);
     
     return NextResponse.json({ 
       success: true, 

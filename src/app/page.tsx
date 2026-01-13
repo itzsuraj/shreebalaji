@@ -9,10 +9,20 @@ async function getProductsSSR(): Promise<Product[]> {
   try {
     await connectToDatabase();
 
-    // Only fetch active products for the storefront home page
-    const products = await ProductModel.find({ status: 'active' })
+    // Fetch active products, or all products if none are active
+    let products = await ProductModel.find({ status: 'active' })
       .sort({ createdAt: -1 })
       .lean();
+
+    // If no active products, fetch all products (for debugging/development)
+    if (!products || products.length === 0) {
+      console.log('No active products found, fetching all products...');
+      products = await ProductModel.find({})
+        .sort({ createdAt: -1 })
+        .lean();
+    }
+
+    console.log(`Found ${products?.length || 0} products for homepage`);
 
     if (!products || !Array.isArray(products)) {
       return [];
