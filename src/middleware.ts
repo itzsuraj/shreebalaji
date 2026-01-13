@@ -3,6 +3,16 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const url = new URL(request.url);
+  const hostname = request.headers.get('host') || '';
+
+  // Redirect non-www to www (balajisphere.com -> www.balajisphere.com)
+  if (hostname === 'balajisphere.com') {
+    const wwwUrl = new URL(request.url);
+    wwwUrl.hostname = 'www.balajisphere.com';
+    return NextResponse.redirect(wwwUrl, 301); // 301 = permanent redirect
+  }
+
+  // Admin route protection
   if (url.pathname.startsWith('/admin')) {
     // Allowlist: login page and login API should not be protected
     if (url.pathname === '/admin/login' || url.pathname === '/api/admin/login') {
@@ -29,7 +39,16 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
 
 

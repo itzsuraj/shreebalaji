@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "balajisphere.com"
+        }
+      ],
+      "destination": "https://www.balajisphere.com/$1",
+      "permanent": true
+    }
+  ]
+}
