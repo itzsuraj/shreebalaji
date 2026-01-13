@@ -1,20 +1,85 @@
 import { Metadata } from 'next';
 import HomeClient from './HomeClient';
+import { connectToDatabase } from '@/lib/db';
+import ProductModel from '@/models/Product';
 
 import type { Product } from '@/types/product';
 
 async function getProductsSSR(): Promise<Product[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
-    const res = await fetch(`${baseUrl}/api/products`, { 
-      cache: 'force-cache',
-      next: { revalidate: 30 } // Cache for 30 seconds - faster updates
+    await connectToDatabase();
+
+    // Only fetch active products for the storefront home page
+    const products = await ProductModel.find({ status: 'active' })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (!products || !Array.isArray(products)) {
+      return [];
+    }
+
+    // Normalize data shape to match Product type
+    const normalized: Product[] = products.map((product: any) => {
+      const hasVariants =
+        product.variantPricing &&
+        Array.isArray(product.variantPricing) &&
+        product.variantPricing.length > 0;
+
+      let calculatedInStock = false;
+      if (hasVariants) {
+        calculatedInStock = product.variantPricing.some(
+          (v: any) => (v.stockQty ?? 0) > 0 || v.inStock === true,
+        );
+      } else {
+        calculatedInStock = (product.stockQty ?? 0) > 0;
+      }
+
+      return {
+        // IDs
+        _id: String(product._id),
+        id: String(product._id),
+        // Basic fields
+        name: String(product.name || ''),
+        description: String(product.description || ''),
+        price: Number(product.price || 0),
+        category: String(product.category || ''),
+        image: String(product.image || ''),
+        // Options / variants
+        sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
+        colors: Array.isArray(product.colors) ? product.colors.map(String) : [],
+        packs: Array.isArray(product.packs) ? product.packs.map(String) : [],
+        variantPricing: Array.isArray(product.variantPricing)
+          ? product.variantPricing.map((v: any) => ({
+              size: v.size ? String(v.size) : undefined,
+              color: v.color ? String(v.color) : undefined,
+              pack: v.pack ? String(v.pack) : undefined,
+              price: Number(v.price || 0),
+              stockQty: Number(v.stockQty || 0),
+              inStock: Boolean(v.inStock),
+              sku: v.sku ? String(v.sku) : undefined,
+              image: v.image ? String(v.image) : undefined,
+            }))
+          : [],
+        // Stock
+        inStock: Boolean(calculatedInStock),
+        stockQty: Number(product.stockQty || 0),
+        // Misc
+        rating: Number(product.rating || 4.5),
+        reviews: Number(product.reviews || 0),
+        // Dates
+        createdAt: product.createdAt
+          ? new Date(product.createdAt).toISOString()
+          : new Date().toISOString(),
+        updatedAt: product.updatedAt
+          ? new Date(product.updatedAt).toISOString()
+          : new Date().toISOString(),
+      };
     });
-    if (!res.ok) return [] as Product[];
-    const data = await res.json();
-    return Array.isArray(data.products) ? (data.products as Product[]) : [];
-  } catch {
-    return [] as Product[];
+
+    return normalized;
+  } catch (err) {
+    console.error('Error fetching products for home page:', err);
+    return [];
   }
 }
 

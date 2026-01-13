@@ -386,7 +386,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             Explore by Category
           </h2>
           
-          {/* Buttons Category */}
+          {/* Buttons Category - show only if we have button products */}
+          {buttonProducts.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-semibold text-gray-900">Premium Garment Buttons</h3>
@@ -456,8 +457,10 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               ))}
             </div>
           </div>
+          )}
 
-          {/* Zippers Category */}
+          {/* Zippers Category - show only if we have zipper products */}
+          {zipperProducts.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-semibold text-gray-900">Quality Garment Zippers</h3>
@@ -527,8 +530,10 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               ))}
             </div>
           </div>
+          )}
 
-          {/* Elastic Category */}
+          {/* Elastic Category - show only if we have elastic products */}
+          {elasticProducts.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-semibold text-gray-900">Garment Elastic Bands</h3>
@@ -598,8 +603,10 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               ))}
             </div>
           </div>
+          )}
 
-          {/* Cords Category */}
+          {/* Cords Category - show only if we have cord products */}
+          {cordProducts.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-semibold text-gray-900">Garment Cotton Cords</h3>
@@ -669,6 +676,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               ))}
             </div>
           </div>
+          )}
         </div>
       </section>
 

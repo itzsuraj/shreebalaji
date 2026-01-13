@@ -14,6 +14,9 @@ interface AdminProductForm {
   category: string;
   image?: string;
   stockQty?: number;
+  inStock?: boolean;
+   status?: 'active' | 'draft';
+  trackInventory?: boolean;
   sizes?: string[];
   colors?: string[];
   packs?: string[];
@@ -25,6 +28,7 @@ interface AdminProductForm {
     stockQty?: number;
     inStock?: boolean;
     sku?: string;
+    image?: string;
   }>;
 }
 
@@ -36,6 +40,7 @@ interface AdminProductRow {
   description?: string;
   image?: string;
   inStock?: boolean;
+  status?: 'active' | 'draft';
   stockQty?: number;
   sizes?: string[];
   colors?: string[];
@@ -48,6 +53,7 @@ interface AdminProductRow {
     stockQty?: number;
     inStock?: boolean;
     sku?: string;
+    image?: string;
   }>;
   createdAt?: string;
 }
@@ -62,6 +68,9 @@ export default function AdminProductsPage() {
     description: '', 
     image: '', 
     stockQty: 0,
+    inStock: true,
+    status: 'active',
+    trackInventory: true,
     sizes: [], 
     colors: [], 
     packs: [] 
@@ -74,6 +83,9 @@ export default function AdminProductsPage() {
     description: '', 
     image: '', 
     stockQty: 0,
+    inStock: true,
+    status: 'active',
+    trackInventory: true,
     sizes: [], 
     colors: [], 
     packs: [] 
@@ -86,6 +98,7 @@ export default function AdminProductsPage() {
     stockQty?: number;
     inStock?: boolean;
     sku?: string;
+    image?: string;
   }>>([]);
   
   // Stock management states
@@ -115,30 +128,55 @@ export default function AdminProductsPage() {
     size: '',
     color: '',
     pack: '',
+    selectedPacks: [] as string[], // For multiple pack selection
     price: 0,
     stockQty: 0,
-    sku: ''
+    sku: '',
+    image: ''
   });
   const { toast, hideToast, showError, showSuccess, showWarning, showInfo } = useToast();
+
+  // Helper function to calculate inStock status based on actual stock
+  const calculateInStock = (product: AdminProductRow): boolean => {
+    // If product has variants, check if any variant has stock
+    if (product.variantPricing && product.variantPricing.length > 0) {
+      return product.variantPricing.some(v => (v.stockQty ?? 0) > 0 || v.inStock === true);
+    }
+    // Otherwise, check product-level stock
+    return (product.stockQty ?? 0) > 0;
+  };
 
   const load = async () => {
     setLoading(true);
     const res = await fetch('/api/admin/products');
     const data = await res.json();
-    setProducts(data.products || []);
+    // Recalculate inStock for all products based on actual stock
+    const productsWithCorrectStock = (data.products || []).map((product: AdminProductRow) => ({
+      ...product,
+      inStock: calculateInStock(product),
+      status: (product.status as 'active' | 'draft') || 'active',
+    }));
+    setProducts(productsWithCorrectStock);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
   const createProduct = async () => {
+    const basePrice =
+      variantPricing.length > 0 ? Number(variantPricing[0].price || 0) : Number(form.price);
+
     const payload = {
       name: form.name,
       description: form.description,
-      price: Number(form.price),
+      // If variants exist, ignore default/base price field and use first variant price
+      price: basePrice,
       category: form.category,
       image: form.image?.trim() || '',
       stockQty: Number(form.stockQty || 0),
       variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
+      status: form.status || 'active',
+      inStock: form.inStock,
+      trackInventory: form.trackInventory ?? true,
     };
     const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
@@ -149,12 +187,15 @@ export default function AdminProductsPage() {
         description: '', 
         image: '', 
         stockQty: 0,
+        inStock: true,
+        status: 'active',
+        trackInventory: true,
         sizes: [], 
         colors: [], 
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
+      setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
       load();
     }
   };
@@ -230,25 +271,33 @@ export default function AdminProductsPage() {
       category: product.category,
       image: product.image || '',
       stockQty: product.stockQty || 0,
+      inStock: product.inStock,
+      status: (product.status as 'active' | 'draft') || 'active',
       sizes: product.sizes || [],
       colors: product.colors || [],
       packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
+    setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const updateProduct = async () => {
     if (!editingProduct) return;
     
+    const basePrice =
+      variantPricing.length > 0 ? Number(variantPricing[0].price || 0) : Number(editForm.price);
+
     const payload = {
       name: editForm.name,
       description: editForm.description,
-      price: Number(editForm.price),
+      // If variants exist, ignore default/base price field and use first variant price
+      price: basePrice,
       category: editForm.category,
       image: editForm.image?.trim() || '',
        stockQty: Number(editForm.stockQty || 0),
       variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
+      status: editForm.status || 'active',
+      inStock: editForm.inStock,
     };
     
     const res = await fetch(`/api/admin/products/${editingProduct._id}`, { 
@@ -266,13 +315,15 @@ export default function AdminProductsPage() {
         description: '', 
         image: '', 
         stockQty: 0,
+        inStock: true,
+        status: 'active',
         sizes: [], 
         colors: [], 
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
-      load();
+      setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+      load(); // This will recalculate inStock for all products
     }
   };
 
@@ -290,43 +341,64 @@ export default function AdminProductsPage() {
       packs: [] 
     });
     setVariantPricing([]);
-    setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
+    setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
   };
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
   };
 
   // New variant dropdown functions
-         const addVariantCombination = () => {
-    if (!newVariant.size || !newVariant.color || !newVariant.pack || newVariant.price <= 0) {
-      showWarning('Please fill all fields and set a valid price');
+  const addVariantCombination = () => {
+    // Use selectedPacks if available, otherwise fall back to single pack value
+    const packsToAdd = newVariant.selectedPacks.length > 0 
+      ? [...new Set(newVariant.selectedPacks)] // Remove duplicates
+      : (newVariant.pack ? [newVariant.pack] : []);
+    
+    if (!newVariant.size || packsToAdd.length === 0 || newVariant.price <= 0) {
+      showWarning('Please fill size, select at least one pack, and set a valid price');
       return;
     }
 
-    const combination = {
-      size: newVariant.size,
-      color: newVariant.color,
-      pack: newVariant.pack,
-      price: newVariant.price,
-      stockQty: Number(newVariant.stockQty || 0),
-      inStock: Number(newVariant.stockQty || 0) > 0,
-      sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color, newVariant.pack) // Auto-generate SKU
-    };
+    const newVariants: typeof variantPricing = [];
+    
+    // Create a variant for each selected pack
+    for (const pack of packsToAdd) {
+      const combination = {
+        size: newVariant.size,
+        color: newVariant.color || undefined,
+        pack: pack,
+        price: newVariant.price,
+        stockQty: Number(newVariant.stockQty || 0),
+        inStock: Number(newVariant.stockQty || 0) > 0,
+        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', pack),
+        image: newVariant.image?.trim() || undefined
+      };
 
-    // Check if combination already exists
-    const exists = variantPricing.some(v => 
-      v.size === combination.size && 
-      v.color === combination.color && 
-      v.pack === combination.pack
-    );
+      // Check if combination already exists
+      const exists = variantPricing.some(v => 
+        v.size === combination.size && 
+        (v.color || '') === (combination.color || '') && 
+        v.pack === combination.pack
+      );
 
-    if (exists) {
-      showInfo('This combination already exists');
+      if (!exists) {
+        newVariants.push(combination);
+      }
+    }
+
+    if (newVariants.length === 0) {
+      showInfo('All selected pack combinations already exist');
       return;
     }
 
-    setVariantPricing([...variantPricing, combination]);
-           setNewVariant({ size: '', color: '', pack: '', price: 0, stockQty: 0, sku: '' });
+    if (newVariants.length < packsToAdd.length) {
+      showInfo(`Added ${newVariants.length} variant(s). Some combinations already existed.`);
+    } else {
+      showSuccess(`Added ${newVariants.length} variant(s) successfully`);
+    }
+
+    setVariantPricing([...variantPricing, ...newVariants]);
+    setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const removeVariantCombination = (index: number) => {
@@ -336,18 +408,29 @@ export default function AdminProductsPage() {
   // Stock management functions
   const updateProductStock = async (productId: string, newStock: number) => {
     try {
+      const product = products.find(p => p._id === productId);
+      // Recalculate inStock based on variants or simple stock
+      const hasVariants = product?.variantPricing && product.variantPricing.length > 0;
+      const calculatedInStock = hasVariants && product?.variantPricing
+        ? product.variantPricing.some(v => (v.stockQty ?? 0) > 0 || v.inStock === true)
+        : newStock > 0;
+
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stockQty: newStock, inStock: newStock > 0 })
+        body: JSON.stringify({ stockQty: newStock, inStock: calculatedInStock })
       });
       
       if (response.ok) {
-        const updatedProducts = products.map(p => 
-          p._id === productId 
-            ? { ...p, stockQty: newStock, inStock: newStock > 0 }
-            : p
-        );
+        const updatedProducts = products.map(p => {
+          if (p._id === productId) {
+            const updated = { ...p, stockQty: newStock };
+            // Recalculate inStock for the updated product
+            updated.inStock = calculateInStock(updated);
+            return updated;
+          }
+          return p;
+        });
         setProducts(updatedProducts);
         showSuccess('Stock updated successfully');
       } else {
@@ -356,6 +439,26 @@ export default function AdminProductsPage() {
     } catch (error) {
       console.error('Error updating stock:', error);
       showError('Error updating stock');
+    }
+  };
+
+  // Function to fix all products' stock status
+  const fixAllProductStockStatus = async () => {
+    try {
+      const response = await fetch('/api/admin/products/fix-stock-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        showSuccess('All product stock statuses have been fixed');
+        load(); // Reload products
+      } else {
+        showError('Failed to fix stock statuses');
+      }
+    } catch (error) {
+      console.error('Error fixing stock statuses:', error);
+      showError('Error fixing stock statuses');
     }
   };
 
@@ -446,235 +549,459 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      <div className="border rounded p-4 mb-8">
-        <h2 className="font-semibold mb-3">Create Product</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input className="border rounded px-3 py-2" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <input className="border rounded px-3 py-2" placeholder="Price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
-          <input className="border rounded px-3 py-2" placeholder="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-          <input className="border rounded px-3 py-2" placeholder="Image URL" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
-                <input className="border rounded px-3 py-2" placeholder="Stock Quantity" type="number" value={form.stockQty || 0} onChange={(e) => setForm({ ...form, stockQty: Number(e.target.value) })} />
-          <input className="border rounded px-3 py-2 md:col-span-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-        </div>
-
-        {/* Image URL Section */}
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-          <div className="space-y-4">
-            {form.image && (
-              <div className="relative inline-block">
-                <img
-                  src={form.image}
-                  alt="Product preview"
-                  className="w-32 h-32 object-cover rounded-lg border"
-                />
-                <button
-                  type="button"
-                  onClick={handleImageRemove}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Enter Image URL</label>
-              <input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
+      {/* Shopify-style Create Product Form */}
+      <div className="bg-white border rounded-lg mb-8">
+        <div className="border-b px-6 py-4">
+          <h2 className="text-lg font-semibold text-gray-900">Add product</h2>
         </div>
         
-        {/* Color Management */}
-        <div className="mt-4 space-y-4">
-          <h3 className="font-semibold text-gray-700">Color Management</h3>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center space-x-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+          {/* Left Column - Main Content (2/3 width) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
               <input
                 type="text"
-                placeholder="Add custom color (e.g., Navy Blue, Forest Green)"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    const color = e.currentTarget.value.trim();
-                    if (color && !form.colors?.includes(color)) {
-                      setForm({ ...form, colors: [...(form.colors || []), color] });
-                      e.currentTarget.value = '';
-                    }
-                  }
-                }}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Short sleeve t-shirt"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              <button
-                onClick={() => {
-                  const input = document.querySelector('input[placeholder*="Add custom color"]') as HTMLInputElement;
-                  const color = input?.value.trim();
-                  if (color && !form.colors?.includes(color)) {
-                    setForm({ ...form, colors: [...(form.colors || []), color] });
-                    input.value = '';
-                  }
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Add Color
-              </button>
             </div>
-            
-            {/* Display added colors */}
-            {form.colors && form.colors.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Added Colors:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {form.colors.map((color, index) => (
-                    <div key={index} className="flex items-center bg-white border border-gray-300 rounded-md px-3 py-1">
-                      <span className="text-sm text-gray-700">{color}</span>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={6}
+                placeholder="Enter product description..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              />
+            </div>
+
+            {/* Media Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Media</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                {form.image ? (
+                  <div className="space-y-4">
+                    <div className="relative inline-block">
+                      <img
+                        src={form.image}
+                        alt="Product preview"
+                        className="w-32 h-32 object-cover rounded-lg border"
+                      />
                       <button
-                        onClick={() => {
-                          const newColors = form.colors?.filter((_, i) => i !== index) || [];
-                          setForm({ ...form, colors: newColors });
-                        }}
-                        className="ml-2 text-red-600 hover:text-red-800"
+                        type="button"
+                        onClick={handleImageRemove}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
                       >
                         ×
                       </button>
                     </div>
-                  ))}
-                </div>
+                    <div>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/image.jpg"
+                        value={form.image}
+                        onChange={(e) => setForm({ ...form, image: e.target.value.trim() })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Enter image URL</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <input
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={form.image}
+                      onChange={(e) => setForm({ ...form, image: e.target.value.trim() })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                    />
+                    <p className="text-xs text-gray-500">Enter image URL to display product image</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Variant Pricing System */}
-        <div className="mt-4 space-y-4">
-          <h3 className="font-semibold text-gray-700">Product Variants with Pricing</h3>
+            </div>
+            {/* Variants Section */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Variants</h3>
           
           {/* Add New Variant Combination */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-800 mb-3">Add Variant Combination</h4>
-                   <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                <select
-                  value={newVariant.size}
-                  onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Size</option>
-                  <option value="10mm (16L)">10mm (16L)</option>
-                  <option value="11mm (18L)">11mm (18L)</option>
-                  <option value="12mm (20L)">12mm (20L)</option>
-                  <option value="15mm (24L)">15mm (24L)</option>
-                </select>
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h4 className="font-medium text-gray-800 mb-4">Add Variant Combination</h4>
+            <div className="space-y-4">
+              {/* Row 1: Size / Color / Pack */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                  <select
+                    value={newVariant.size}
+                    onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Size</option>
+                    <option value="10mm (16L)">10mm (16L)</option>
+                    <option value="11mm (18L)">11mm (18L)</option>
+                    <option value="12mm (20L)">12mm (20L)</option>
+                    <option value="15mm (24L)">15mm (24L)</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
+                  <input
+                    type="text"
+                    value={newVariant.color}
+                    onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                    placeholder="Enter color"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
+                  <div className="flex flex-wrap gap-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newVariant.selectedPacks.includes('72')}
+                        onChange={(e) => {
+                          setNewVariant((prev) => {
+                            if (e.target.checked) {
+                              const updatedPacks = prev.selectedPacks.includes('72') 
+                                ? prev.selectedPacks 
+                                : [...prev.selectedPacks, '72'];
+                              return { 
+                                ...prev, 
+                                selectedPacks: updatedPacks,
+                                pack: updatedPacks[0] || ''
+                              };
+                            } else {
+                              const updatedPacks = prev.selectedPacks.filter(p => p !== '72');
+                              return { 
+                                ...prev, 
+                                selectedPacks: updatedPacks,
+                                pack: updatedPacks[0] || ''
+                              };
+                            }
+                          });
+                        }}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">72</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newVariant.selectedPacks.includes('144')}
+                        onChange={(e) => {
+                          setNewVariant((prev) => {
+                            if (e.target.checked) {
+                              const updatedPacks = prev.selectedPacks.includes('144') 
+                                ? prev.selectedPacks 
+                                : [...prev.selectedPacks, '144'];
+                              return { 
+                                ...prev, 
+                                selectedPacks: updatedPacks,
+                                pack: updatedPacks[0] || ''
+                              };
+                            } else {
+                              const updatedPacks = prev.selectedPacks.filter(p => p !== '144');
+                              return { 
+                                ...prev, 
+                                selectedPacks: updatedPacks,
+                                pack: updatedPacks[0] || ''
+                              };
+                            }
+                          });
+                        }}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">144</span>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Select one or both</p>
+                </div>
               </div>
-              
+
+              {/* Row 2: Price / Stock / Add button */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                  <input
+                    type="number"
+                    value={newVariant.price}
+                    onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <input
+                    type="number"
+                    value={newVariant.stockQty}
+                    onChange={(e) => setNewVariant({ ...newVariant, stockQty: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={addVariantCombination}
+                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Add Variant
+                  </button>
+                </div>
+              </div>
+
+              {/* Variant Image URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Variant Image URL <span className="text-gray-400 text-xs">(Optional)</span>
+                </label>
                 <input
-                  type="text"
-                  value={newVariant.color}
-                  onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                  placeholder="Enter color (e.g., Navy Blue)"
+                  type="url"
+                  value={newVariant.image}
+                  onChange={(e) => setNewVariant({ ...newVariant, image: e.target.value })}
+                  placeholder="https://example.com/variant-image.jpg"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pack</label>
-                <select
-                  value={newVariant.pack}
-                  onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Pack</option>
-                  <option value="24 Pieces">24 Pieces</option>
-                  <option value="200 Pieces">200 Pieces</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
-                <input
-                  type="number"
-                  value={newVariant.price}
-                  onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="0"
-                  min="0"
-                />
-              </div>
-                     <div>
-                       <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-                       <input
-                         type="number"
-                         value={newVariant.stockQty}
-                         onChange={(e) => setNewVariant({ ...newVariant, stockQty: Number(e.target.value) })}
-                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                         placeholder="0"
-                         min="0"
-                       />
-                     </div>
-              
-                     <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={addVariantCombination}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Add
-                </button>
+                <p className="text-xs text-gray-500 mt-1">Leave empty to use product image</p>
               </div>
             </div>
           </div>
 
-          {/* Display Added Variants */}
-          {variantPricing.length > 0 && (
-            <div className="bg-white border rounded-lg p-4">
-              <h4 className="font-medium text-gray-800 mb-3">Added Variants ({variantPricing.length})</h4>
-              <div className="space-y-2">
+          {/* Display Added Variants - Always Visible */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">
+                {variantPricing.length}
+              </span>
+              Variant{variantPricing.length !== 1 ? 's' : ''}
+            </h4>
+            {variantPricing.length > 0 ? (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
                 {variantPricing.map((variant, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm font-medium">{variant.size}</span>
-                      <span className="text-sm text-gray-600">{variant.color}</span>
-                      <span className="text-sm text-gray-600">{variant.pack}</span>
-                      <span className="text-sm font-bold text-green-600">₹{variant.price}</span>
-                      <div className="flex items-center space-x-2">
-                        <label className="text-xs text-gray-500">Stock:</label>
-                        <input
-                          type="number"
-                          value={variant.stockQty || 0}
-                          onChange={(e) => {
-                            const newVariants = [...variantPricing];
-                            newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
-                            setVariantPricing(newVariants);
-                          }}
-                          className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          min="0"
-                        />
-                        <span className={`text-xs px-2 py-1 rounded-full ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {variant.inStock ? 'In Stock' : 'Out of Stock'}
-                        </span>
+                  <div key={index} className="bg-gray-50 p-3 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 flex items-start space-x-4 flex-wrap gap-2">
+                        {/* Variant Image Preview */}
+                        {variant.image && (
+                          <div className="relative">
+                            <img
+                              src={variant.image}
+                              alt={`${variant.size} ${variant.color || ''} ${variant.pack}`}
+                              className="w-16 h-16 object-cover rounded border"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="flex flex-col space-y-2 flex-1">
+                          <div className="flex items-center space-x-2 flex-wrap gap-2">
+                            <span className="text-sm font-semibold text-gray-800">{variant.size}</span>
+                            {variant.color && (
+                              <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                {variant.color}
+                              </span>
+                            )}
+                            <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                              Pack: {variant.pack}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-4 flex-wrap gap-2">
+                            <div className="flex items-center space-x-2">
+                              <label className="text-xs text-gray-500 font-medium">Price:</label>
+                              <div className="flex items-center">
+                                <span className="text-xs text-gray-500 mr-1">₹</span>
+                                <input
+                                  type="number"
+                                  value={variant.price || 0}
+                                  onChange={(e) => {
+                                    const newVariants = [...variantPricing];
+                                    newVariants[index] = { ...variant, price: Number(e.target.value) };
+                                    setVariantPricing(newVariants);
+                                  }}
+                                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                  min="0"
+                                  step="0.01"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              <label className="text-xs text-gray-500 font-medium">Stock:</label>
+                              <input
+                                type="number"
+                                value={variant.stockQty || 0}
+                                onChange={(e) => {
+                                  const newVariants = [...variantPricing];
+                                  newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
+                                  setVariantPricing(newVariants);
+                                }}
+                                className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                min="0"
+                              />
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {variant.inStock ? 'In Stock' : 'Out of Stock'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Variant Image URL Input */}
+                          <div className="flex items-center space-x-2">
+                            <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Image URL:</label>
+                            <input
+                              type="url"
+                              value={variant.image || ''}
+                              onChange={(e) => {
+                                const newVariants = [...variantPricing];
+                                newVariants[index] = { ...variant, image: e.target.value.trim() };
+                                setVariantPricing(newVariants);
+                              }}
+                              placeholder="https://example.com/image.jpg"
+                              className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
                       </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => removeVariantCombination(index)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1 hover:bg-red-50 rounded transition-colors whitespace-nowrap"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeVariantCombination(index)}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Remove
-                    </button>
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="text-center py-6 text-gray-400 text-sm">
+                <p>No variants added yet. Add your first variant above.</p>
+              </div>
+            )}
+          </div>
             </div>
-          )}
+          </div>
+
+          {/* Right Column - Sidebar (1/3 width) */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Category Card */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="buttons">Buttons</option>
+                <option value="zippers">Zippers</option>
+                <option value="elastic">Elastic</option>
+                <option value="cords">Cords</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Determines product category and organization</p>
+            </div>
+
+            {/* Price Card */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-gray-500">₹</span>
+                <input
+                  type="number"
+                  value={form.price || ''}
+                  onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  disabled={variantPricing.length > 0}
+                  className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                    variantPricing.length > 0
+                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                />
+              </div>
+              {variantPricing.length > 0 && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Product has variants. Base price is taken from the first variant and this field is ignored.
+                </p>
+              )}
+            </div>
+
+            {/* Inventory Card */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">Inventory</label>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, trackInventory: !(form.trackInventory ?? true) })}
+                  className="relative inline-flex items-center cursor-pointer"
+                >
+                  <span
+                    className={`w-11 h-6 rounded-full transition-colors ${form.trackInventory ?? true ? 'bg-purple-600' : 'bg-gray-300'}`}
+                  >
+                    <span
+                      className={`absolute top-[2px] left-[2px] h-5 w-5 rounded-full bg-white border border-gray-300 transition-transform ${
+                        form.trackInventory ?? true ? 'translate-x-5' : ''
+                      }`}
+                    />
+                  </span>
+                  <span className="ml-3 text-sm text-gray-700">Inventory tracked</span>
+                </button>
+              </div>
+              
+              {variantPricing.length === 0 ? (
+                <div className="mt-3">
+                  <label className="block text-xs text-gray-600 mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    value={form.stockQty || 0}
+                    onChange={(e) => setForm({ ...form, stockQty: Number(e.target.value) })}
+                    disabled={!(form.trackInventory ?? true)}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                      form.trackInventory ?? true
+                        ? 'border-gray-300 focus:ring-blue-500'
+                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                    min="0"
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 mt-2">
+                  Inventory is tracked per variant. Manage stock in the Variants section.
+                </p>
+              )}
+            </div>
+
+            {/* Action Button */}
+            <div className="pt-4">
+              <button
+                onClick={createProduct}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              >
+                Create Product
+              </button>
+            </div>
+          </div>
         </div>
-        <button className="mt-3 bg-blue-600 text-white px-4 py-2 rounded" onClick={createProduct}>Create</button>
       </div>
 
       {/* Stock Management Section */}
@@ -709,6 +1036,17 @@ export default function AdminProductsPage() {
               >
                 Out of Stock
               </button>
+            </div>
+            <div className="mb-4">
+              <button
+                onClick={fixAllProductStockStatus}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Fix All Stock Statuses
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                This will recalculate and fix the &quot;In Stock&quot; status for all products based on their actual stock quantities (including variants).
+              </p>
             </div>
           </div>
 
@@ -820,7 +1158,10 @@ export default function AdminProductsPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map(product => (
-              <div key={product._id} className="bg-white border rounded-lg p-4 shadow-sm relative">
+              <div
+                key={product._id}
+                className="bg-white border rounded-lg p-4 shadow-sm relative"
+              >
                 {/* Checkbox for selection */}
                 <div className="absolute top-2 left-2 z-10">
                   <input
@@ -848,12 +1189,23 @@ export default function AdminProductsPage() {
                         <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
                         <p className="text-sm text-gray-600 capitalize">{product.category}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right space-y-1">
                         <div className="text-lg font-bold text-green-600">₹{product.price}</div>
-                        <div className={`text-xs px-2 py-1 rounded-full ${
-                          product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <div
+                          className={`inline-block text-xs px-2 py-1 rounded-full ${
+                            product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {product.inStock ? 'In Stock' : 'Out of Stock'}
+                        </div>
+                        <div
+                          className={`inline-block text-[11px] px-2 py-0.5 rounded-full font-medium border ${
+                            product.status === 'draft'
+                              ? 'bg-gray-100 text-gray-700 border-gray-300'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}
+                        >
+                          {product.status === 'draft' ? 'Draft' : 'Active'}
                         </div>
                       </div>
                     </div>
@@ -875,7 +1227,7 @@ export default function AdminProductsPage() {
                     <div className="text-xs max-h-20 overflow-y-auto">
                              {product.variantPricing.slice(0, 3).map((variant, index) => (
                         <div key={index} className="text-xs text-gray-500">
-                                 {variant.size} - {variant.color} - {variant.pack}: ₹{variant.price} {typeof variant.stockQty === 'number' ? `(Stock: ${variant.stockQty})` : ''}
+                                 {variant.size}{variant.color ? ` - ${variant.color}` : ''} - {variant.pack}: ₹{variant.price} {typeof variant.stockQty === 'number' ? `(Stock: ${variant.stockQty})` : ''}
                         </div>
                       ))}
                       {product.variantPricing.length > 3 && (
@@ -946,7 +1298,7 @@ export default function AdminProductsPage() {
       {/* Edit Product Modal */}
       {editingProduct && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+          <div className="relative top-16 mx-auto p-6 border w-11/12 md:w-4/5 lg:w-3/4 xl:w-2/3 shadow-lg rounded-lg bg-white">
             <div className="mt-3">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Edit Product</h3>
@@ -1010,6 +1362,25 @@ export default function AdminProductsPage() {
                       placeholder="Enter stock quantity"
                     />
                   </div>
+                </div>
+
+                {/* Status for Edit */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={editForm.status || 'active'}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        status: e.target.value as 'active' | 'draft',
+                        inStock: e.target.value === 'active' ? editForm.inStock : false,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="draft">Draft</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1093,112 +1464,242 @@ export default function AdminProductsPage() {
                   {/* Add New Variant Combination */}
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h5 className="font-medium text-gray-800 mb-3">Add Variant Combination</h5>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                        <select
-                          value={newVariant.size}
-                          onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Size</option>
-                          <option value="10mm (16L)">10mm (16L)</option>
-                          <option value="11mm (18L)">11mm (18L)</option>
-                          <option value="12mm (20L)">12mm (20L)</option>
-                          <option value="15mm (24L)">15mm (24L)</option>
-                        </select>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                          <select
+                            value={newVariant.size}
+                            onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Size</option>
+                            <option value="10mm (16L)">10mm (16L)</option>
+                            <option value="11mm (18L)">11mm (18L)</option>
+                            <option value="12mm (20L)">12mm (20L)</option>
+                            <option value="15mm (24L)">15mm (24L)</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
+                          <input
+                            type="text"
+                            value={newVariant.color}
+                            onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                            placeholder="Enter color (optional)"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
+                          <div className="flex space-x-4">
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={newVariant.selectedPacks.includes('72')}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setNewVariant({ 
+                                      ...newVariant, 
+                                      selectedPacks: [...newVariant.selectedPacks, '72'],
+                                      pack: '72'
+                                    });
+                                  } else {
+                                    setNewVariant({ 
+                                      ...newVariant, 
+                                      selectedPacks: newVariant.selectedPacks.filter(p => p !== '72'),
+                                      pack: newVariant.selectedPacks.filter(p => p !== '72')[0] || ''
+                                    });
+                                  }
+                                }}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">72</span>
+                            </label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={newVariant.selectedPacks.includes('144')}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setNewVariant({ 
+                                      ...newVariant, 
+                                      selectedPacks: [...newVariant.selectedPacks, '144'],
+                                      pack: '144'
+                                    });
+                                  } else {
+                                    setNewVariant({ 
+                                      ...newVariant, 
+                                      selectedPacks: newVariant.selectedPacks.filter(p => p !== '144'),
+                                      pack: newVariant.selectedPacks.filter(p => p !== '144')[0] || ''
+                                    });
+                                  }
+                                }}
+                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">144</span>
+                            </label>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Select one or both</p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                          <input
+                            type="number"
+                            value={newVariant.price}
+                            onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0"
+                            min="0"
+                          />
+                        </div>
+                        
+                        <div className="flex items-end">
+                          <button
+                            type="button"
+                            onClick={addVariantCombination}
+                            className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            Add Variant
+                          </button>
+                        </div>
                       </div>
                       
+                      {/* Variant Image URL */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Variant Image URL <span className="text-gray-400 text-xs">(Optional)</span>
+                        </label>
                         <input
-                          type="text"
-                          value={newVariant.color}
-                          onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                          placeholder="Enter color (e.g., Navy Blue)"
+                          type="url"
+                          value={newVariant.image}
+                          onChange={(e) => setNewVariant({ ...newVariant, image: e.target.value })}
+                          placeholder="https://example.com/variant-image.jpg"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Pack</label>
-                        <select
-                          value={newVariant.pack}
-                          onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Pack</option>
-                          <option value="24 Pieces">24 Pieces</option>
-                          <option value="200 Pieces">200 Pieces</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
-                        <input
-                          type="number"
-                          value={newVariant.price}
-                          onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="0"
-                          min="0"
-                        />
-                      </div>
-                      
-                      <div className="flex items-end">
-                        <button
-                          type="button"
-                          onClick={addVariantCombination}
-                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          Add
-                        </button>
+                        <p className="text-xs text-gray-500 mt-1">Leave empty to use product image</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Display Added Variants */}
-                  {variantPricing.length > 0 && (
-                    <div className="bg-white border rounded-lg p-4">
-                      <h5 className="font-medium text-gray-800 mb-3">Added Variants ({variantPricing.length})</h5>
-                      <div className="space-y-2">
+                  {/* Display Added Variants - Always Visible */}
+                  <div className="bg-white border-2 border-blue-200 rounded-lg p-4 mt-4">
+                    <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-bold">
+                        {variantPricing.length}
+                      </span>
+                      Added Variant{variantPricing.length !== 1 ? 's' : ''}
+                    </h5>
+                    {variantPricing.length > 0 ? (
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
                         {variantPricing.map((variant, index) => (
-                          <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                            <div className="flex items-center space-x-4">
-                              <span className="text-sm font-medium">{variant.size}</span>
-                              <span className="text-sm text-gray-600">{variant.color}</span>
-                              <span className="text-sm text-gray-600">{variant.pack}</span>
-                              <span className="text-sm font-bold text-green-600">₹{variant.price}</span>
-                              <div className="flex items-center space-x-2">
-                                <label className="text-xs text-gray-500">Stock:</label>
-                                <input
-                                  type="number"
-                                  value={variant.stockQty || 0}
-                                  onChange={(e) => {
-                                    const newVariants = [...variantPricing];
-                                    newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
-                                    setVariantPricing(newVariants);
-                                  }}
-                                  className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                  min="0"
-                                />
-                                <span className={`text-xs px-2 py-1 rounded-full ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                  {variant.inStock ? 'In Stock' : 'Out of Stock'}
-                                </span>
+                          <div key={index} className="bg-gray-50 p-3 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 flex items-start space-x-4 flex-wrap gap-2">
+                                {/* Variant Image Preview */}
+                                {variant.image && (
+                                  <div className="relative">
+                                    <img
+                                      src={variant.image}
+                                      alt={`${variant.size} ${variant.color || ''} ${variant.pack}`}
+                                      className="w-16 h-16 object-cover rounded border"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                
+                                <div className="flex flex-col space-y-2 flex-1">
+                                  <div className="flex items-center space-x-2 flex-wrap gap-2">
+                                    <span className="text-sm font-semibold text-gray-800">{variant.size}</span>
+                                    {variant.color && (
+                                      <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                        {variant.color}
+                                      </span>
+                                    )}
+                                    <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                      Pack: {variant.pack}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-4 flex-wrap gap-2">
+                                    <div className="flex items-center space-x-2">
+                                      <label className="text-xs text-gray-500 font-medium">Price:</label>
+                                      <div className="flex items-center">
+                                        <span className="text-xs text-gray-500 mr-1">₹</span>
+                                        <input
+                                          type="number"
+                                          value={variant.price || 0}
+                                          onChange={(e) => {
+                                            const newVariants = [...variantPricing];
+                                            newVariants[index] = { ...variant, price: Number(e.target.value) };
+                                            setVariantPricing(newVariants);
+                                          }}
+                                          className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                          min="0"
+                                          step="0.01"
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center space-x-2">
+                                      <label className="text-xs text-gray-500 font-medium">Stock:</label>
+                                      <input
+                                        type="number"
+                                        value={variant.stockQty || 0}
+                                        onChange={(e) => {
+                                          const newVariants = [...variantPricing];
+                                          newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
+                                          setVariantPricing(newVariants);
+                                        }}
+                                        className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        min="0"
+                                      />
+                                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        {variant.inStock ? 'In Stock' : 'Out of Stock'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Variant Image URL Input */}
+                                  <div className="flex items-center space-x-2">
+                                    <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Image URL:</label>
+                                    <input
+                                      type="url"
+                                      value={variant.image || ''}
+                                      onChange={(e) => {
+                                        const newVariants = [...variantPricing];
+                                        newVariants[index] = { ...variant, image: e.target.value.trim() };
+                                        setVariantPricing(newVariants);
+                                      }}
+                                      placeholder="https://example.com/image.jpg"
+                                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </div>
+                                </div>
                               </div>
+                              
+                              <button
+                                type="button"
+                                onClick={() => removeVariantCombination(index)}
+                                className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1 hover:bg-red-50 rounded transition-colors whitespace-nowrap"
+                              >
+                                Remove
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => removeVariantCombination(index)}
-                              className="text-red-600 hover:text-red-800 text-sm"
-                            >
-                              Remove
-                            </button>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="text-center py-6 text-gray-400 text-sm">
+                        <p>No variants added yet. Add your first variant above.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
               </div>

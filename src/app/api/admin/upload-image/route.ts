@@ -38,18 +38,18 @@ export async function POST(request: NextRequest) {
         mkdirSync(uploadsDir, { recursive: true });
       }
 
-      // Write file to disk
-      await writeFile(path, buffer);
+    // Write file to disk
+    await writeFile(path, buffer);
 
-      // Return the public URL
-      const imageUrl = `/uploads/${filename}`;
-      
-      return NextResponse.json({ 
-        success: true, 
-        imageUrl,
+    // Return the public URL
+    const imageUrl = `/uploads/${filename}`;
+    
+    return NextResponse.json({ 
+      success: true, 
+      imageUrl,
         message: 'Image uploaded successfully',
         storage: 'disk'
-      });
+    });
     } catch (writeError) {
       const errorCode = (writeError as NodeJS.ErrnoException)?.code;
       if (errorCode === 'EROFS' || errorCode === 'EACCES') {

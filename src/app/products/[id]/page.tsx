@@ -1,23 +1,69 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { connectToDatabase } from '@/lib/db';
+import Product from '@/models/Product';
 import ProductStructuredData from './ProductStructuredData';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import EnhancedProductDetail from '@/components/EnhancedProductDetail';
 
 async function getProduct(id: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
-    const response = await fetch(`${baseUrl}/api/products/${id}`, {
-      cache: 'force-cache',
-      next: { revalidate: 30 } // Cache for 30 seconds - faster updates
-    });
+    await connectToDatabase();
     
-    if (!response.ok) {
+    // Use lean() to get a plain JavaScript object instead of Mongoose document
+    // Only fetch active products for storefront
+    const product = await Product.findOne({ _id: id, status: 'active' }).lean() as any;
+    
+    if (!product) {
       return null;
     }
     
-    const data = await response.json();
-    return data.product;
+    // Recalculate inStock based on actual stock (same logic as API)
+    const hasVariants = product.variantPricing && Array.isArray(product.variantPricing) && product.variantPricing.length > 0;
+    let calculatedInStock = false;
+    
+    if (hasVariants) {
+      // Check if any variant has stock
+      calculatedInStock = product.variantPricing.some((v: any) => 
+        (v.stockQty ?? 0) > 0 || v.inStock === true
+      );
+    } else {
+      // Check product-level stock
+      calculatedInStock = (product.stockQty ?? 0) > 0;
+    }
+    
+    // Convert to plain object with proper serialization
+    const productData = {
+      _id: String(product._id),
+      id: String(product._id),
+      name: String(product.name || ''),
+      description: String(product.description || ''),
+      price: Number(product.price || 0),
+      category: String(product.category || ''),
+      image: String(product.image || ''),
+      sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
+      colors: Array.isArray(product.colors) ? product.colors.map(String) : [],
+      packs: Array.isArray(product.packs) ? product.packs.map(String) : [],
+      variantPricing: Array.isArray(product.variantPricing) 
+        ? product.variantPricing.map((v: any) => ({
+            size: v.size ? String(v.size) : undefined,
+            color: v.color ? String(v.color) : undefined,
+            pack: v.pack ? String(v.pack) : undefined,
+            price: Number(v.price || 0),
+            stockQty: Number(v.stockQty || 0),
+            inStock: Boolean(v.inStock),
+            sku: v.sku ? String(v.sku) : undefined
+          }))
+        : [],
+      inStock: Boolean(calculatedInStock),
+      stockQty: Number(product.stockQty || 0),
+      rating: Number(product.rating || 4.5),
+      reviews: Number(product.reviews || 0),
+      createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : new Date().toISOString()
+    };
+    
+    return productData;
   } catch (error) {
     console.error('Error fetching product:', error);
     return null;

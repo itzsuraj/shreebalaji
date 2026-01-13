@@ -10,13 +10,28 @@ export async function GET(
     const resolvedParams = await params;
     await connectToDatabase();
     
-    const product = await Product.findById(resolvedParams.id);
+    // Only return active products for storefront
+    const product = await Product.findOne({ _id: resolvedParams.id, status: 'active' });
     
     if (!product) {
       return NextResponse.json({ 
         success: false, 
         error: 'Product not found' 
       }, { status: 404 });
+    }
+    
+    // Recalculate inStock based on actual stock
+    const hasVariants = product.variantPricing && product.variantPricing.length > 0;
+    let calculatedInStock = false;
+    
+    if (hasVariants) {
+      // Check if any variant has stock
+      calculatedInStock = product.variantPricing.some((v: any) => 
+        (v.stockQty ?? 0) > 0 || v.inStock === true
+      );
+    } else {
+      // Check product-level stock
+      calculatedInStock = (product.stockQty ?? 0) > 0;
     }
     
     return NextResponse.json({ 
@@ -33,7 +48,8 @@ export async function GET(
         colors: product.colors || [],
         packs: product.packs || [],
         variantPricing: product.variantPricing || [],
-        inStock: product.inStock !== false,
+        inStock: calculatedInStock,
+        stockQty: product.stockQty || 0,
         rating: product.rating || 4.5,
         reviews: product.reviews || 0,
         createdAt: product.createdAt,

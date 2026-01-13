@@ -282,18 +282,18 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
         if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
         return true;
       })
-      .sort((a, b) => {
-        switch (sortBy) {
-          case 'price-low':
-            return a.price - b.price;
-          case 'price-high':
-            return b.price - a.price;
-          case 'rating':
-            return b.rating - a.rating;
-          default:
-            return 0;
-        }
-      });
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'rating':
+          return b.rating - a.rating;
+        default:
+          return 0;
+      }
+    });
   }, [smartSearch, searchTerm, products, selectedCategory, sortBy, priceRange]);
 
   // Pagination logic
@@ -371,14 +371,14 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header Section */}
         <div className="mb-6 sm:mb-8">
-          <Link 
-            href="/" 
+      <Link 
+        href="/" 
             className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors text-sm sm:text-base font-medium"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Link>
-          
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back to Home
+      </Link>
+      
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
@@ -444,27 +444,27 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
           <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-full lg:w-80 flex-shrink-0`}>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6 sticky top-6">
               {/* Categories Filter */}
-              <div>
+          <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Filter className="h-5 w-5 text-blue-600" />
                   Categories
                 </h2>
-                <div className="space-y-2">
-                  {categories.map(category => (
-                    <button
-                      key={category}
+            <div className="space-y-2">
+              {categories.map(category => (
+                <button
+                  key={category}
                       onClick={() => handleCategoryChange(category)}
                       className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                        selectedCategory === category
+                    selectedCategory === category
                           ? 'bg-blue-600 text-white shadow-md transform scale-[1.02]'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                  }`}
+                >
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
 
               {/* Price Range Filter */}
               <div>
@@ -504,19 +504,19 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
               </div>
 
               {/* Sort By */}
-              <div>
+          <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Sort By</h2>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                >
-                  <option value="featured">Featured</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
+            >
+              <option value="featured">Featured</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
                   <option value="rating">Highest Rated</option>
-                </select>
-              </div>
+            </select>
+          </div>
 
               {/* Clear Filters */}
               {(selectedCategory !== 'all' || priceRange[0] !== productPriceRange[0] || priceRange[1] !== productPriceRange[1]) && (
@@ -531,10 +531,10 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                   Clear All Filters
                 </button>
               )}
-            </div>
+        </div>
           </aside>
 
-          {/* Product Grid */}
+        {/* Product Grid */}
           <main className="flex-1">
             {filteredProducts.length === 0 ? (
               <div className="text-center py-16 sm:py-20">
@@ -582,12 +582,12 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
                   {paginatedProducts.map(product => (
                     <ProductCard
-                      key={product.id}
+                key={product.id}
                       product={product}
                       onQuickView={handleQuickView}
                     />
                   ))}
-                </div>
+                  </div>
 
                 {/* Pagination Controls */}
                 {filteredProducts.length > itemsPerPage && (
@@ -621,17 +621,17 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                             </button>
                           );
                         })}
-                      </div>
+                  </div>
                       
-                      <button
+                  <button 
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
                         className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
+                  >
                         Next
-                      </button>
-                    </div>
-                  </div>
+                  </button>
+                </div>
+              </div>
                 )}
               </>
             )}
@@ -652,6 +652,6 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
       />
     </div>
   );
-}
+} 
 
 export default memo(ProductsClient); 

@@ -18,6 +18,12 @@ export async function POST(req: NextRequest) {
   const variantHasStock = Array.isArray(doc.variantPricing) && doc.variantPricing.some((v) => (v?.stockQty ?? 0) > 0 || v?.inStock === true);
   const productHasStock = (doc.stockQty ?? 0) > 0;
   doc.inStock = Boolean(productHasStock || variantHasStock);
+  // Default status to active if not provided
+  // (admin UI will send 'active' or 'draft')
+  if (!('status' in doc) || !doc.status) {
+    // @ts-expect-error - status exists in schema
+    doc.status = 'active';
+  }
   const created = await Product.create(doc);
   
   // Revalidate cache after creating new product

@@ -6,6 +6,8 @@ const ProductSchema = new Schema({
   price: { type: Number, required: true },
   category: { type: String, required: true },
   image: { type: String },
+  // Publish status: active products are visible on storefront; draft are hidden
+  status: { type: String, enum: ['active', 'draft'], default: 'active' },
   sizes: [{ type: String }],
   colors: [{ type: String }],
   packs: [{ type: String }],
@@ -24,6 +26,7 @@ const ProductSchema = new Schema({
         stockQty: { type: Number, default: 0 },
         inStock: { type: Boolean },
         sku: { type: String },
+        image: { type: String }, // Variant-specific image
       },
       { _id: false }
     ),

@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
         }
       } else if (deleteModal.orderId) {
         const res = await fetch(`/api/admin/orders/${deleteModal.orderId}`, { method: 'DELETE' });
-        if (res.ok) load();
+    if (res.ok) load();
       }
       setDeleteModal({ isOpen: false, orderId: null, isBulk: false, count: 0 });
     } catch (error) {
