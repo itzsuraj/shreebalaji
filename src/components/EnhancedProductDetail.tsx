@@ -10,6 +10,8 @@ interface ProductVariant {
   size?: string;
   color?: string;
   pack?: string;
+  quality?: string;
+  quantity?: string;
   price: number;
   stockQty: number;
   sku: string;
@@ -56,6 +58,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedPack, setSelectedPack] = useState<string>('');
+  const [selectedQuantity, setSelectedQuantity] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -78,6 +81,10 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
 
   const hasVariants = useMemo(() => {
     return Array.isArray(product.variantPricing) && product.variantPricing.length > 0;
+  }, [product.variantPricing?.length]);
+
+  const variantCount = useMemo(() => {
+    return Array.isArray(product.variantPricing) ? product.variantPricing.length : 0;
   }, [product.variantPricing?.length]);
 
   // Extract unique sizes, colors, and packs from variantPricing
@@ -122,6 +129,17 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     }
     return [];
   }, [product.packs?.length, hasVariants, product.variantPricing?.length]);
+
+  const availableQuantities = useMemo(() => {
+    if (hasVariants && product.variantPricing && product.category === 'zipper') {
+      const quantities = new Set<string>();
+      product.variantPricing.forEach((v: any) => {
+        if (v.quantity) quantities.add(String(v.quantity));
+      });
+      return Array.from(quantities);
+    }
+    return [];
+  }, [hasVariants, product.variantPricing?.length, product.category]);
   const [imageError, setImageError] = useState(false);
 
   // Calculate current price and stock
@@ -172,6 +190,9 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     if (first.pack) {
       setSelectedPack(first.pack);
     }
+    if (product.category === 'zipper' && (first as any).quantity) {
+      setSelectedQuantity(String((first as any).quantity));
+    }
 
     setSelectedVariant(first);
   }, [hasVariants, selectedVariant]);
@@ -179,22 +200,24 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   // Update selected variant when options change
   useEffect(() => {
     if (hasVariants && variantPricingRef.current) {
-      const variant = variantPricingRef.current.find(v => 
-        (!selectedSize || v.size === selectedSize) &&
-        (!selectedColor || v.color === selectedColor) &&
-        (!selectedPack || v.pack === selectedPack)
-      );
+      const variant = variantPricingRef.current.find(v => {
+        const matchesSize = !selectedSize || v.size === selectedSize;
+        const matchesColor = !selectedColor || v.color === selectedColor;
+        const matchesPack = !selectedPack || v.pack === selectedPack;
+        const matchesQuantity = product.category !== 'zipper' || !selectedQuantity || (v as any).quantity === selectedQuantity;
+        return matchesSize && matchesColor && matchesPack && matchesQuantity;
+      });
       // Only update if variant actually changed to prevent infinite loops
       setSelectedVariant(prev => {
         if (!variant) return null;
-        const prevKey = prev ? `${prev.size}-${prev.color}-${prev.pack}` : '';
-        const newKey = `${variant.size}-${variant.color}-${variant.pack}`;
+        const prevKey = prev ? `${prev.size}-${prev.color}-${prev.pack}-${product.category === 'zipper' ? (prev as any).quantity : ''}` : '';
+        const newKey = `${variant.size}-${variant.color}-${variant.pack}-${product.category === 'zipper' ? (variant as any).quantity : ''}`;
         return prevKey === newKey ? prev : variant;
       });
     } else if (!hasVariants) {
       setSelectedVariant(null);
     }
-  }, [selectedSize, selectedColor, selectedPack, hasVariants]);
+  }, [selectedSize, selectedColor, selectedPack, selectedQuantity, hasVariants, product.category]);
 
   const handleAddToCart = useCallback(() => {
     if (hasVariants && !selectedVariant) {
@@ -337,47 +360,91 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
 
             {/* Key attributes just below title */}
-            {Array.isArray(product.variantPricing) && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-              <div className="mb-2 text-sm text-gray-700 space-x-3 flex flex-wrap">
-                {product.category === 'elastic' ? (
-                  <>
-                    {product.variantPricing[0] && product.variantPricing[0].size && (
-                      <span>Size: {product.variantPricing[0].size}</span>
-                    )}
-                    {product.variantPricing[0] && (product.variantPricing[0] as any).quality && (
-                      <span>Quality: {(product.variantPricing[0] as any).quality}</span>
-                    )}
-                    {product.variantPricing[0] && product.variantPricing[0].color && (
-                      <span>Color: {product.variantPricing[0].color}</span>
-                    )}
-                    {product.variantPricing[0] && (product.variantPricing[0] as any).quantity && (
-                      <span>Roll: {(product.variantPricing[0] as any).quantity}</span>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {product.variantPricing[0] && product.variantPricing[0].size && (
-                      <span>Size: {product.variantPricing[0].size}</span>
-                    )}
-                    {product.variantPricing[0] && product.variantPricing[0].color && (
-                      <span>Color: {product.variantPricing[0].color}</span>
-                    )}
-                    {product.variantPricing[0] && product.variantPricing[0].pack && (
-                      <span>Pack: {product.variantPricing[0].pack}</span>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
+            {(() => {
+              const variant = Array.isArray(product.variantPricing) && product.variantPricing.length > 0 ? product.variantPricing[0] : null;
+              
+              // Debug: Log variant data (remove in production)
+              if (process.env.NODE_ENV === 'development' && variant) {
+                console.log('Product Variant Data:', {
+                  category: product.category,
+                  variant: variant,
+                  size: variant.size,
+                  color: variant.color,
+                  quality: (variant as any).quality,
+                  quantity: (variant as any).quantity,
+                  pack: variant.pack
+                });
+              }
+              
+              // Helper function to check if a value is valid
+              const isValidValue = (val: any): boolean => {
+                if (!val) return false;
+                const strVal = String(val).trim();
+                return strVal !== '' && strVal !== '0' && strVal !== 'undefined' && strVal !== 'null';
+              };
+              
+              if (variant) {
+                // Type assertion to access quality and quantity fields
+                const variantAny = variant as any;
+                
+                // Check if we have at least one valid value for elastic category
+                if (product.category === 'elastic') {
+                  const hasValidSize = isValidValue(variant.size);
+                  const hasValidQuality = isValidValue(variantAny.quality);
+                  const hasValidColor = isValidValue(variant.color);
+                  const hasValidQuantity = isValidValue(variantAny.quantity);
+                  
+                  if (hasValidSize || hasValidQuality || hasValidColor || hasValidQuantity) {
+                    return (
+                      <div className={`mb-2 text-sm text-gray-700 ${hasVariants ? 'space-x-3 flex flex-wrap' : 'grid grid-cols-1 md:grid-cols-4 gap-2'}`}>
+                        {hasValidSize && <span><strong>Size:</strong> {String(variant.size)}</span>}
+                        {hasValidQuality && <span><strong>Quality:</strong> {String(variantAny.quality)}</span>}
+                        {hasValidColor && <span><strong>Color:</strong> {String(variant.color)}</span>}
+                        {hasValidQuantity && <span><strong>Roll:</strong> {String(variantAny.quantity)}</span>}
+                      </div>
+                    );
+                  }
+                } else {
+                  // For other categories
+                  const hasValidSize = isValidValue(variant.size);
+                  const hasValidColor = isValidValue(variant.color);
+                  const hasValidPack = isValidValue(variant.pack);
+                  
+                  if (hasValidSize || hasValidColor || hasValidPack) {
+                    return (
+                      <div className={`mb-2 text-sm text-gray-700 ${hasVariants ? 'space-x-3 flex flex-wrap' : 'grid grid-cols-1 md:grid-cols-4 gap-2'}`}>
+                        {hasValidSize && <span><strong>Size:</strong> {String(variant.size)}</span>}
+                        {hasValidColor && <span><strong>Color:</strong> {String(variant.color)}</span>}
+                        {hasValidPack && <span><strong>Pack:</strong> {String(variant.pack)}</span>}
+                      </div>
+                    );
+                  }
+                }
+              }
+              
               // Fallback for non-variant products
-              (product.sizes?.length || product.colors?.length || product.packs?.length) && (
-                <div className="mb-2 text-sm text-gray-700 space-x-3 flex flex-wrap">
-                  {product.sizes?.[0] && <span>Size: {product.sizes[0]}</span>}
-                  {product.colors?.[0] && <span>Color: {product.colors[0]}</span>}
-                  {product.packs?.[0] && <span>Pack: {product.packs[0]}</span>}
-                </div>
-              )
-            )}
+              const isValidBaseValue = (val: any): boolean => {
+                if (!val) return false;
+                const strVal = String(val).trim();
+                return strVal !== '' && strVal !== '0' && strVal !== 'undefined' && strVal !== 'null';
+              };
+              
+              const hasValidBaseSize = isValidBaseValue(product.sizes?.[0]);
+              const hasValidBaseColor = isValidBaseValue(product.colors?.[0]);
+              const hasValidBasePack = isValidBaseValue(product.packs?.[0]);
+              
+              if (hasValidBaseSize || hasValidBaseColor || hasValidBasePack) {
+                return (
+                  <div className="mb-2 text-sm text-gray-700 grid grid-cols-1 md:grid-cols-4 gap-2">
+                    {hasValidBaseSize && <span><strong>Size:</strong> {String(product.sizes[0])}</span>}
+                    {hasValidBaseColor && <span><strong>Color:</strong> {String(product.colors[0])}</span>}
+                    {hasValidBasePack && <span><strong>Pack:</strong> {String(product.packs[0])}</span>}
+                  </div>
+                );
+              }
+              
+              return null;
+            })()}
 
             <p className="text-gray-600 text-sm leading-relaxed">
               {product.description}
@@ -438,57 +505,84 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
 
           {/* Product Options */}
           {hasVariants && (
-            <div className="space-y-4">
-              {/* Size Selection */}
-              {availableSizes.length > 0 && (
+            <div className="space-y-2">
+              {/* Size and Color Selection - Side by Side */}
+              <div className={`grid grid-cols-1 gap-4 ${variantCount === 1 ? 'md:grid-cols-4' : 'md:grid-cols-1'}`}>
+                {/* Size Selection */}
+                {availableSizes.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Size <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableSizes.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
+                            selectedSize === size
+                              ? 'border-purple-500 bg-white text-purple-600'
+                              : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Color Selection */}
+                {availableColors.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Color <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableColors.map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
+                            selectedColor === color
+                              ? 'border-purple-500 bg-white text-purple-600'
+                              : 'border-gray-300 hover:border-gray-400 text-gray-700'
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Quantity Selection - For zipper */}
+              {availableQuantities.length > 0 && product.category === 'zipper' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Size <span className="text-red-500">*</span>
+                    Quantity <span className="text-red-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {availableSizes.map((size) => (
+                    {availableQuantities.map((qty) => (
                       <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 border rounded-lg text-sm font-medium ${
-                          selectedSize === size
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 hover:border-gray-400'
+                        key={qty}
+                        onClick={() => setSelectedQuantity(qty)}
+                        className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedQuantity === qty
+                            ? 'border-purple-500 bg-white text-purple-600'
+                            : 'border-gray-300 hover:border-gray-400 text-gray-700'
                         }`}
                       >
-                        {size}
+                        {qty}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Color Selection */}
-              {availableColors.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Color {availableColors.length > 0 && <span className="text-gray-400 text-xs">(Optional)</span>}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableColors.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`px-4 py-2 border rounded-lg text-sm font-medium ${
-                          selectedColor === color
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Pack Selection */}
-              {availablePacks.length > 0 && (
+              {/* Pack Selection - Not for zipper or elastic */}
+              {availablePacks.length > 0 && product.category !== 'zipper' && product.category !== 'elastic' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Pack Size <span className="text-red-500">*</span>
@@ -498,10 +592,10 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                       <button
                         key={pack}
                         onClick={() => setSelectedPack(pack)}
-                        className={`px-4 py-2 border rounded-lg text-sm font-medium ${
+                        className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
                           selectedPack === pack
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 hover:border-gray-400'
+                            ? 'border-purple-500 bg-white text-purple-600'
+                            : 'border-gray-300 hover:border-gray-400 text-gray-700'
                         }`}
                       >
                         {pack}
@@ -513,33 +607,33 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             </div>
           )}
 
-          {/* Quantity Selector - Etsy Style with +/- controls */}
-          <div className="space-y-4">
+          {/* Quantity Selector */}
+          <div className="mt-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-              <div className="inline-flex items-center border border-gray-300 rounded-lg overflow-hidden">
+              <div className="inline-flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(-1)}
                   disabled={quantity <= 1 || currentStock === 0}
-                  className="px-3 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed border-r border-gray-300"
                 >
                   −
                 </button>
-                <div className="px-4 py-2 min-w-[3rem] text-center text-sm font-medium text-gray-900 bg-white">
+                <div className="px-6 py-2 min-w-[3rem] text-center text-base font-medium text-gray-900 bg-white">
                   {currentStock === 0 ? 0 : quantity}
                 </div>
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(1)}
                   disabled={quantity >= currentStock || currentStock === 0}
-                  className="px-3 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed border-l border-gray-300"
                 >
                   +
                 </button>
               </div>
               {currentStock > 0 && (
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-2">
                   {currentStock} available
                 </p>
               )}
@@ -549,7 +643,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             <button
               onClick={handleAddToCart}
               disabled={currentStock === 0 || (hasVariants && !selectedVariant)}
-              className="w-full bg-gray-900 text-white py-4 px-6 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-primary-500 text-white py-4 px-6 rounded-lg font-semibold hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               Add to cart
             </button>

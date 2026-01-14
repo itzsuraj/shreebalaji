@@ -158,7 +158,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/products" prefetch={true} 
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="bg-primary-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-600 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 Browse Garment Accessories
               </Link>
@@ -182,7 +182,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/contact" 
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="bg-primary-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-600 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 Contact Sales
               </Link>
@@ -224,7 +224,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               
               <Link
                 href="/products" prefetch={true}
-                className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-lg transition-colors font-semibold text-lg shadow-lg group"
+                className="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 group"
               >
                 Shop Now
                 <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,29 +359,33 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       <div className="mb-2 text-xs text-gray-600 space-y-1">
                         {product.category === 'elastic' ? (
                           <>
-                            {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                              <div>Size: {product.variantPricing[0].size}</div>
-                            )}
-                            {product.variantPricing[0].quality && (product.variantPricing[0] as any).quality !== '0' && (
-                              <div>Quality: {product.variantPricing[0].quality}</div>
-                            )}
-                            {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                              <div>Color: {product.variantPricing[0].color}</div>
-                            )}
-                            {product.variantPricing[0].quantity && (product.variantPricing[0] as any).quantity !== '0' && (
-                              <div>Roll: {product.variantPricing[0].quantity}</div>
-                            )}
+                            <div className="flex flex-wrap gap-x-3 gap-y-0">
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <span><strong>Size:</strong> {product.variantPricing[0].size}</span>
+                              )}
+                              {product.variantPricing[0].quality && (product.variantPricing[0] as any).quality !== '0' && (
+                                <span><strong>Quality:</strong> {product.variantPricing[0].quality}</span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0">
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <span><strong>Color:</strong> {product.variantPricing[0].color}</span>
+                              )}
+                              {product.variantPricing[0].quantity && (product.variantPricing[0] as any).quantity !== '0' && (
+                                <span><strong>Roll:</strong> {product.variantPricing[0].quantity}</span>
+                              )}
+                            </div>
                           </>
                         ) : (
                           <>
                             {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                              <div>Size: {product.variantPricing[0].size}</div>
+                              <div><strong>Size:</strong> {product.variantPricing[0].size}</div>
                             )}
                             {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                              <div>Color: {product.variantPricing[0].color}</div>
+                              <div><strong>Color:</strong> {product.variantPricing[0].color}</div>
                             )}
                             {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                              <div>Pack: {product.variantPricing[0].pack}</div>
+                              <div><strong>Pack:</strong> {product.variantPricing[0].pack}</div>
                             )}
                           </>
                         )}
@@ -390,9 +394,9 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       // Fallback for single (non-variant) products using base fields
                       !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
                         <div className="mb-2 text-xs text-gray-600 space-y-1">
-                          {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
-                          {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
-                          {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+                          {product.sizes?.[0] && product.sizes[0] !== '0' && <div><strong>Size:</strong> {product.sizes[0]}</div>}
+                          {product.colors?.[0] && product.colors[0] !== '0' && <div><strong>Color:</strong> {product.colors[0]}</div>}
+                          {product.packs?.[0] && product.packs[0] !== '0' && <div><strong>Pack:</strong> {product.packs[0]}</div>}
                         </div>
                       )
                     )}
@@ -406,23 +410,23 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                   </div>
                 </Link>
                 <div className="px-4 pb-4">
-                  {product.variantPricing && product.variantPricing.length > 0 ? (
-                    // Product has variants - show only View button
+                  {product.variantPricing && product.variantPricing.length > 1 ? (
+                    // Product has multiple variants - show only View button
                     <div className="flex justify-center">
                       <Link 
                         href={`/products/${product._id}`}
-                        className="bg-gray-600 text-white py-2.5 px-6 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 font-medium w-full"
+                        className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                       >
                         <Eye className="h-4 w-4" />
                         View Options
                       </Link>
                     </div>
                   ) : (
-                    // Product has no variants - show Add to Cart and Buy Now only
+                    // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
                     <div className="grid grid-cols-2 gap-2">
                       <button 
                         onClick={() => handleAddToCart(product)}
-                        className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                        className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
                       >
                         <ShoppingCart className="h-4 w-4" />
                         <span className="hidden sm:inline">Add to Cart</span>
@@ -430,7 +434,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       </button>
                       <button 
                         onClick={() => handleBuyNow(product)}
-                        className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                        className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                       >
                         <span className="hidden sm:inline">Buy Now</span>
                         <span className="sm:hidden">Buy</span>
@@ -446,7 +450,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           <div className="text-center mt-12">
             <Link
               href="/products" prefetch={true}
-              className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-lg transition-colors font-semibold text-lg shadow-lg group"
+              className="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 group"
             >
               View All Garment Accessories
               <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -478,7 +482,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed">All our accessories meet the highest quality standards for professional garment making.</p>
             </div>
             <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -536,18 +540,22 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         <div className="mb-2 text-xs text-gray-600 space-y-1">
                           {product.category === 'elastic' ? (
                             <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                <div>Quality: {product.variantPricing[0].quality}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                <div>Roll: {product.variantPricing[0].quantity}</div>
-                              )}
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                  <span>Size: {product.variantPricing[0].size}</span>
+                                )}
+                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                  <span>Quality: {product.variantPricing[0].quality}</span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                  <span>Color: {product.variantPricing[0].color}</span>
+                                )}
+                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                  <span>Roll: {product.variantPricing[0].quantity}</span>
+                                )}
+                              </div>
                             </>
                           ) : (
                             <>
@@ -583,23 +591,23 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    {product.variantPricing && product.variantPricing.length > 0 ? (
-                      // Product has variants - show only View button
+                    {product.variantPricing && product.variantPricing.length > 1 ? (
+                      // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
                           href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-6 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 font-medium w-full"
+                          className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
                           View Options
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart and Buy Now only
+                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
                         >
                           <ShoppingCart className="h-4 w-4" />
                           <span className="hidden sm:inline">Add to Cart</span>
@@ -607,7 +615,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
-                          className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                         >
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
@@ -651,18 +659,22 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         <div className="mb-2 text-xs text-gray-600 space-y-1">
                           {product.category === 'elastic' ? (
                             <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                <div>Quality: {product.variantPricing[0].quality}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                <div>Roll: {product.variantPricing[0].quantity}</div>
-                              )}
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                  <span>Size: {product.variantPricing[0].size}</span>
+                                )}
+                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                  <span>Quality: {product.variantPricing[0].quality}</span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                  <span>Color: {product.variantPricing[0].color}</span>
+                                )}
+                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                  <span>Roll: {product.variantPricing[0].quantity}</span>
+                                )}
+                              </div>
                             </>
                           ) : (
                             <>
@@ -698,23 +710,23 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    {product.variantPricing && product.variantPricing.length > 0 ? (
-                      // Product has variants - show only View button
+                    {product.variantPricing && product.variantPricing.length > 1 ? (
+                      // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
                           href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-6 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 font-medium w-full"
+                          className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
                           View Options
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart and Buy Now only
+                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
                         >
                           <ShoppingCart className="h-4 w-4" />
                           <span className="hidden sm:inline">Add to Cart</span>
@@ -722,7 +734,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
-                          className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                         >
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
@@ -766,18 +778,22 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         <div className="mb-2 text-xs text-gray-600 space-y-1">
                           {product.category === 'elastic' ? (
                             <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                <div>Quality: {product.variantPricing[0].quality}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                <div>Roll: {product.variantPricing[0].quantity}</div>
-                              )}
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                  <span>Size: {product.variantPricing[0].size}</span>
+                                )}
+                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                  <span>Quality: {product.variantPricing[0].quality}</span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                  <span>Color: {product.variantPricing[0].color}</span>
+                                )}
+                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                  <span>Roll: {product.variantPricing[0].quantity}</span>
+                                )}
+                              </div>
                             </>
                           ) : (
                             <>
@@ -813,23 +829,23 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    {product.variantPricing && product.variantPricing.length > 0 ? (
-                      // Product has variants - show only View button
+                    {product.variantPricing && product.variantPricing.length > 1 ? (
+                      // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
                           href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-6 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 font-medium w-full"
+                          className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
                           View Options
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart and Buy Now only
+                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
                         >
                           <ShoppingCart className="h-4 w-4" />
                           <span className="hidden sm:inline">Add to Cart</span>
@@ -837,7 +853,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
-                          className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                         >
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>
@@ -881,18 +897,22 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         <div className="mb-2 text-xs text-gray-600 space-y-1">
                           {product.category === 'elastic' ? (
                             <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                <div>Quality: {product.variantPricing[0].quality}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                <div>Roll: {product.variantPricing[0].quantity}</div>
-                              )}
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                  <span>Size: {product.variantPricing[0].size}</span>
+                                )}
+                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                  <span>Quality: {product.variantPricing[0].quality}</span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-x-3 gap-y-0">
+                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                  <span>Color: {product.variantPricing[0].color}</span>
+                                )}
+                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                  <span>Roll: {product.variantPricing[0].quantity}</span>
+                                )}
+                              </div>
                             </>
                           ) : (
                             <>
@@ -928,23 +948,23 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
-                    {product.variantPricing && product.variantPricing.length > 0 ? (
-                      // Product has variants - show only View button
+                    {product.variantPricing && product.variantPricing.length > 1 ? (
+                      // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
                           href={`/products/${product._id}`}
-                          className="bg-gray-600 text-white py-2.5 px-6 rounded text-sm hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 font-medium w-full"
+                          className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
                           View Options
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants - show Add to Cart and Buy Now only
+                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-green-600 text-white py-2.5 px-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1 font-medium"
+                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
                         >
                           <ShoppingCart className="h-4 w-4" />
                           <span className="hidden sm:inline">Add to Cart</span>
@@ -952,7 +972,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
-                          className="bg-blue-600 text-white py-2.5 px-2 rounded text-sm hover:bg-blue-700 transition-colors font-medium"
+                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                         >
                           <span className="hidden sm:inline">Buy Now</span>
                           <span className="sm:hidden">Buy</span>

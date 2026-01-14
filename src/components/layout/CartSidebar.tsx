@@ -58,9 +58,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-teal-50 to-emerald-50 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-accent-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-600 rounded-lg">
+            <div className="p-2 bg-primary-500 rounded-lg">
               <ShoppingCart className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -82,7 +82,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         </div>
 
         {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-0">
           {!mounted || items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-16">
               <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
@@ -91,13 +91,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
               <Link
                 href="/products"
                 onClick={onClose}
-                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold"
+                className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 Browse Products
               </Link>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 pb-0">
               {items.map((item) => (
                 <div
                   key={`${item.productId}-${item.size || ''}-${item.color || ''}-${item.pack || ''}-${item.sku || ''}`}
@@ -126,7 +126,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     <Link
                       href={`/products/${item.productId}`}
                       onClick={onClose}
-                      className="font-semibold text-gray-900 hover:text-teal-600 line-clamp-2 mb-1"
+                      className="font-semibold text-gray-900 hover:text-primary-600 line-clamp-2 mb-1"
                     >
                       {item.name}
                     </Link>
@@ -135,7 +135,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                         {[item.size, item.color, item.pack].filter(Boolean).join(', ')}
                       </p>
                     )}
-                    <p className="text-teal-600 font-semibold text-sm mb-2">₹{item.price.toLocaleString()} each</p>
+                    <p className="text-primary-600 font-semibold text-sm mb-2">₹{item.price.toLocaleString()} each</p>
                     
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-3 mt-2">
@@ -177,11 +177,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
         {/* Footer with Total and Actions */}
         {mounted && items.length > 0 && (
-          <div className="border-t-2 border-gray-200 p-6 bg-gradient-to-br from-gray-50 to-teal-50">
+          <div className="border-t-2 border-gray-200 px-6 pt-4 pb-6 bg-gradient-to-br from-gray-50 to-primary-50">
             <div className="space-y-3 mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-base font-medium text-gray-700">Subtotal:</span>
-                <span className="text-xl font-bold text-teal-600">
+                <span className="text-xl font-bold text-primary-600">
                   ₹{(subtotalInPaise / 100).toLocaleString()}
                 </span>
               </div>
@@ -192,14 +192,14 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             <div className="space-y-3">
               <button
                 onClick={handleCheckout}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3.5 px-4 rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 px-4 rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 Go to Secure Checkout
               </button>
               <Link
                 href="/cart"
                 onClick={onClose}
-                className="block w-full bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50 py-3 px-4 rounded-lg transition-colors font-semibold text-center"
+                className="block w-full bg-white border-2 border-primary-500 text-primary-600 hover:bg-primary-50 py-3 px-4 rounded-lg transition-all duration-200 font-semibold text-center"
               >
                 View Full Cart
               </Link>

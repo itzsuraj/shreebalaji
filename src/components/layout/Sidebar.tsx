@@ -93,7 +93,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.push('/wishlist')}
-                className="relative p-2 text-gray-700 hover:text-teal-600 transition-colors"
+                className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors"
                 title="Wishlist"
               >
                 <Heart className="h-5 w-5" />
@@ -139,7 +139,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={() => setActiveTab('categories')}
               className={`flex-1 py-2 px-4 text-center font-semibold ${
                 activeTab === 'categories'
-                  ? 'text-teal-600 border-b-2 border-teal-600'
+                  ? 'text-primary-600 border-b-2 border-primary-600'
                   : 'text-gray-600'
               }`}
             >
@@ -150,7 +150,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               onClick={() => setActiveTab('menu')}
               className={`flex-1 py-2 px-4 text-center font-semibold ${
                 activeTab === 'menu'
-                  ? 'text-teal-600 border-b-2 border-teal-600'
+                  ? 'text-primary-600 border-b-2 border-primary-600'
                   : 'text-gray-600'
               }`}
             >
@@ -169,7 +169,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="text-gray-600 group-hover:text-teal-600 transition-colors">
+                    <div className="text-gray-600 group-hover:text-primary-600 transition-colors">
                       {category.icon}
                     </div>
                     <span className="text-gray-700 group-hover:text-teal-600 font-medium">

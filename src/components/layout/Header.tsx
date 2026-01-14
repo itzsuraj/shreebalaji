@@ -332,7 +332,7 @@ export default function Header() {
             {/* Hamburger Menu Button */}
             <button
               onClick={toggleSidebar}
-              className="p-2 text-gray-700 hover:text-teal-600 transition-colors mr-2"
+              className="p-2 text-gray-700 hover:text-primary-600 transition-colors mr-2"
               aria-label="Toggle menu"
             >
               <Menu className="h-6 w-6" />
@@ -382,7 +382,7 @@ export default function Header() {
             {!(pathname?.startsWith('/admin')) && (
               <>
                 {/* Wishlist Button */}
-                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-teal-600 transition-colors" title="Wishlist">
+                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors" title="Wishlist">
                   <Heart className="h-5 w-5" />
                   {mounted && wishlistCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -426,7 +426,7 @@ export default function Header() {
             </button>
             {!(pathname?.startsWith('/admin')) && (
               <>
-                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-teal-600 transition-colors" title="Wishlist">
+                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors" title="Wishlist">
                   <Heart className="h-5 w-5" />
                   {mounted && wishlistCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
@@ -482,7 +482,7 @@ export default function Header() {
                   />
                   <button
                     type="submit"
-                    className="absolute right-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                    className="absolute right-2 bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     Search
                   </button>
