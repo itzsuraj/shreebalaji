@@ -132,7 +132,7 @@ export default function InventoryManagement() {
           <div className="text-sm text-gray-600">Total Products</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-blue-600">{stats.totalStock.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-primary-600">{stats.totalStock.toLocaleString()}</div>
           <div className="text-sm text-gray-600">Total Stock</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">

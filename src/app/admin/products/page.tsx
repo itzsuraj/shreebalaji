@@ -735,7 +735,7 @@ export default function AdminProductsPage() {
             onClick={() => setShowStockManagement(!showStockManagement)}
             className={`px-4 py-2 rounded text-sm ${
               showStockManagement 
-                ? 'bg-blue-600 text-white' 
+                ? 'bg-primary-500 text-white' 
                 : 'bg-gray-600 text-white hover:bg-gray-700'
             }`}
           >
@@ -847,7 +847,7 @@ export default function AdminProductsPage() {
                     Max 5MB. JPG, PNG, or WEBP recommended.
                   </p>
                   {isUploadingImage && (
-                    <p className="text-xs text-blue-600 mt-1">Uploading image...</p>
+                    <p className="text-xs text-primary-600 mt-1">Uploading image...</p>
                   )}
                 </div>
               </div>
@@ -991,7 +991,7 @@ export default function AdminProductsPage() {
                                 }
                               });
                             }}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                           />
                           <span className="text-sm text-gray-700">72</span>
                         </label>
@@ -1020,7 +1020,7 @@ export default function AdminProductsPage() {
                                 }
                               });
                             }}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                           />
                           <span className="text-sm text-gray-700">144</span>
                         </label>
@@ -1038,7 +1038,7 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => setShowVariantSection(!showVariantSection)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                 >
                   {showVariantSection ? 'Hide Variant Options' : 'Add Multiple Variants'}
                 </button>
@@ -1266,7 +1266,7 @@ export default function AdminProductsPage() {
                   <button
                     type="button"
                     onClick={addVariantCombination}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
                   >
                     Add Variant
                   </button>
@@ -1527,7 +1527,7 @@ export default function AdminProductsPage() {
             <div className="pt-4">
               <button
                 onClick={createProduct}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                className="w-full bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium transition-all duration-200"
               >
                 Create Product
               </button>
@@ -1547,7 +1547,7 @@ export default function AdminProductsPage() {
               <button
                 onClick={() => setStockFilter('all')}
                 className={`px-4 py-2 rounded ${
-                  stockFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-white border'
+                  stockFilter === 'all' ? 'bg-primary-500 text-white' : 'bg-white border'
                 }`}
               >
                 All Products
@@ -1572,7 +1572,7 @@ export default function AdminProductsPage() {
             <div className="mb-4">
               <button
                 onClick={fixAllProductStockStatus}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Fix All Stock Statuses
               </button>
@@ -1612,7 +1612,7 @@ export default function AdminProductsPage() {
                     />
                     <button
                       onClick={() => updateProductStock(product._id, bulkStockUpdate[product._id] || product.stockQty || 0)}
-                      className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                      className="px-2 py-1 bg-primary-500 text-white text-xs rounded hover:bg-primary-600 transition-all duration-200"
                     >
                       Update
                     </button>
@@ -1625,7 +1625,7 @@ export default function AdminProductsPage() {
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={handleBulkStockUpdate}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Update All Selected ({Object.keys(bulkStockUpdate).length} products)
                 </button>
@@ -1648,7 +1648,7 @@ export default function AdminProductsPage() {
           </div>
           <a 
             href="/admin/seed-products" 
-            className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="inline-block bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             Seed Products
           </a>
@@ -1734,7 +1734,7 @@ export default function AdminProductsPage() {
                           className={`inline-block text-[11px] px-2 py-0.5 rounded-full font-medium border ${
                             product.status === 'draft'
                               ? 'bg-gray-100 text-gray-700 border-gray-300'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-accent-50 text-accent-700 border-accent-200'
                           }`}
                         >
                           {product.status === 'draft' ? 'Draft' : 'Active'}
@@ -1809,7 +1809,7 @@ export default function AdminProductsPage() {
                   <div className="flex space-x-2">
                     <button 
                       onClick={() => startEdit(product)}
-                      className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                      className="px-2 py-1 text-xs bg-primary-100 text-primary-600 rounded hover:bg-primary-200"
                     >
                       Edit
                     </button>
@@ -2008,7 +2008,7 @@ export default function AdminProductsPage() {
                         Max 5MB. JPG, PNG, or WEBP recommended.
                       </p>
                       {isUploadingImage && (
-                        <p className="text-xs text-blue-600 mt-1">Uploading image...</p>
+                        <p className="text-xs text-primary-600 mt-1">Uploading image...</p>
                       )}
                     </div>
                   </div>
@@ -2136,7 +2136,7 @@ export default function AdminProductsPage() {
                                       }
                                     });
                                   }}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                 />
                                 <span className="text-sm text-gray-700">72</span>
                               </label>
@@ -2165,7 +2165,7 @@ export default function AdminProductsPage() {
                                       }
                                     });
                                   }}
-                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                 />
                                 <span className="text-sm text-gray-700">144</span>
                               </label>
@@ -2205,7 +2205,7 @@ export default function AdminProductsPage() {
                           <button
                             type="button"
                             onClick={addVariantCombination}
-                            className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
                           >
                             Add Variant
                           </button>
@@ -2458,7 +2458,7 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   onClick={updateProduct}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Update Product
                 </button>

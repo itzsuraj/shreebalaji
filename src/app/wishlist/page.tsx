@@ -33,7 +33,7 @@ export default function WishlistPage() {
             <p className="text-gray-600 mb-6">Start adding products you love to your wishlist!</p>
             <Link
               href="/products"
-              className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg transition-colors font-semibold"
+              className="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
               Browse Products
             </Link>
@@ -75,15 +75,15 @@ export default function WishlistPage() {
               </Link>
               <div className="p-4">
                 <Link href={`/products/${item.productId}`}>
-                  <h3 className="font-semibold mb-2 text-gray-900 hover:text-teal-600">
+                  <h3 className="font-semibold mb-2 text-gray-900 hover:text-primary-600">
                     {item.name}
                   </h3>
                 </Link>
-                <p className="text-teal-600 font-bold mb-4">₹{item.price.toLocaleString()}</p>
+                <p className="text-primary-600 font-bold mb-4">₹{item.price.toLocaleString()}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAddToCart(item)}
-                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded transition-colors flex items-center justify-center gap-2 font-medium"
+                    className="flex-1 bg-primary-500 hover:bg-primary-600 text-white py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-lg"
                   >
                     <ShoppingCart className="h-4 w-4" />
                     Add to Cart

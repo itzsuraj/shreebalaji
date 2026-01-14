@@ -160,7 +160,7 @@ export default function OrderManagementDashboard() {
           <div className="text-sm text-gray-600">Pending</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-blue-600">{stats.processing}</div>
+          <div className="text-2xl font-bold text-primary-600">{stats.processing}</div>
           <div className="text-sm text-gray-600">Processing</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">

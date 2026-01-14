@@ -76,9 +76,9 @@ export default function ProductActions({ productName, productId, price, image, c
     <div className="flex flex-col space-y-3 relative">
       {/* Dynamic Price Display */}
       {variantPricing.length > 0 && (
-        <div className="bg-blue-50 p-3 rounded-lg">
+        <div className="bg-primary-50 p-3 rounded-lg">
           <div className="text-sm text-gray-600 mb-1">Selected Variant Price:</div>
-          <div className="text-2xl font-bold text-blue-600">₹{currentPrice.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-primary-600">₹{currentPrice.toLocaleString()}</div>
           {currentPrice !== price && (
             <div className="text-sm text-gray-500">
               Base price: ₹{price.toLocaleString()}

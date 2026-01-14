@@ -164,7 +164,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               </Link>
               <Link 
                 href="/contact" 
-                className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
+                className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
               >
                 Contact Us
               </Link>
@@ -188,7 +188,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               </Link>
               <Link 
                 href="/enquiries" 
-                className="bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+                className="bg-white text-primary-600 border border-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
               >
                 Submit Enquiry
               </Link>
@@ -218,7 +218,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight text-gray-900">
                 Accessories Collection
               </h2>
-              <p className="text-lg sm:text-xl mb-8 leading-relaxed text-emerald-700 font-medium">
+              <p className="text-lg sm:text-xl mb-8 leading-relaxed text-primary-700 font-medium">
                 Quality buttons, zippers, elastic, and cords for professional garment making
               </p>
               
@@ -261,7 +261,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <Link href="/products?category=buttons" prefetch={true} className="block">
               <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
                   </svg>
                 </div>
@@ -473,8 +473,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
               </div>
@@ -483,7 +483,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             </div>
             <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -491,8 +491,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Quick processing and delivery to keep your production schedule on track.</p>
             </div>
             <div className="text-center bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
@@ -515,7 +515,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           <div className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-semibold text-gray-900">Premium Garment Buttons</h3>
-              <Link href="/products?category=buttons" className="text-blue-600 hover:text-blue-800 font-semibold">
+              <Link href="/products?category=buttons" className="text-primary-600 hover:text-primary-700 font-semibold">
                 View All Buttons →
               </Link>
             </div>
@@ -1018,31 +1018,31 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 <h4 className="text-xl font-semibold mb-6 text-gray-900">Why Choose Shree Balaji Enterprises?</h4>
                 <ul className="space-y-4">
                   <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                     <div>
                       <strong>Quality Assurance:</strong> All products undergo rigorous quality testing to ensure they meet industry standards
                     </div>
                   </li>
                   <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                     <div>
                       <strong>Bulk Pricing:</strong> Competitive rates for large orders with volume discounts
                     </div>
                   </li>
                   <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                     <div>
                       <strong>Fast Delivery:</strong> Quick processing and shipping to keep your production on schedule
                     </div>
                   </li>
                   <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                     <div>
                       <strong>Expert Support:</strong> Technical guidance and product recommendations from our experienced team
                     </div>
                   </li>
                   <li className="flex items-start">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                     <div>
                       <strong>Custom Solutions:</strong> Tailored products to meet your specific design and quality requirements
                     </div>
@@ -1129,7 +1129,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/products" prefetch={true}
-              className="inline-flex items-center bg-white text-teal-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg shadow-lg group"
+              className="inline-flex items-center bg-white text-primary-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg shadow-lg group"
             >
               View All Products
               <svg className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1138,7 +1138,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             </Link>
             <Link
               href="/contact"
-              className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg hover:bg-white hover:text-teal-600 transition-colors font-semibold text-lg"
+              className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg hover:bg-white hover:text-primary-600 transition-colors font-semibold text-lg"
             >
               Contact Us
             </Link>

@@ -12,7 +12,7 @@ export default function CartPage() {
       {items.length === 0 ? (
         <div className="text-center text-gray-600">
           <p>Your cart is empty.</p>
-          <Link href="/products" className="text-blue-600 hover:text-blue-800">Continue shopping →</Link>
+          <Link href="/products" className="text-primary-600 hover:text-primary-700">Continue shopping →</Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -42,7 +42,7 @@ export default function CartPage() {
                 <span>₹{(subtotalInPaise/100).toFixed(2)}</span>
               </div>
               <p className="text-xs text-gray-600 mt-2">GST 18% and shipping calculated at checkout</p>
-              <Link href="/checkout" className="block text-center mt-4 bg-blue-600 text-white py-3 rounded hover:bg-blue-700">
+              <Link href="/checkout" className="block text-center mt-4 bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg">
                 Proceed to Checkout
               </Link>
             </div>

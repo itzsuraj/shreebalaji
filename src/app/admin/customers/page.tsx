@@ -107,7 +107,7 @@ export default function AdminCustomersPage() {
           <div className="text-sm text-gray-600">Total Orders</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-blue-600">
+          <div className="text-2xl font-bold text-primary-600">
             {formatCurrency(customers.reduce((sum, c) => sum + c.totalSpent, 0))}
           </div>
           <div className="text-sm text-gray-600">Total Revenue</div>

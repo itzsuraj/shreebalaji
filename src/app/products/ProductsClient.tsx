@@ -107,7 +107,7 @@ const ProductCard = memo(({ product, onQuickView }: {
       {/* Product Info */}
       <div className="p-5">
         <Link href={`/products/${product.id}`} prefetch={true}>
-          <h3 className="text-lg font-bold mb-2 text-gray-900 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="text-lg font-bold mb-2 text-gray-900 leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors">
             {product.name}
           </h3>
         </Link>
@@ -175,14 +175,14 @@ const ProductCard = memo(({ product, onQuickView }: {
 
         {/* Price */}
         <div className="mb-4">
-          <span className="text-2xl font-bold text-blue-600">
+          <span className="text-2xl font-bold text-primary-600">
             ₹{product.price.toLocaleString()}
           </span>
         </div>
 
         <Link 
           href={`/products/${product.id}`}
-          className="block w-full bg-blue-600 text-white py-3 px-4 rounded-lg text-sm font-semibold text-center hover:bg-blue-700 transition-colors"
+          className="block w-full bg-primary-500 text-white py-3 px-4 rounded-lg text-sm font-semibold text-center hover:bg-primary-600 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           View Product
         </Link>
@@ -415,7 +415,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
         <div className="mb-6 sm:mb-8">
       <Link 
         href="/" 
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors text-sm sm:text-base font-medium"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4 transition-colors text-sm sm:text-base font-medium"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Home
@@ -488,7 +488,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
               {/* Categories Filter */}
           <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Filter className="h-5 w-5 text-blue-600" />
+                  <Filter className="h-5 w-5 text-primary-600" />
                   Categories
                 </h2>
             <div className="space-y-2">
@@ -498,7 +498,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                       onClick={() => handleCategoryChange(category)}
                       className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
                     selectedCategory === category
-                          ? 'bg-blue-600 text-white shadow-md transform scale-[1.02]'
+                          ? 'bg-primary-500 text-white shadow-md transform scale-[1.02]'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -511,7 +511,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
               {/* Price Range Filter */}
               <div>
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <SlidersHorizontal className="h-5 w-5 text-blue-600" />
+                  <SlidersHorizontal className="h-5 w-5 text-primary-600" />
                   Price Range
                 </h2>
                 <div className="space-y-4">
@@ -598,7 +598,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                   <div className="space-y-4">
                     <button
                       onClick={clearSearch}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-md"
+                      className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                     >
                       Clear Search
                     </button>
@@ -655,7 +655,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                               onClick={() => setCurrentPage(pageNum)}
                               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
                                 currentPage === pageNum
-                                  ? 'bg-blue-600 text-white shadow-md'
+                                  ? 'bg-primary-500 text-white shadow-md'
                                   : 'text-gray-700 bg-white border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                               }`}
                             >

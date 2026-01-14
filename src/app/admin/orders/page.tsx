@@ -327,7 +327,7 @@ export default function AdminOrdersPage() {
           <div className="text-sm text-gray-600">Processing</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="text-2xl font-bold text-blue-600">{stats.shipped}</div>
+          <div className="text-2xl font-bold text-primary-600">{stats.shipped}</div>
           <div className="text-sm text-gray-600">Shipped</div>
         </div>
         <div className="bg-white p-4 rounded-lg shadow border">

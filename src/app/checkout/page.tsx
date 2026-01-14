@@ -364,7 +364,7 @@ export default function CheckoutPage() {
           <button 
             disabled={isSubmitting || subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100} 
             onClick={createOrder} 
-            className="mt-6 w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="mt-6 w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
           >
             {isSubmitting ? 'Processing...' : subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100 ? `Minimum ₹${MINIMUM_ORDER_AMOUNT_INR} required` : 'Pay via UPI'}
           </button>
