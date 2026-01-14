@@ -34,7 +34,7 @@ const ProductCard = memo(({ product, onQuickView }: {
     >
       {/* Image Container with Hover Effects */}
       <div className="relative h-64 overflow-hidden bg-gray-50">
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${product.id}`} prefetch={true}>
           <div className="relative w-full h-full transform transition-transform duration-500 group-hover:scale-105">
             {!imageError ? (
               <Image
@@ -106,12 +106,54 @@ const ProductCard = memo(({ product, onQuickView }: {
 
       {/* Product Info */}
       <div className="p-5">
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${product.id}`} prefetch={true}>
           <h3 className="text-lg font-bold mb-2 text-gray-900 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
             {product.name}
           </h3>
         </Link>
         
+        {/* Key attributes (show first variant summary or base fields) */}
+        {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+          <div className="mb-3 text-xs text-gray-600 space-y-1">
+            {product.category === 'elastic' ? (
+              <>
+                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                  <div>Size: {product.variantPricing[0].size}</div>
+                )}
+                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                  <div>Quality: {product.variantPricing[0].quality}</div>
+                )}
+                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                  <div>Color: {product.variantPricing[0].color}</div>
+                )}
+                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                  <div>Roll: {product.variantPricing[0].quantity}</div>
+                )}
+              </>
+            ) : (
+              <>
+                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                  <div>Size: {product.variantPricing[0].size}</div>
+                )}
+                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                  <div>Color: {product.variantPricing[0].color}</div>
+                )}
+                {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
+                  <div>Pack: {product.variantPricing[0].pack}</div>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
+            <div className="mb-3 text-xs text-gray-600 space-y-1">
+              {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
+              {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
+              {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+            </div>
+          )
+        )}
+
         {/* Rating */}
         <div className="flex items-center gap-1 mb-3">
           <div className="flex items-center">

@@ -19,6 +19,8 @@ export interface Product {
     size?: string;
     color?: string;
     pack?: string;
+    quality?: string;
+    quantity?: string;
     price: number;
     stockQty?: number;
     inStock?: boolean;

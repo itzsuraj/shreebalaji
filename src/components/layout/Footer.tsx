@@ -19,22 +19,22 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Product Categories</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/products?category=buttons" className="text-gray-400 hover:text-white">
+                <Link href="/products?category=buttons" prefetch={true} className="text-gray-400 hover:text-white">
                   Buttons
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=zippers" className="text-gray-400 hover:text-white">
+                <Link href="/products?category=zippers" prefetch={true} className="text-gray-400 hover:text-white">
                   Zippers
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=elastic" className="text-gray-400 hover:text-white">
+                <Link href="/products?category=elastic" prefetch={true} className="text-gray-400 hover:text-white">
                   Elastic
                 </Link>
               </li>
               <li>
-                <Link href="/products?category=cords" className="text-gray-400 hover:text-white">
+                <Link href="/products?category=cords" prefetch={true} className="text-gray-400 hover:text-white">
                   Cords
                 </Link>
               </li>

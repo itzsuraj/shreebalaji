@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShoppingCart, Eye } from "lucide-react";
+import { Star, ShoppingCart, Eye, Heart } from "lucide-react";
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { getProductImage } from "@/utils/imageUtils";
 import type { Product } from "@/types/product";
 import { useMemo, useEffect, useState } from "react";
@@ -13,6 +14,7 @@ import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 
 export default function HomeClient({ initialProducts = [] as Product[] }: { initialProducts?: Product[] }) {
   const { addItem } = useCart();
+  const { toggleItem: toggleWishlist, isInWishlist } = useWishlist();
   const router = useRouter();
   const [products, setProducts] = useState<Array<{
     _id: string;
@@ -29,6 +31,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       size?: string;
       color?: string;
       pack?: string;
+      quality?: string;
+      quantity?: string;
       price: number;
     }>;
     inStock: boolean;
@@ -41,7 +45,6 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   // Fetch products from database
   useEffect(() => {
     if (initialProducts.length > 0) {
-      console.log('HomeClient: Setting products from initialProducts:', initialProducts.length);
       setProducts(initialProducts as unknown as typeof products);
       setLoading(false);
       return;
@@ -50,14 +53,20 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       try {
         const response = await fetch('/api/products', {
           cache: 'force-cache',
-          next: { revalidate: 300 }
+          next: { revalidate: 3600 }, // Cache for 1 hour
+          headers: {
+            'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+          },
         });
         if (response.ok) {
           const data = await response.json();
           setProducts(data.products || []);
         }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        // Silently handle errors in production
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching products:', error);
+        }
       } finally {
         setLoading(false);
       }
@@ -68,9 +77,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
 
   // Memoize product filtering to avoid recalculation
   const { featuredProducts, buttonProducts, zipperProducts, elasticProducts, cordProducts } = useMemo(() => {
-    console.log('HomeClient: Filtering products. Total:', products.length);
     const featured = products.slice(0, 8);
-    console.log('HomeClient: Featured products:', featured.length);
     return {
       featuredProducts: featured,
       buttonProducts: products.filter(p => p.category === 'buttons').slice(0, 3),
@@ -79,6 +86,16 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
     };
   }, [products]);
+
+  // Prefetch product pages when featured products change
+  useEffect(() => {
+    if (featuredProducts.length > 0) {
+      // Prefetch first few product pages
+      featuredProducts.slice(0, 4).forEach(product => {
+        router.prefetch(`/products/${product.id}`);
+      });
+    }
+  }, [featuredProducts, router]);
 
   const handleAddToCart = (product: typeof products[0]) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
@@ -90,8 +107,24 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
     router.push('/checkout');
   };
 
-  // Show loading state
-  if (loading) {
+  const handleToggleWishlist = (product: typeof products[0]) => {
+    toggleWishlist({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: getProductImage(product),
+      category: product.category,
+    });
+    setToast({
+      isVisible: true,
+      message: isInWishlist(product.id)
+        ? `${product.name} removed from wishlist`
+        : `${product.name} added to wishlist!`,
+    });
+  };
+
+  // Show loading state - but don't block if we have initial products
+  if (loading && initialProducts.length === 0) {
     return <LoadingSkeleton />;
   }
 
@@ -124,7 +157,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/products" 
+                href="/products" prefetch={true} 
                 className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
               >
                 Browse Garment Accessories
@@ -190,7 +223,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
               </p>
               
               <Link
-                href="/products"
+                href="/products" prefetch={true}
                 className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-lg transition-colors font-semibold text-lg shadow-lg group"
               >
                 Shop Now
@@ -210,7 +243,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 priority
                 fetchPriority="high"
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
-                quality={85}
+                quality={75}
+                loading="eager"
               />
             </div>
           </div>
@@ -224,7 +258,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             Our Product Categories
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            <Link href="/products?category=buttons" className="block">
+            <Link href="/products?category=buttons" prefetch={true} className="block">
               <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +269,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Metal, plastic, and wooden buttons for all garment types</p>
               </div>
             </Link>
-            <Link href="/products?category=zippers" className="block">
+            <Link href="/products?category=zippers" prefetch={true} className="block">
               <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +280,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 <p className="text-gray-700 text-sm sm:text-base leading-relaxed">Nylon coil, invisible, and decorative zippers</p>
               </div>
             </Link>
-            <Link href="/products?category=elastic" className="block">
+            <Link href="/products?category=elastic" prefetch={true} className="block">
               <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-7 h-7 sm:w-8 sm:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +291,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 <p className="text-gray-700 text-sm sm:text-base leading-relaxed">High-quality elastic bands for waistbands and cuffs</p>
               </div>
             </Link>
-            <Link href="/products?category=cords" className="block">
+            <Link href="/products?category=cords" prefetch={true} className="block">
               <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-7 h-7 sm:w-8 sm:h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,7 +319,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 key={product.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
-                <Link href={`/products/${product.id}`}>
+                <Link href={`/products/${product.id}`} prefetch={true}>
                   <div className="relative h-48">
                     <Image
                       src={getProductImage(product)}
@@ -294,20 +328,81 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       loading="lazy"
-                      quality={75}
+                      quality={70}
+                      placeholder="blur"
+                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     />
+                    {/* Wishlist Button */}
+                    <div className="absolute top-2 right-2">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleToggleWishlist(product);
+                        }}
+                        className={`p-2 rounded-full shadow-md transition-colors ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-500 text-white'
+                            : 'bg-white text-gray-700 hover:bg-red-50'
+                        }`}
+                        title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      >
+                        <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                      </button>
+                    </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold mb-2">
+                    <h3 className="text-lg font-semibold mb-1">
                       {product.name}
                     </h3>
-                    <div className="flex items-center mb-2">
+                    {/* Show key attributes below title */}
+                    {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+                      <div className="mb-2 text-xs text-gray-600 space-y-1">
+                        {product.category === 'elastic' ? (
+                          <>
+                            {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                              <div>Size: {product.variantPricing[0].size}</div>
+                            )}
+                            {product.variantPricing[0].quality && (product.variantPricing[0] as any).quality !== '0' && (
+                              <div>Quality: {product.variantPricing[0].quality}</div>
+                            )}
+                            {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                              <div>Color: {product.variantPricing[0].color}</div>
+                            )}
+                            {product.variantPricing[0].quantity && (product.variantPricing[0] as any).quantity !== '0' && (
+                              <div>Roll: {product.variantPricing[0].quantity}</div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                              <div>Size: {product.variantPricing[0].size}</div>
+                            )}
+                            {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                              <div>Color: {product.variantPricing[0].color}</div>
+                            )}
+                            {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
+                              <div>Pack: {product.variantPricing[0].pack}</div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      // Fallback for single (non-variant) products using base fields
+                      !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
+                        <div className="mb-2 text-xs text-gray-600 space-y-1">
+                          {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
+                          {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
+                          {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+                        </div>
+                      )
+                    )}
+                    <div className="flex items-center mb-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
                       <span className="ml-1 text-sm text-gray-600">
                         {product.rating} ({product.reviews} reviews)
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-2">₹{product.price.toLocaleString()}</p>
+                    <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
                   </div>
                 </Link>
                 <div className="px-4 pb-4">
@@ -350,7 +445,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           {/* View All Products Button */}
           <div className="text-center mt-12">
             <Link
-              href="/products"
+              href="/products" prefetch={true}
               className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-lg transition-colors font-semibold text-lg shadow-lg group"
             >
               View All Garment Accessories
@@ -423,7 +518,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {buttonProducts.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <Link href={`/products/${product.id}`}>
+                  <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
                         src={getProductImage(product)}
@@ -436,6 +531,48 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      {/* Show key attributes below title */}
+                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+                        <div className="mb-2 text-xs text-gray-600 space-y-1">
+                          {product.category === 'elastic' ? (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                <div>Quality: {product.variantPricing[0].quality}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                <div>Roll: {product.variantPricing[0].quantity}</div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
+                                <div>Pack: {product.variantPricing[0].pack}</div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        // Fallback for single (non-variant) products using base fields
+                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
+                          <div className="mb-2 text-xs text-gray-600 space-y-1">
+                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
+                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
+                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+                          </div>
+                        )
+                      )}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
@@ -496,7 +633,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {zipperProducts.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <Link href={`/products/${product.id}`}>
+                  <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
                         src={getProductImage(product)}
@@ -509,6 +646,48 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      {/* Show key attributes below title */}
+                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+                        <div className="mb-2 text-xs text-gray-600 space-y-1">
+                          {product.category === 'elastic' ? (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                <div>Quality: {product.variantPricing[0].quality}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                <div>Roll: {product.variantPricing[0].quantity}</div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
+                                <div>Pack: {product.variantPricing[0].pack}</div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        // Fallback for single (non-variant) products using base fields
+                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
+                          <div className="mb-2 text-xs text-gray-600 space-y-1">
+                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
+                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
+                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+                          </div>
+                        )
+                      )}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
@@ -569,7 +748,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {elasticProducts.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <Link href={`/products/${product.id}`}>
+                  <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
                         src={getProductImage(product)}
@@ -582,6 +761,48 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      {/* Show key attributes below title */}
+                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+                        <div className="mb-2 text-xs text-gray-600 space-y-1">
+                          {product.category === 'elastic' ? (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                <div>Quality: {product.variantPricing[0].quality}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                <div>Roll: {product.variantPricing[0].quantity}</div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
+                                <div>Pack: {product.variantPricing[0].pack}</div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        // Fallback for single (non-variant) products using base fields
+                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
+                          <div className="mb-2 text-xs text-gray-600 space-y-1">
+                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
+                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
+                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+                          </div>
+                        )
+                      )}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
@@ -642,7 +863,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {cordProducts.map((product) => (
                 <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <Link href={`/products/${product.id}`}>
+                  <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
                         src={getProductImage(product)}
@@ -655,6 +876,48 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
+                      {/* Show key attributes below title */}
+                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+                        <div className="mb-2 text-xs text-gray-600 space-y-1">
+                          {product.category === 'elastic' ? (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
+                                <div>Quality: {product.variantPricing[0].quality}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
+                                <div>Roll: {product.variantPricing[0].quantity}</div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
+                                <div>Size: {product.variantPricing[0].size}</div>
+                              )}
+                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
+                                <div>Color: {product.variantPricing[0].color}</div>
+                              )}
+                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
+                                <div>Pack: {product.variantPricing[0].pack}</div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        // Fallback for single (non-variant) products using base fields
+                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
+                          <div className="mb-2 text-xs text-gray-600 space-y-1">
+                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
+                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
+                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
+                          </div>
+                        )
+                      )}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
@@ -845,7 +1108,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/products"
+              href="/products" prefetch={true}
               className="inline-flex items-center bg-white text-teal-600 px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-lg shadow-lg group"
             >
               View All Products

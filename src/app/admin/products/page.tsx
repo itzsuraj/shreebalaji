@@ -24,6 +24,8 @@ interface AdminProductForm {
     size?: string;
     color?: string;
     pack?: string;
+    quality?: string; // For elastic category
+    quantity?: string; // For elastic category (in rolls)
     price: number;
     stockQty?: number;
     inStock?: boolean;
@@ -49,6 +51,8 @@ interface AdminProductRow {
     size?: string;
     color?: string;
     pack?: string;
+    quality?: string; // For elastic category
+    quantity?: string; // For elastic category (in rolls)
     price: number;
     stockQty?: number;
     inStock?: boolean;
@@ -94,6 +98,8 @@ export default function AdminProductsPage() {
     size?: string;
     color?: string;
     pack?: string;
+    quality?: string;
+    quantity?: string;
     price: number;
     stockQty?: number;
     inStock?: boolean;
@@ -122,12 +128,15 @@ export default function AdminProductsPage() {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // New variant dropdown states
   const [newVariant, setNewVariant] = useState({
     size: '',
     color: '',
     pack: '',
+    quality: '', // For elastic category
+    quantity: '', // For elastic category (in rolls)
     selectedPacks: [] as string[], // For multiple pack selection
     price: 0,
     stockQty: 0,
@@ -162,12 +171,26 @@ export default function AdminProductsPage() {
   useEffect(() => { load(); }, []);
 
   const createProduct = async () => {
+    // Basic validation before sending to API
     const basePrice =
       variantPricing.length > 0 ? Number(variantPricing[0].price || 0) : Number(form.price);
 
+    if (!form.name.trim()) {
+      showWarning('Please enter a product name');
+      return;
+    }
+    if (!form.category) {
+      showWarning('Please select a category');
+      return;
+    }
+    if (basePrice <= 0) {
+      showWarning('Please enter a valid price (or at least one variant with price)');
+      return;
+    }
+
     const payload = {
-      name: form.name,
-      description: form.description,
+      name: form.name.trim(),
+      description: form.description?.trim() || '',
       // If variants exist, ignore default/base price field and use first variant price
       price: basePrice,
       category: form.category,
@@ -178,25 +201,59 @@ export default function AdminProductsPage() {
       inStock: form.inStock,
       trackInventory: form.trackInventory ?? true,
     };
-    const res = await fetch('/api/admin/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (res.ok) {
-      setForm({ 
-        name: '', 
-        price: 0, 
-        category: 'buttons', 
-        description: '', 
-        image: '', 
+
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        let message = 'Failed to create product';
+        try {
+          const data = await res.json();
+          if (data?.error) message = data.error;
+        } catch {
+          // ignore JSON parse errors
+        }
+        showError(message);
+        return;
+      }
+
+      // Success
+      showSuccess('Product created successfully');
+      setForm({
+        name: '',
+        price: 0,
+        category: 'buttons',
+        description: '',
+        image: '',
         stockQty: 0,
         inStock: true,
         status: 'active',
         trackInventory: true,
-        sizes: [], 
-        colors: [], 
-        packs: [] 
+        sizes: [],
+        colors: [],
+        packs: [],
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({
+        size: '',
+        color: '',
+        pack: '',
+        quality: '',
+        quantity: '',
+        selectedPacks: [],
+        price: 0,
+        stockQty: 0,
+        sku: '',
+        image: '',
+      });
       load();
+    } catch (error) {
+      console.error('Create product error:', error);
+      showError('Something went wrong while creating the product');
     }
   };
 
@@ -278,7 +335,7 @@ export default function AdminProductsPage() {
       packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const updateProduct = async () => {
@@ -322,7 +379,7 @@ export default function AdminProductsPage() {
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
       load(); // This will recalculate inStock for all products
     }
   };
@@ -341,7 +398,7 @@ export default function AdminProductsPage() {
       packs: [] 
     });
     setVariantPricing([]);
-    setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
   };
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
@@ -349,6 +406,33 @@ export default function AdminProductsPage() {
 
   // New variant dropdown functions
   const addVariantCombination = () => {
+    const isElastic = form.category === 'elastic';
+    
+    if (isElastic) {
+      // For elastic: size, quality, color, quantity (meter roll)
+      if (!newVariant.size || !newVariant.quality || !newVariant.color || !newVariant.quantity || newVariant.price <= 0) {
+        showWarning('Please fill size, quality, color, quantity (meter roll), and set a valid price');
+        return;
+      }
+      
+      const combination = {
+        size: newVariant.size,
+        quality: newVariant.quality,
+        color: newVariant.color,
+        quantity: newVariant.quantity,
+        price: newVariant.price,
+        stockQty: Number(newVariant.stockQty || 0),
+        inStock: Number(newVariant.stockQty || 0) > 0,
+        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.quality || '', newVariant.quantity || ''),
+        image: newVariant.image?.trim() || undefined
+      };
+      
+      setVariantPricing([...variantPricing, combination]);
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+      return;
+    }
+    
+    // For other categories: size, color, pack
     // Use selectedPacks if available, otherwise fall back to single pack value
     const packsToAdd = newVariant.selectedPacks.length > 0 
       ? [...new Set(newVariant.selectedPacks)] // Remove duplicates
@@ -398,7 +482,7 @@ export default function AdminProductsPage() {
     }
 
     setVariantPricing([...variantPricing, ...newVariants]);
-    setNewVariant({ size: '', color: '', pack: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const removeVariantCombination = (index: number) => {
@@ -585,7 +669,7 @@ export default function AdminProductsPage() {
             {/* Media Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Media</label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 space-y-4">
                 {form.image ? (
                   <div className="space-y-4">
                     <div className="relative inline-block">
@@ -602,29 +686,53 @@ export default function AdminProductsPage() {
                         ×
                       </button>
                     </div>
-                    <div>
-                      <input
-                        type="url"
-                        placeholder="https://example.com/image.jpg"
-                        value={form.image}
-                        onChange={(e) => setForm({ ...form, image: e.target.value.trim() })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Enter image URL</p>
-                    </div>
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <input
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={form.image}
-                      onChange={(e) => setForm({ ...form, image: e.target.value.trim() })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-                    />
-                    <p className="text-xs text-gray-500">Enter image URL to display product image</p>
-                  </div>
+                  <p className="text-xs text-gray-500">No image selected</p>
                 )}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Upload image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setIsUploadingImage(true);
+                      try {
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        const res = await fetch('/api/admin/upload-image', {
+                          method: 'POST',
+                          body: formData,
+                        });
+                        const data = await res.json();
+                        if (res.ok && data?.imageUrl) {
+                          setForm((prev) => ({ ...prev, image: data.imageUrl }));
+                          showSuccess('Image uploaded successfully');
+                        } else {
+                          showError(data?.error || 'Failed to upload image');
+                        }
+                      } catch (error) {
+                        console.error('Image upload error:', error);
+                        showError('Something went wrong while uploading the image');
+                      } finally {
+                        setIsUploadingImage(false);
+                        // reset file input so the same file can be re-selected if needed
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full text-sm text-gray-700"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Max 5MB. JPG, PNG, or WEBP recommended.
+                  </p>
+                  {isUploadingImage && (
+                    <p className="text-xs text-blue-600 mt-1">Uploading image...</p>
+                  )}
+                </div>
               </div>
             </div>
             {/* Variants Section */}
@@ -635,99 +743,154 @@ export default function AdminProductsPage() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="font-medium text-gray-800 mb-4">Add Variant Combination</h4>
             <div className="space-y-4">
-              {/* Row 1: Size / Color / Pack */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                  <select
-                    value={newVariant.size}
-                    onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Size</option>
-                    <option value="10mm (16L)">10mm (16L)</option>
-                    <option value="11mm (18L)">11mm (18L)</option>
-                    <option value="12mm (20L)">12mm (20L)</option>
-                    <option value="15mm (24L)">15mm (24L)</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
-                  <input
-                    type="text"
-                    value={newVariant.color}
-                    onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                    placeholder="Enter color"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
-                  <div className="flex flex-wrap gap-3">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={newVariant.selectedPacks.includes('72')}
-                        onChange={(e) => {
-                          setNewVariant((prev) => {
-                            if (e.target.checked) {
-                              const updatedPacks = prev.selectedPacks.includes('72') 
-                                ? prev.selectedPacks 
-                                : [...prev.selectedPacks, '72'];
-                              return { 
-                                ...prev, 
-                                selectedPacks: updatedPacks,
-                                pack: updatedPacks[0] || ''
-                              };
-                            } else {
-                              const updatedPacks = prev.selectedPacks.filter(p => p !== '72');
-                              return { 
-                                ...prev, 
-                                selectedPacks: updatedPacks,
-                                pack: updatedPacks[0] || ''
-                              };
-                            }
-                          });
-                        }}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700">72</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={newVariant.selectedPacks.includes('144')}
-                        onChange={(e) => {
-                          setNewVariant((prev) => {
-                            if (e.target.checked) {
-                              const updatedPacks = prev.selectedPacks.includes('144') 
-                                ? prev.selectedPacks 
-                                : [...prev.selectedPacks, '144'];
-                              return { 
-                                ...prev, 
-                                selectedPacks: updatedPacks,
-                                pack: updatedPacks[0] || ''
-                              };
-                            } else {
-                              const updatedPacks = prev.selectedPacks.filter(p => p !== '144');
-                              return { 
-                                ...prev, 
-                                selectedPacks: updatedPacks,
-                                pack: updatedPacks[0] || ''
-                              };
-                            }
-                          });
-                        }}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700">144</span>
-                    </label>
+              {/* Conditional Fields Based on Category */}
+              {form.category === 'elastic' ? (
+                /* Elastic Category: Size / Quality / Color / Quantity (meter rolls) */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Size <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={newVariant.size}
+                      onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                      placeholder="e.g., 10mm (16L), 12mm (20L)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter custom size</p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Select one or both</p>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quality <span className="text-red-500">*</span></label>
+                    <select
+                      value={newVariant.quality}
+                      onChange={(e) => setNewVariant({ ...newVariant, quality: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Quality</option>
+                      <option value="Woven">Woven</option>
+                      <option value="Knitted">Knitted</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-red-500">*</span></label>
+                    <select
+                      value={newVariant.color}
+                      onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Color</option>
+                      <option value="Black">Black</option>
+                      <option value="White">White</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (meter roll) <span className="text-red-500">*</span></label>
+                    <select
+                      value={newVariant.quantity}
+                      onChange={(e) => setNewVariant({ ...newVariant, quantity: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Roll Size</option>
+                      <option value="25 mtr roll">25 mtr roll</option>
+                      <option value="30 mtr roll">30 mtr roll</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Select meter roll size</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Other Categories: Size / Color / Pack */
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                    <input
+                      type="text"
+                      value={newVariant.size}
+                      onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
+                      placeholder="e.g., 10mm (16L), 12mm (20L)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter custom size</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
+                    <input
+                      type="text"
+                      value={newVariant.color}
+                      onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                      placeholder="Enter color"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
+                    <div className="flex flex-wrap gap-3">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newVariant.selectedPacks.includes('72')}
+                          onChange={(e) => {
+                            setNewVariant((prev) => {
+                              if (e.target.checked) {
+                                const updatedPacks = prev.selectedPacks.includes('72') 
+                                  ? prev.selectedPacks 
+                                  : [...prev.selectedPacks, '72'];
+                                return { 
+                                  ...prev, 
+                                  selectedPacks: updatedPacks,
+                                  pack: updatedPacks[0] || ''
+                                };
+                              } else {
+                                const updatedPacks = prev.selectedPacks.filter(p => p !== '72');
+                                return { 
+                                  ...prev, 
+                                  selectedPacks: updatedPacks,
+                                  pack: updatedPacks[0] || ''
+                                };
+                              }
+                            });
+                          }}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">72</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newVariant.selectedPacks.includes('144')}
+                          onChange={(e) => {
+                            setNewVariant((prev) => {
+                              if (e.target.checked) {
+                                const updatedPacks = prev.selectedPacks.includes('144') 
+                                  ? prev.selectedPacks 
+                                  : [...prev.selectedPacks, '144'];
+                                return { 
+                                  ...prev, 
+                                  selectedPacks: updatedPacks,
+                                  pack: updatedPacks[0] || ''
+                                };
+                              } else {
+                                const updatedPacks = prev.selectedPacks.filter(p => p !== '144');
+                                return { 
+                                  ...prev, 
+                                  selectedPacks: updatedPacks,
+                                  pack: updatedPacks[0] || ''
+                                };
+                              }
+                            });
+                          }}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">144</span>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Select one or both</p>
+                  </div>
+                </div>
+              )}
 
               {/* Row 2: Price / Stock / Add button */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -814,14 +977,38 @@ export default function AdminProductsPage() {
                         <div className="flex flex-col space-y-2 flex-1">
                           <div className="flex items-center space-x-2 flex-wrap gap-2">
                             <span className="text-sm font-semibold text-gray-800">{variant.size}</span>
-                            {variant.color && (
-                              <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                {variant.color}
-                              </span>
+                            {form.category === 'elastic' ? (
+                              <>
+                                {variant.quality && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    Quality: {variant.quality}
+                                  </span>
+                                )}
+                                {variant.color && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    Color: {variant.color}
+                                  </span>
+                                )}
+                                {variant.quantity && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    {variant.quantity}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {variant.color && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    {variant.color}
+                                  </span>
+                                )}
+                                {variant.pack && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    Pack: {variant.pack}
+                                  </span>
+                                )}
+                              </>
                             )}
-                            <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                              Pack: {variant.pack}
-                            </span>
                           </div>
                           
                           <div className="flex items-center space-x-4 flex-wrap gap-2">
@@ -1414,9 +1601,9 @@ export default function AdminProductsPage() {
                 {/* Image Upload Section for Edit */}
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-                  <div className="space-y-4">
+                  <div className="space-y-4 border border-gray-200 rounded-lg p-4">
                     {/* Image Preview */}
-                    {editForm.image && (
+                    {editForm.image ? (
                       <div className="relative inline-block">
                         <img
                           src={editForm.image}
@@ -1431,17 +1618,53 @@ export default function AdminProductsPage() {
                           ×
                         </button>
                       </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">No image selected</p>
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Enter Image URL</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Upload new image
+                      </label>
                       <input
-                        type="url"
-                        placeholder="https://example.com/image.jpg"
-                        value={editForm.image}
-                        onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setIsUploadingImage(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append('image', file);
+                            const res = await fetch('/api/admin/upload-image', {
+                              method: 'POST',
+                              body: formData,
+                            });
+                            const data = await res.json();
+                            if (res.ok && data?.imageUrl) {
+                              setEditForm((prev) => ({ ...prev, image: data.imageUrl }));
+                              showSuccess('Image uploaded successfully');
+                            } else {
+                              showError(data?.error || 'Failed to upload image');
+                            }
+                          } catch (error) {
+                            console.error('Image upload error:', error);
+                            showError('Something went wrong while uploading the image');
+                          } finally {
+                            setIsUploadingImage(false);
+                            if (e.target) {
+                              e.target.value = '';
+                            }
+                          }
+                        }}
+                        className="w-full text-sm text-gray-700"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Max 5MB. JPG, PNG, or WEBP recommended.
+                      </p>
+                      {isUploadingImage && (
+                        <p className="text-xs text-blue-600 mt-1">Uploading image...</p>
+                      )}
                     </div>
                   </div>
                 </div>

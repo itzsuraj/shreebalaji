@@ -332,9 +332,53 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             In {cartCount}+ carts
           </div>
 
-          {/* Product Title */}
+          {/* Product Title and key details */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">{product.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+
+            {/* Key attributes just below title */}
+            {Array.isArray(product.variantPricing) && product.variantPricing.length > 0 && product.variantPricing[0] ? (
+              <div className="mb-2 text-sm text-gray-700 space-x-3 flex flex-wrap">
+                {product.category === 'elastic' ? (
+                  <>
+                    {product.variantPricing[0] && product.variantPricing[0].size && (
+                      <span>Size: {product.variantPricing[0].size}</span>
+                    )}
+                    {product.variantPricing[0] && (product.variantPricing[0] as any).quality && (
+                      <span>Quality: {(product.variantPricing[0] as any).quality}</span>
+                    )}
+                    {product.variantPricing[0] && product.variantPricing[0].color && (
+                      <span>Color: {product.variantPricing[0].color}</span>
+                    )}
+                    {product.variantPricing[0] && (product.variantPricing[0] as any).quantity && (
+                      <span>Roll: {(product.variantPricing[0] as any).quantity}</span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {product.variantPricing[0] && product.variantPricing[0].size && (
+                      <span>Size: {product.variantPricing[0].size}</span>
+                    )}
+                    {product.variantPricing[0] && product.variantPricing[0].color && (
+                      <span>Color: {product.variantPricing[0].color}</span>
+                    )}
+                    {product.variantPricing[0] && product.variantPricing[0].pack && (
+                      <span>Pack: {product.variantPricing[0].pack}</span>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              // Fallback for non-variant products
+              (product.sizes?.length || product.colors?.length || product.packs?.length) && (
+                <div className="mb-2 text-sm text-gray-700 space-x-3 flex flex-wrap">
+                  {product.sizes?.[0] && <span>Size: {product.sizes[0]}</span>}
+                  {product.colors?.[0] && <span>Color: {product.colors[0]}</span>}
+                  {product.packs?.[0] && <span>Pack: {product.packs[0]}</span>}
+                </div>
+              )
+            )}
+
             <p className="text-gray-600 text-sm leading-relaxed">
               {product.description}
             </p>

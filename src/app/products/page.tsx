@@ -40,19 +40,71 @@ interface ProductsPageProps {
 
 async function getProducts() {
   try {
-    // Use relative URL for server-side fetching
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.balajisphere.com';
-    const response = await fetch(`${baseUrl}/api/products`, {
-      cache: 'force-cache',
-      next: { revalidate: 30 } // Cache for 30 seconds - faster updates
-    });
+    // Use direct database query instead of API call for faster SSR
+    const { connectToDatabase } = await import('@/lib/db');
+    const ProductModel = (await import('@/models/Product')).default;
     
-    if (!response.ok) {
-      throw new Error('Failed to fetch products');
+    await connectToDatabase();
+    
+    // Fetch products directly from database with optimized query
+    let products = await ProductModel.find({ status: 'active' })
+      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .lean()
+      .limit(100);
+    
+    if (!products || products.length === 0) {
+      products = await ProductModel.find({})
+        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+        .sort({ createdAt: -1 })
+        .lean()
+        .limit(100);
     }
     
-    const data = await response.json();
-    return data.products || [];
+    // Normalize products
+    return products.map((product: any) => {
+      const hasVariants = product.variantPricing && Array.isArray(product.variantPricing) && product.variantPricing.length > 0;
+      let calculatedInStock = false;
+      
+      if (hasVariants) {
+        calculatedInStock = product.variantPricing.some((v: any) => 
+          (v.stockQty ?? 0) > 0 || v.inStock === true
+        );
+      } else {
+        calculatedInStock = (product.stockQty ?? 0) > 0;
+      }
+      
+      return {
+        _id: String(product._id),
+        id: String(product._id),
+        name: String(product.name || ''),
+        description: String(product.description || ''),
+        price: Number(product.price || 0),
+        category: String(product.category || ''),
+        image: String(product.image || ''),
+        sizes: Array.isArray(product.sizes) ? product.sizes.map(String) : [],
+        colors: Array.isArray(product.colors) ? product.colors.map(String) : [],
+        packs: Array.isArray(product.packs) ? product.packs.map(String) : [],
+        variantPricing: Array.isArray(product.variantPricing) 
+          ? product.variantPricing.map((v: any) => ({
+              size: v.size ? String(v.size) : undefined,
+              color: v.color ? String(v.color) : undefined,
+              pack: v.pack ? String(v.pack) : undefined,
+              price: Number(v.price || 0),
+              stockQty: Number(v.stockQty || 0),
+              inStock: Boolean(v.inStock),
+              sku: v.sku ? String(v.sku) : undefined,
+              image: v.image ? String(v.image) : undefined,
+            }))
+          : [],
+        inStock: Boolean(calculatedInStock),
+        stockQty: Number(product.stockQty || 0),
+        rating: Number(product.rating || 4.5),
+        reviews: Number(product.reviews || 0),
+        createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
+        updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : new Date().toISOString(),
+      };
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];

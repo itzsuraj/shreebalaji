@@ -1,15 +1,27 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+import dynamic from 'next/dynamic';
+
+const Header = dynamic(() => import("@/components/layout/Header"), {
+  ssr: true, // Keep SSR for SEO
+});
+
+const Footer = dynamic(() => import("@/components/layout/Footer"), {
+  ssr: true, // Keep SSR for SEO
+});
 import { EnquiryProvider } from "@/context/EnquiryContext";
 import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 import StructuredData from "@/components/StructuredData";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
-import ClientSupportWidget from '@/components/ClientSupportWidget';
+import ClientComponents from "@/components/layout/ClientComponents";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap', // Better font loading
+  preload: true,
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: "Shree Balaji Enterprises - Garment Accessories Mumbai",
@@ -99,6 +111,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        <link rel="preload" href="/banner.png" as="image" />
+        <link rel="preload" href="/logo.png" as="image" />
         <StructuredData />
         {/* Expose public Razorpay key to client */}
         {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
@@ -126,17 +140,18 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white text-blue-700 px-3 py-2 rounded shadow">Skip to content</a>
-        <GoogleAnalytics />
+        <ClientComponents />
         <EnquiryProvider>
           <CartProvider>
-            <div className="min-h-screen flex flex-col bg-white">
-              <Header />
-              <main id="main-content" className="flex-grow bg-white">
-                {children}
-              </main>
-              <Footer />
-              <ClientSupportWidget />
-            </div>
+            <WishlistProvider>
+              <div className="min-h-screen flex flex-col bg-white">
+                <Header />
+                <main id="main-content" className="flex-grow bg-white">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </WishlistProvider>
           </CartProvider>
         </EnquiryProvider>
       </body>

@@ -10,19 +10,21 @@ async function getProductsSSR(): Promise<Product[]> {
     await connectToDatabase();
 
     // Fetch active products, or all products if none are active
+    // Select only needed fields for better performance
     let products = await ProductModel.find({ status: 'active' })
+      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
       .sort({ createdAt: -1 })
-      .lean();
+      .lean()
+      .limit(50); // Limit to 50 products for homepage
 
     // If no active products, fetch all products (for debugging/development)
     if (!products || products.length === 0) {
-      console.log('No active products found, fetching all products...');
       products = await ProductModel.find({})
+        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
         .sort({ createdAt: -1 })
-        .lean();
+        .lean()
+        .limit(50);
     }
-
-    console.log(`Found ${products?.length || 0} products for homepage`);
 
     if (!products || !Array.isArray(products)) {
       return [];
@@ -63,6 +65,8 @@ async function getProductsSSR(): Promise<Product[]> {
               size: v.size ? String(v.size) : undefined,
               color: v.color ? String(v.color) : undefined,
               pack: v.pack ? String(v.pack) : undefined,
+              quality: v.quality ? String(v.quality) : undefined,
+              quantity: v.quantity ? String(v.quantity) : undefined,
               price: Number(v.price || 0),
               stockQty: Number(v.stockQty || 0),
               inStock: Boolean(v.inStock),

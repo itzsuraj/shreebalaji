@@ -3,10 +3,22 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X, Search, Heart } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { getEmailLink } from '@/utils/emailProtection';
+import dynamic from 'next/dynamic';
+
+const Sidebar = dynamic(() => import('./Sidebar'), {
+  ssr: false,
+  loading: () => null,
+});
+
+const CartSidebar = dynamic(() => import('./CartSidebar'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const WhatsAppIcon = () => (
   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -152,16 +164,28 @@ const getSearchSuggestions = (query: string): string[] => {
 
 export default function Header() {
   const { count } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
+  const router = useRouter();
   const [bumpCart, setBumpCart] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+    // Prefetch critical routes on mount
+    router.prefetch('/products');
+    router.prefetch('/cart');
+    router.prefetch('/checkout');
+  }, [router]);
 
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent("Hello! I'm interested in your garment accessories. Please provide more information.");
@@ -185,6 +209,22 @@ export default function Header() {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
+  const toggleCartSidebar = () => {
+    setIsCartSidebarOpen(!isCartSidebarOpen);
+  };
+
+  const closeCartSidebar = () => {
+    setIsCartSidebarOpen(false);
   };
 
   const toggleSearch = () => {
@@ -266,7 +306,8 @@ export default function Header() {
       <div className="bg-gray-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-10 text-sm">
-            <div className="flex items-center space-x-4">
+            {/* Mobile only - hide on desktop since these are in desktop nav */}
+            <div className="flex items-center space-x-4 md:hidden">
               <Link href="/account" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Account
               </Link>
@@ -287,7 +328,15 @@ export default function Header() {
       
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
+          <div className="flex items-center">
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={toggleSidebar}
+              className="p-2 text-gray-700 hover:text-teal-600 transition-colors mr-2"
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
             <Link href="/" className="flex items-center" onClick={closeMenu}>
               <div className="relative w-16 h-16">
                 <Image
@@ -303,22 +352,22 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/products" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link href="/products" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               Products
             </Link>
-            <Link href="/track-order" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link href="/track-order" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               Track Order
             </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link href="/about" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               About
             </Link>
-            <Link href="/blog" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link href="/blog" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               Blog
             </Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link href="/contact" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               Contact
             </Link>
-            <Link href="/faq" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link href="/faq" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               FAQ
             </Link>
             
@@ -331,12 +380,30 @@ export default function Header() {
               <Search className="h-5 w-5" />
             </button>
             {!(pathname?.startsWith('/admin')) && (
-              <Link href="/cart" className={`relative text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`} title="Cart">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
-                {count > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{count}</span>
-                )}
-              </Link>
+              <>
+                {/* Wishlist Button */}
+                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-teal-600 transition-colors" title="Wishlist">
+                  <Heart className="h-5 w-5" />
+                  {mounted && wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
+                {/* Cart Button */}
+                <button
+                  onClick={toggleCartSidebar}
+                  className={`relative p-2 text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`}
+                  title="Cart"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
+                  {mounted && count > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {count}
+                    </span>
+                  )}
+                </button>
+              </>
             )}
             
             <button
@@ -358,12 +425,28 @@ export default function Header() {
               <Search className="h-5 w-5" />
             </button>
             {!(pathname?.startsWith('/admin')) && (
-              <Link href="/cart" className={`relative text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`} title="Cart">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
-                {count > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">{count}</span>
-                )}
-              </Link>
+              <>
+                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-teal-600 transition-colors" title="Wishlist">
+                  <Heart className="h-5 w-5" />
+                  {mounted && wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
+                <button
+                  onClick={toggleCartSidebar}
+                  className={`relative p-2 text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`}
+                  title="Cart"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
+                  {mounted && count > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                      {count}
+                    </span>
+                  )}
+                </button>
+              </>
             )}
             <button
               onClick={handleWhatsAppClick}
@@ -373,15 +456,11 @@ export default function Header() {
               <WhatsAppIcon />
             </button>
             <button
-              onClick={toggleMenu}
+              onClick={toggleSidebar}
               className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
               aria-label="Toggle menu"
             >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
@@ -542,6 +621,12 @@ export default function Header() {
           </div>
         )}
       </nav>
+      
+      {/* Sidebar */}
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      
+      {/* Cart Sidebar */}
+      <CartSidebar isOpen={isCartSidebarOpen} onClose={closeCartSidebar} />
     </header>
   );
 } 

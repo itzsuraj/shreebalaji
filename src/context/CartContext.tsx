@@ -19,6 +19,7 @@ interface CartContextValue {
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (productId: string) => void;
+  removeItemVariant: (item: CartItem) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clear: () => void;
   subtotalInPaise: number;
@@ -29,19 +30,25 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     try {
-      const raw = localStorage.getItem('cart:v1');
-      if (raw) setItems(JSON.parse(raw));
+      if (typeof window !== 'undefined') {
+        const raw = localStorage.getItem('cart:v1');
+        if (raw) setItems(JSON.parse(raw));
+      }
     } catch {}
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('cart:v1', JSON.stringify(items));
-    } catch {}
-  }, [items]);
+    if (mounted && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cart:v1', JSON.stringify(items));
+      } catch {}
+    }
+  }, [items, mounted]);
 
   const addItem = (item: CartItem) => {
     setItems(prev => {
@@ -60,6 +67,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems(prev => prev.filter(i => i.productId !== productId));
   };
 
+  const removeItemVariant = (item: CartItem) => {
+    setItems(prev => prev.filter(i => 
+      !(i.productId === item.productId && 
+        i.size === item.size && 
+        i.color === item.color && 
+        i.pack === item.pack && 
+        i.sku === item.sku)
+    ));
+  };
+
   const updateQuantity = (productId: string, quantity: number) => {
     setItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity: Math.max(1, quantity) } : i));
   };
@@ -69,7 +86,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const subtotalInPaise = useMemo(() => items.reduce((s, i) => s + Math.round(i.price * 100) * i.quantity, 0), [items]);
   const count = useMemo(() => items.reduce((s, i) => s + i.quantity, 0), [items]);
 
-  const value: CartContextValue = { items, addItem, removeItem, updateQuantity, clear, subtotalInPaise, count };
+  const value: CartContextValue = { items, addItem, removeItem, removeItemVariant, updateQuantity, clear, subtotalInPaise, count };
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 

@@ -22,6 +22,8 @@ const ProductSchema = new Schema({
         size: { type: String },
         color: { type: String },
         pack: { type: String },
+        quality: { type: String }, // For elastic category
+        quantity: { type: String }, // For elastic category (in rolls)
         price: { type: Number, required: true },
         stockQty: { type: Number, default: 0 },
         inStock: { type: Boolean },

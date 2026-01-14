@@ -12,7 +12,10 @@ async function getProduct(id: string) {
     
     // Use lean() to get a plain JavaScript object instead of Mongoose document
     // Only fetch active products for storefront
-    const product = await Product.findOne({ _id: id, status: 'active' }).lean() as any;
+    // Select only needed fields for better performance
+    const product = await Product.findOne({ _id: id, status: 'active' })
+      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+      .lean() as any;
     
     if (!product) {
       return null;
@@ -49,6 +52,8 @@ async function getProduct(id: string) {
             size: v.size ? String(v.size) : undefined,
             color: v.color ? String(v.color) : undefined,
             pack: v.pack ? String(v.pack) : undefined,
+            quality: v.quality ? String(v.quality) : undefined,
+            quantity: v.quantity ? String(v.quantity) : undefined,
             price: Number(v.price || 0),
             stockQty: Number(v.stockQty || 0),
             inStock: Boolean(v.inStock),
