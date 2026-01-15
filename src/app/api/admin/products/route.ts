@@ -10,27 +10,32 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  await connectToDatabase();
-  const body = await req.json();
-  // Derive inStock from stock fields
-  type VariantInput = { stockQty?: number; inStock?: boolean };
-  const doc = { ...body } as { stockQty?: number; inStock?: boolean; variantPricing?: VariantInput[] };
-  const variantHasStock = Array.isArray(doc.variantPricing) && doc.variantPricing.some((v) => (v?.stockQty ?? 0) > 0 || v?.inStock === true);
-  const productHasStock = (doc.stockQty ?? 0) > 0;
-  doc.inStock = Boolean(productHasStock || variantHasStock);
-  // Default status to active if not provided
-  // (admin UI will send 'active' or 'draft')
-  if (!('status' in doc) || !doc.status) {
-    // @ts-expect-error - status exists in schema
-    doc.status = 'active';
+  try {
+    await connectToDatabase();
+    const body = await req.json();
+    // Derive inStock from stock fields
+    type VariantInput = { stockQty?: number; inStock?: boolean };
+    const doc = { ...body } as { stockQty?: number; inStock?: boolean; variantPricing?: VariantInput[] };
+    const variantHasStock = Array.isArray(doc.variantPricing) && doc.variantPricing.some((v) => (v?.stockQty ?? 0) > 0 || v?.inStock === true);
+    const productHasStock = (doc.stockQty ?? 0) > 0;
+    doc.inStock = Boolean(productHasStock || variantHasStock);
+    // Default status to active if not provided
+    // (admin UI will send 'active' or 'draft')
+    if (!('status' in doc) || !doc.status) {
+      // @ts-expect-error - status exists in schema
+      doc.status = 'active';
+    }
+    const created = await Product.create(doc);
+    
+    // Revalidate cache after creating new product
+    revalidatePath('/products');
+    revalidatePath('/');
+    
+    return NextResponse.json({ product: created });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create product';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-  const created = await Product.create(doc);
-  
-  // Revalidate cache after creating new product
-  revalidatePath('/products');
-  revalidatePath('/');
-  
-  return NextResponse.json({ product: created });
 }
 
 
