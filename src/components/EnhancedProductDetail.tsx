@@ -83,11 +83,13 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     return [variantImage, ...images.filter((img) => img !== variantImage)];
   }, [images, selectedVariant?.image]);
   const variantImageMap = useMemo(() => {
-    const map = new Map<string, ProductVariant>();
+    const map = new Map<string, ProductVariant[]>();
     if (Array.isArray(product.variantPricing)) {
       product.variantPricing.forEach((v) => {
         if (v.image) {
-          map.set(v.image, v);
+          const list = map.get(v.image) || [];
+          list.push(v);
+          map.set(v.image, list);
         }
       });
     }
@@ -276,10 +278,38 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   useEffect(() => {
     const image = displayImages[currentImageIndex];
     if (!image) return;
-    const variant = variantImageMap.get(image);
-    if (!variant) return;
-    applyVariantSelections(variant);
-  }, [currentImageIndex, displayImages, variantImageMap, applyVariantSelections]);
+    const variants = variantImageMap.get(image);
+    if (!variants || variants.length === 0) return;
+
+    const matchesSelection = (v: ProductVariant) => {
+      const matchesSize = !selectedSize || v.size === selectedSize;
+      const matchesColor = !selectedColor || v.color === selectedColor;
+      const matchesPack = !selectedPack || v.pack === selectedPack;
+      const matchesQuantity =
+        product.category !== 'zipper' || !selectedQuantity || (v as any).quantity === selectedQuantity;
+      return matchesSize && matchesColor && matchesPack && matchesQuantity;
+    };
+
+    const exactMatch = variants.find(matchesSelection);
+    if (exactMatch) {
+      applyVariantSelections(exactMatch);
+      return;
+    }
+
+    if (variants.length === 1) {
+      applyVariantSelections(variants[0]);
+    }
+  }, [
+    currentImageIndex,
+    displayImages,
+    variantImageMap,
+    applyVariantSelections,
+    selectedSize,
+    selectedColor,
+    selectedPack,
+    selectedQuantity,
+    product.category,
+  ]);
 
   const handleAddToCart = useCallback(() => {
     if (hasVariants && !selectedVariant) {
