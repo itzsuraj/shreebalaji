@@ -5,6 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
+        allow: '/',
         disallow: [
           '/admin/',
           '/api/',
@@ -17,6 +18,12 @@ export default function robots(): MetadataRoute.Robots {
           '/web/login',
           '/blog/zipper-installation',
           '/cart',
+          '/debug-login/',
+          '/enquiry-form/',
+          '/checkout',
+          '/account',
+          '/register',
+          '/login',
         ],
       },
     ],
