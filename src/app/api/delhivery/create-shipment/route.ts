@@ -38,6 +38,19 @@ export async function POST(req: NextRequest) {
     const defaultHeight = Number(process.env.DELHIVERY_DEFAULT_HEIGHT_CM || 10);
 
     const paymentMode: 'COD' | 'Prepaid' = order.payment.method === 'COD' ? 'COD' : 'Prepaid';
+    const sellerName = process.env.DELHIVERY_SELLER_NAME;
+    const sellerAdd = process.env.DELHIVERY_SELLER_ADDRESS;
+    const sellerPin = process.env.DELHIVERY_SELLER_PIN;
+    const sellerCity = process.env.DELHIVERY_SELLER_CITY;
+    const sellerState = process.env.DELHIVERY_SELLER_STATE;
+    const sellerCountry = process.env.DELHIVERY_SELLER_COUNTRY || 'India';
+    const sellerPhone = process.env.DELHIVERY_SELLER_PHONE;
+    const sellerGst = process.env.DELHIVERY_SELLER_GST;
+    const returnAdd = process.env.DELHIVERY_RETURN_ADDRESS;
+    const returnCity = process.env.DELHIVERY_RETURN_CITY;
+    const returnPin = process.env.DELHIVERY_RETURN_PIN;
+    const returnState = process.env.DELHIVERY_RETURN_STATE;
+    const returnCountry = process.env.DELHIVERY_RETURN_COUNTRY || 'India';
     const shipmentPayload = {
       pickup_location: pickupLocation,
       shipments: [
@@ -59,6 +72,19 @@ export async function POST(req: NextRequest) {
           shipment_length: defaultLength,
           shipment_width: defaultWidth,
           shipment_height: defaultHeight,
+          ...(sellerName ? { seller_name: sellerName } : {}),
+          ...(sellerAdd ? { seller_add: sellerAdd } : {}),
+          ...(sellerPin ? { seller_pin: sellerPin } : {}),
+          ...(sellerCity ? { seller_city: sellerCity } : {}),
+          ...(sellerState ? { seller_state: sellerState } : {}),
+          ...(sellerCountry ? { seller_country: sellerCountry } : {}),
+          ...(sellerPhone ? { seller_phone: sellerPhone } : {}),
+          ...(sellerGst ? { seller_gst: sellerGst } : {}),
+          ...(returnAdd ? { return_add: returnAdd } : {}),
+          ...(returnCity ? { return_city: returnCity } : {}),
+          ...(returnPin ? { return_pin: returnPin } : {}),
+          ...(returnState ? { return_state: returnState } : {}),
+          ...(returnCountry ? { return_country: returnCountry } : {}),
         },
       ],
     };

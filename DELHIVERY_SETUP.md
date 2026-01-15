@@ -25,6 +25,22 @@ DELHIVERY_DEFAULT_HEIGHT_CM=10
 DELHIVERY_PICKUP_ENABLED=true
 DELHIVERY_PICKUP_PATH=/fm/request/new/
 DELHIVERY_PICKUP_TIME=10:00-18:00
+
+# Seller / Return details (recommended)
+DELHIVERY_SELLER_NAME=Shree balaji enterprises
+DELHIVERY_SELLER_ADDRESS=C wing, flat 704, Grit height, G.M link road opposite indian oil nagar near shankara colony
+DELHIVERY_SELLER_PIN=400043
+DELHIVERY_SELLER_CITY=Mumbai
+DELHIVERY_SELLER_STATE=Maharashtra
+DELHIVERY_SELLER_COUNTRY=India
+DELHIVERY_SELLER_PHONE=9372268410
+DELHIVERY_SELLER_GST=
+
+DELHIVERY_RETURN_ADDRESS=C wing, flat 704, Grit height, G.M link road opposite indian oil nagar near shankara colony
+DELHIVERY_RETURN_CITY=Mumbai
+DELHIVERY_RETURN_PIN=400043
+DELHIVERY_RETURN_STATE=Maharashtra
+DELHIVERY_RETURN_COUNTRY=India
 ```
 
 Notes:
