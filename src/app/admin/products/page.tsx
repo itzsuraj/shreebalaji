@@ -140,6 +140,7 @@ export default function AdminProductsPage() {
     quality: '', // For elastic category
     quantity: '', // For elastic category (in rolls)
     selectedPacks: [] as string[], // For multiple pack selection
+    packPrices: { '72': 0, '144': 0 } as Record<string, number>,
   });
   
   // New variant dropdown states (for variant management section)
@@ -235,16 +236,30 @@ export default function AdminProductsPage() {
           ? singleProductVariant.selectedPacks 
           : (singleProductVariant.pack ? [singleProductVariant.pack] : []);
         
+        if (singleProductVariant.selectedPacks.length > 0) {
+          const missingPackPrices = singleProductVariant.selectedPacks.filter(
+            (pack) => (singleProductVariant.packPrices?.[pack] ?? 0) <= 0
+          );
+          if (missingPackPrices.length > 0) {
+            showWarning(`Please set a price for pack(s): ${missingPackPrices.join(', ')}`);
+            return;
+          }
+        }
+        
         if (singleProductVariant.size || packsToUse.length > 0) {
-          finalVariantPricing = packsToUse.map(pack => ({
-            size: singleProductVariant.size || undefined,
-            color: singleProductVariant.color || undefined,
-            pack: pack,
-            price: basePrice,
-            stockQty: Number(form.stockQty || 0),
-            inStock: Number(form.stockQty || 0) > 0,
-            sku: generateVariantSKU('new', singleProductVariant.size || '', singleProductVariant.color || '', pack),
-          }));
+          finalVariantPricing = packsToUse.map(pack => {
+            const packPrice = singleProductVariant.packPrices?.[pack] ?? 0;
+            const finalPrice = packPrice > 0 ? packPrice : basePrice;
+            return ({
+              size: singleProductVariant.size || undefined,
+              color: singleProductVariant.color || undefined,
+              pack: pack,
+              price: finalPrice,
+              stockQty: Number(form.stockQty || 0),
+              inStock: Number(form.stockQty || 0) > 0,
+              sku: generateVariantSKU('new', singleProductVariant.size || '', singleProductVariant.color || '', pack),
+            });
+          });
         }
       }
     }
@@ -319,6 +334,7 @@ export default function AdminProductsPage() {
         quality: '',
         quantity: '',
         selectedPacks: [],
+        packPrices: { '72': 0, '144': 0 },
       });
       setShowVariantSection(false);
       load();
@@ -1055,47 +1071,47 @@ export default function AdminProductsPage() {
                           <span className="text-sm text-gray-700">144</span>
                         </label>
                       </div>
-                            <p className="text-xs text-gray-500 mt-1">Select one or both</p>
-                            {newVariant.selectedPacks.length > 0 && (
-                              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {newVariant.selectedPacks.includes('72') && (
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Price for 72</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={newVariant.packPrices?.['72'] ?? 0}
-                                      onChange={(e) =>
-                                        setNewVariant({
-                                          ...newVariant,
-                                          packPrices: { ...newVariant.packPrices, '72': Number(e.target.value) },
-                                        })
-                                      }
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      placeholder="e.g., 80"
-                                    />
-                                  </div>
-                                )}
-                                {newVariant.selectedPacks.includes('144') && (
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Price for 144</label>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      value={newVariant.packPrices?.['144'] ?? 0}
-                                      onChange={(e) =>
-                                        setNewVariant({
-                                          ...newVariant,
-                                          packPrices: { ...newVariant.packPrices, '144': Number(e.target.value) },
-                                        })
-                                      }
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      placeholder="e.g., 120"
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                      <p className="text-xs text-gray-500 mt-1">Select one or both</p>
+                      {singleProductVariant.selectedPacks.length > 0 && (
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {singleProductVariant.selectedPacks.includes('72') && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Price for 72</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={singleProductVariant.packPrices?.['72'] ?? 0}
+                                onChange={(e) =>
+                                  setSingleProductVariant({
+                                    ...singleProductVariant,
+                                    packPrices: { ...singleProductVariant.packPrices, '72': Number(e.target.value) },
+                                  })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., 80"
+                              />
+                            </div>
+                          )}
+                          {singleProductVariant.selectedPacks.includes('144') && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Price for 144</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={singleProductVariant.packPrices?.['144'] ?? 0}
+                                onChange={(e) =>
+                                  setSingleProductVariant({
+                                    ...singleProductVariant,
+                                    packPrices: { ...singleProductVariant.packPrices, '144': Number(e.target.value) },
+                                  })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., 120"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
