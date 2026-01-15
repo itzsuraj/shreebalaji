@@ -554,7 +554,7 @@ export default function AdminProductsPage() {
     
     // For other categories: size, color, pack
     if (!newVariant.size || !newVariant.pack) {
-      showWarning('Please fill size and pack');
+      showWarning('Please fill option and value');
       return;
     }
     if (priceToUse <= 0) {
@@ -928,30 +928,20 @@ export default function AdminProductsPage() {
                     </div>
                   </div>
                 ) : (
-                  /* Other Categories: Size / Color / Pack */
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  /* Other Categories: Option / Value */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Option</label>
                       <input
                         type="text"
                         value={singleProductVariant.size}
                         onChange={(e) => setSingleProductVariant({ ...singleProductVariant, size: e.target.value })}
-                        placeholder="e.g., 10mm (16L), 12mm (20L)"
+                        placeholder="e.g., 16L, 18L"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.color}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, color: e.target.value })}
-                        placeholder="Enter color"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pack</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
                       <input
                         type="text"
                         value={singleProductVariant.pack}
@@ -959,7 +949,7 @@ export default function AdminProductsPage() {
                         placeholder="e.g., 72, 144"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Add one pack value (like Shopify)</p>
+                      <p className="text-xs text-gray-500 mt-1">Add one value (like Shopify)</p>
                     </div>
                   </div>
                 )}
@@ -1079,33 +1069,21 @@ export default function AdminProductsPage() {
                   </div>
                 </div>
               ) : (
-                /* Other Categories: Size / Color / Pack */
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                /* Other Categories: Option / Value */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Option</label>
                     <input
                       type="text"
                       value={newVariant.size}
                       onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                      placeholder="e.g., 10mm (16L), 12mm (20L)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter custom size</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
-                    <input
-                      type="text"
-                      value={newVariant.color}
-                      onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                      placeholder="Enter color"
+                      placeholder="e.g., 16L, 18L"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Value <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       value={newVariant.pack}
@@ -1113,7 +1091,7 @@ export default function AdminProductsPage() {
                       placeholder="e.g., 72, 144"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Add one pack value (like Shopify)</p>
+                    <p className="text-xs text-gray-500 mt-1">Add one value (like Shopify)</p>
                   </div>
                 </div>
               )}
@@ -2007,30 +1985,19 @@ export default function AdminProductsPage() {
                         </div>
                       ) : (
                         /* Other Categories: Size / Color / Pack */
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Option</label>
                             <input
                               type="text"
                               value={newVariant.size}
                               onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                              placeholder="e.g., 10mm (16L), 12mm (20L)"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Enter custom size</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
-                            <input
-                              type="text"
-                              value={newVariant.color}
-                              onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                              placeholder="Enter color"
+                              placeholder="e.g., 16L, 18L"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Value <span className="text-red-500">*</span></label>
                             <input
                               type="text"
                               value={newVariant.pack}
@@ -2038,7 +2005,7 @@ export default function AdminProductsPage() {
                               placeholder="e.g., 72, 144"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Add one pack value (like Shopify)</p>
+                            <p className="text-xs text-gray-500 mt-1">Add one value (like Shopify)</p>
                           </div>
                         </div>
                       )}
