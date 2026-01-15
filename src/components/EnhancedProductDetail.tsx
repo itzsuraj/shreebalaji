@@ -526,21 +526,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             <p className="text-xs text-gray-500">Local taxes included (where applicable)</p>
           </div>
 
-          {/* Seller Information */}
-          <div className="border-t pt-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600">SB</span>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">Shree Balaji Enterprises</p>
-                <div className="flex items-center space-x-1">
-                  {renderStars(4.8)}
-                  <span className="text-sm text-gray-600">(127 reviews)</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Seller Information hidden for now */}
 
           {/* Returns & Exchanges */}
           <div className="flex items-center text-sm text-gray-600">
