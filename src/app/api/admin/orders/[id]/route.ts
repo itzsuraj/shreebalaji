@@ -10,6 +10,21 @@ export async function GET(
   try {
     await connectToDatabase();
     const { id } = await params;
+    const cutoff = new Date(Date.now() - 15 * 60 * 1000);
+    await Order.updateOne(
+      {
+        _id: id,
+        status: 'created',
+        'payment.status': 'pending',
+        createdAt: { $lte: cutoff },
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          'payment.status': 'failed',
+        },
+      }
+    );
     const order = await Order.findById(id);
     
     if (!order) {

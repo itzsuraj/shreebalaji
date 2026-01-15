@@ -5,6 +5,21 @@ import Order from '@/models/Order';
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
+
+    const cutoff = new Date(Date.now() - 15 * 60 * 1000);
+    await Order.updateMany(
+      {
+        status: 'created',
+        'payment.status': 'pending',
+        createdAt: { $lte: cutoff },
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          'payment.status': 'failed',
+        },
+      }
+    );
     
     // Get query parameters
     const { searchParams } = new URL(request.url);

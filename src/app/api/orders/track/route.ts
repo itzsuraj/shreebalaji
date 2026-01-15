@@ -14,6 +14,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Order ID and Phone Number are required' }, { status: 400 });
     }
 
+    const cutoff = new Date(Date.now() - 15 * 60 * 1000);
+    await Order.updateOne(
+      {
+        _id: orderId,
+        status: 'created',
+        'payment.status': 'pending',
+        createdAt: { $lte: cutoff },
+      },
+      {
+        $set: {
+          status: 'cancelled',
+          'payment.status': 'failed',
+        },
+      }
+    );
+
     // Find order by ID and phone number
     const order = await Order.findOne({
       _id: orderId,
