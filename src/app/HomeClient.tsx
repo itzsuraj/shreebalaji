@@ -417,7 +417,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     // Product has multiple variants - show only View button
                     <div className="flex justify-center">
                       <Link 
-                        href={`/products/${product._id}`}
+                        href={`/products/${product.id}`}
                         className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                       >
                         <Eye className="h-4 w-4" />
@@ -611,7 +611,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
-                          href={`/products/${product._id}`}
+                          href={`/products/${product.id}`}
                           className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
@@ -743,7 +743,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
-                          href={`/products/${product._id}`}
+                          href={`/products/${product.id}`}
                           className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
@@ -875,7 +875,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
-                          href={`/products/${product._id}`}
+                          href={`/products/${product.id}`}
                           className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
@@ -1007,7 +1007,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       // Product has multiple variants - show only View button
                       <div className="flex justify-center">
                         <Link 
-                          href={`/products/${product._id}`}
+                          href={`/products/${product.id}`}
                           className="bg-primary-500 text-white py-2.5 px-6 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold w-full shadow-md hover:shadow-lg"
                         >
                           <Eye className="h-4 w-4" />
