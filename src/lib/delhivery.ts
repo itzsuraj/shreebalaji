@@ -7,6 +7,7 @@ const DELHIVERY_BASE_URL = process.env.DELHIVERY_BASE_URL || 'https://track.delh
 const DELHIVERY_API_TOKEN = process.env.DELHIVERY_API_TOKEN || '';
 const DELHIVERY_AUTH_SCHEME = process.env.DELHIVERY_AUTH_SCHEME || 'Token';
 const DELHIVERY_RATE_PATH = process.env.DELHIVERY_RATE_PATH || '/kinko/v1/invoice/charges/';
+const DELHIVERY_PICKUP_PATH = process.env.DELHIVERY_PICKUP_PATH || '/fm/request/new/';
 
 function getAuthHeader() {
   if (!DELHIVERY_API_TOKEN) {
@@ -194,6 +195,37 @@ export async function getDelhiveryRate(params: DelhiveryRateParams): Promise<Del
   const text = await response.text();
   try {
     return JSON.parse(text) as DelhiveryRateResponse;
+  } catch {
+    return { rawText: text };
+  }
+}
+
+export interface DelhiveryPickupRequest {
+  pickup_location: string;
+  expected_package_count: number;
+  pickup_date: string; // YYYY-MM-DD
+  pickup_time: string; // e.g. 10:00-18:00
+}
+
+export interface DelhiveryPickupResponse {
+  success?: boolean;
+  message?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Schedule pickup (optional)
+ * Default path uses /fm/request/new/
+ */
+export async function createDelhiveryPickup(payload: DelhiveryPickupRequest): Promise<DelhiveryPickupResponse> {
+  const response = await delhiveryFetch(DELHIVERY_PICKUP_PATH, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as DelhiveryPickupResponse;
   } catch {
     return { rawText: text };
   }

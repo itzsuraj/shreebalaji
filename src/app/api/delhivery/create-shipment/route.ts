@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Order from '@/models/Order';
-import { createDelhiveryShipment } from '@/lib/delhivery';
+import { createDelhiveryShipment, createDelhiveryPickup } from '@/lib/delhivery';
 
 /**
  * POST /api/delhivery/create-shipment
@@ -93,12 +93,33 @@ export async function POST(req: NextRequest) {
     order.status = 'shipped';
     await order.save();
 
+    let pickupResponse: unknown = null;
+    const pickupEnabled = (process.env.DELHIVERY_PICKUP_ENABLED || '').toLowerCase() === 'true';
+    if (pickupEnabled) {
+      try {
+        const pickupDate = new Date().toISOString().slice(0, 10);
+        const pickupTime = process.env.DELHIVERY_PICKUP_TIME || '10:00-18:00';
+        const packageCount = order.items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0);
+        pickupResponse = await createDelhiveryPickup({
+          pickup_location: pickupLocation,
+          expected_package_count: Math.max(1, packageCount),
+          pickup_date: pickupDate,
+          pickup_time: pickupTime,
+        });
+      } catch (pickupError) {
+        pickupResponse = {
+          error: pickupError instanceof Error ? pickupError.message : 'Pickup scheduling failed',
+        };
+      }
+    }
+
     return NextResponse.json({
       success: true,
       shipment: {
         waybill,
         status,
       },
+      pickup: pickupResponse,
     });
   } catch (error) {
     console.error('Delhivery create shipment error:', error);
