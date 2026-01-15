@@ -64,7 +64,7 @@ export default function CheckoutPage() {
           if (isServiceable) {
             setIsServiceable(true);
             const rateRes = await fetch(
-              `/api/delhivery/rate?pin=${pin}&weightKg=0.5&cod=1&orderValue=${(subtotalInPaise / 100).toFixed(2)}`
+              `/api/delhivery/rate?pin=${pin}&weightKg=0.5&cod=${paymentMethod === 'COD' ? 1 : 0}&orderValue=${(subtotalInPaise / 100).toFixed(2)}`
             );
             const rateData = await rateRes.json();
             if (rateRes.ok && typeof rateData.rateInPaise === 'number') {
