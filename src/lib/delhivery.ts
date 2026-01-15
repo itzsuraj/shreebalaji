@@ -191,5 +191,10 @@ export async function getDelhiveryRate(params: DelhiveryRateParams): Promise<Del
 
   const path = `${DELHIVERY_RATE_PATH}?${query.toString()}`;
   const response = await delhiveryFetch(path, { method: 'GET' });
-  return response.json();
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as DelhiveryRateResponse;
+  } catch {
+    return { rawText: text };
+  }
 }
