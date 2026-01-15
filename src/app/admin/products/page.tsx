@@ -129,6 +129,7 @@ export default function AdminProductsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVariantImage, setIsUploadingVariantImage] = useState(false);
   const [showVariantSection, setShowVariantSection] = useState(false);
   
   // Single product variant fields (for simple products without multiple variants)
@@ -1273,19 +1274,46 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Variant Image URL */}
+              {/* Variant Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Variant Image URL <span className="text-gray-400 text-xs">(Optional)</span>
+                  Variant Image <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <input
-                  type="url"
-                  value={newVariant.image}
-                  onChange={(e) => setNewVariant({ ...newVariant, image: e.target.value })}
-                  placeholder="https://example.com/variant-image.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setIsUploadingVariantImage(true);
+                    try {
+                      const formData = new FormData();
+                      formData.append('image', file);
+                      const res = await fetch('/api/admin/upload-image', {
+                        method: 'POST',
+                        body: formData,
+                      });
+                      const data = await res.json();
+                      if (res.ok && data?.imageUrl) {
+                        setNewVariant((prev) => ({ ...prev, image: data.imageUrl }));
+                        showSuccess('Variant image uploaded');
+                      } else {
+                        showError(data?.error || 'Failed to upload variant image');
+                      }
+                    } catch (error) {
+                      console.error('Variant image upload error:', error);
+                      showError('Something went wrong while uploading the variant image');
+                    } finally {
+                      setIsUploadingVariantImage(false);
+                      e.target.value = '';
+                    }
+                  }}
+                  className="w-full text-sm text-gray-700"
                 />
                 <p className="text-xs text-gray-500 mt-1">Leave empty to use product image</p>
+                {isUploadingVariantImage && (
+                  <p className="text-xs text-primary-600 mt-1">Uploading variant image...</p>
+                )}
               </div>
             </div>
           </div>
@@ -1393,19 +1421,41 @@ export default function AdminProductsPage() {
                             </div>
                           </div>
                           
-                          {/* Variant Image URL Input */}
+                          {/* Variant Image Upload */}
                           <div className="flex items-center space-x-2">
-                            <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Image URL:</label>
+                            <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Variant Image:</label>
                             <input
-                              type="url"
-                              value={variant.image || ''}
-                              onChange={(e) => {
-                                const newVariants = [...variantPricing];
-                                newVariants[index] = { ...variant, image: e.target.value.trim() };
-                                setVariantPricing(newVariants);
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setIsUploadingVariantImage(true);
+                                try {
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+                                  const res = await fetch('/api/admin/upload-image', {
+                                    method: 'POST',
+                                    body: formData,
+                                  });
+                                  const data = await res.json();
+                                  if (res.ok && data?.imageUrl) {
+                                    const newVariants = [...variantPricing];
+                                    newVariants[index] = { ...variant, image: data.imageUrl };
+                                    setVariantPricing(newVariants);
+                                    showSuccess('Variant image uploaded');
+                                  } else {
+                                    showError(data?.error || 'Failed to upload variant image');
+                                  }
+                                } catch (error) {
+                                  console.error('Variant image upload error:', error);
+                                  showError('Something went wrong while uploading the variant image');
+                                } finally {
+                                  setIsUploadingVariantImage(false);
+                                  e.target.value = '';
+                                }
                               }}
-                              placeholder="https://example.com/image.jpg"
-                              className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="flex-1 text-xs text-gray-700"
                             />
                           </div>
                         </div>
@@ -1917,16 +1967,6 @@ export default function AdminProductsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                    <input
-                      type="url"
-                      value={editForm.image}
-                      onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter image URL"
-                    />
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock Status</label>
                     <div className="flex items-center space-x-4">
                       <span className={`px-3 py-2 rounded-md text-sm font-medium ${
@@ -2212,19 +2252,46 @@ export default function AdminProductsPage() {
                         </div>
                       </div>
                       
-                      {/* Variant Image URL */}
+                      {/* Variant Image Upload */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Variant Image URL <span className="text-gray-400 text-xs">(Optional)</span>
+                          Variant Image <span className="text-gray-400 text-xs">(Optional)</span>
                         </label>
                         <input
-                          type="url"
-                          value={newVariant.image}
-                          onChange={(e) => setNewVariant({ ...newVariant, image: e.target.value })}
-                          placeholder="https://example.com/variant-image.jpg"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setIsUploadingVariantImage(true);
+                            try {
+                              const formData = new FormData();
+                              formData.append('image', file);
+                              const res = await fetch('/api/admin/upload-image', {
+                                method: 'POST',
+                                body: formData,
+                              });
+                              const data = await res.json();
+                              if (res.ok && data?.imageUrl) {
+                                setNewVariant((prev) => ({ ...prev, image: data.imageUrl }));
+                                showSuccess('Variant image uploaded');
+                              } else {
+                                showError(data?.error || 'Failed to upload variant image');
+                              }
+                            } catch (error) {
+                              console.error('Variant image upload error:', error);
+                              showError('Something went wrong while uploading the variant image');
+                            } finally {
+                              setIsUploadingVariantImage(false);
+                              e.target.value = '';
+                            }
+                          }}
+                          className="w-full text-sm text-gray-700"
                         />
                         <p className="text-xs text-gray-500 mt-1">Leave empty to use product image</p>
+                        {isUploadingVariantImage && (
+                          <p className="text-xs text-primary-600 mt-1">Uploading variant image...</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2410,19 +2477,41 @@ export default function AdminProductsPage() {
                                     </div>
                                   </div>
                                   
-                                  {/* Variant Image URL Input */}
+                                  {/* Variant Image Upload */}
                                   <div className="flex items-center space-x-2">
-                                    <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Image URL:</label>
+                                    <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Variant Image:</label>
                                     <input
-                                      type="url"
-                                      value={variant.image || ''}
-                                      onChange={(e) => {
-                                        const newVariants = [...variantPricing];
-                                        newVariants[index] = { ...variant, image: e.target.value.trim() };
-                                        setVariantPricing(newVariants);
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setIsUploadingVariantImage(true);
+                                        try {
+                                          const formData = new FormData();
+                                          formData.append('image', file);
+                                          const res = await fetch('/api/admin/upload-image', {
+                                            method: 'POST',
+                                            body: formData,
+                                          });
+                                          const data = await res.json();
+                                          if (res.ok && data?.imageUrl) {
+                                            const newVariants = [...variantPricing];
+                                            newVariants[index] = { ...variant, image: data.imageUrl };
+                                            setVariantPricing(newVariants);
+                                            showSuccess('Variant image uploaded');
+                                          } else {
+                                            showError(data?.error || 'Failed to upload variant image');
+                                          }
+                                        } catch (error) {
+                                          console.error('Variant image upload error:', error);
+                                          showError('Something went wrong while uploading the variant image');
+                                        } finally {
+                                          setIsUploadingVariantImage(false);
+                                          e.target.value = '';
+                                        }
                                       }}
-                                      placeholder="https://example.com/image.jpg"
-                                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      className="flex-1 text-xs text-gray-700"
                                     />
                                   </div>
                                 </div>
