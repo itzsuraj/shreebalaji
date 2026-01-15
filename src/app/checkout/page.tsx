@@ -49,7 +49,8 @@ export default function CheckoutPage() {
         const res = await fetch(`/api/delhivery/pincode?pin=${pin}`);
         const data = await res.json();
         const code = data?.delivery_codes?.[0]?.postal_code;
-        const isServiceable = !!code && (code.pre_paid === 'Y' || code.cash === 'Y');
+        const pinCode = data?.delivery_codes?.[0]?.pin_code;
+        const isServiceable = !!pinCode || (!!code && (code.pre_paid === 'Y' || code.cash === 'Y'));
 
         if (!cancelled) {
           if (isServiceable) {
