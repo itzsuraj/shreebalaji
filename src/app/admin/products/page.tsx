@@ -139,8 +139,6 @@ export default function AdminProductsPage() {
     pack: '',
     quality: '', // For elastic category
     quantity: '', // For elastic category (in rolls)
-    selectedPacks: [] as string[], // For multiple pack selection
-    packPrices: { '72': 0, '144': 0 } as Record<string, number>,
   });
   
   // New variant dropdown states (for variant management section)
@@ -150,8 +148,6 @@ export default function AdminProductsPage() {
     pack: '',
     quality: '', // For elastic category
     quantity: '', // For elastic category (in rolls)
-    selectedPacks: [] as string[], // For multiple pack selection
-    packPrices: { '72': 0, '144': 0 } as Record<string, number>,
     price: 0,
     stockQty: 0,
     sku: '',
@@ -232,34 +228,16 @@ export default function AdminProductsPage() {
           }];
         }
       } else {
-        const packsToUse = singleProductVariant.selectedPacks.length > 0 
-          ? singleProductVariant.selectedPacks 
-          : (singleProductVariant.pack ? [singleProductVariant.pack] : []);
-        
-        if (singleProductVariant.selectedPacks.length > 0) {
-          const missingPackPrices = singleProductVariant.selectedPacks.filter(
-            (pack) => (singleProductVariant.packPrices?.[pack] ?? 0) <= 0
-          );
-          if (missingPackPrices.length > 0) {
-            showWarning(`Please set a price for pack(s): ${missingPackPrices.join(', ')}`);
-            return;
-          }
-        }
-        
-        if (singleProductVariant.size || packsToUse.length > 0) {
-          finalVariantPricing = packsToUse.map(pack => {
-            const packPrice = singleProductVariant.packPrices?.[pack] ?? 0;
-            const finalPrice = packPrice > 0 ? packPrice : basePrice;
-            return ({
-              size: singleProductVariant.size || undefined,
-              color: singleProductVariant.color || undefined,
-              pack: pack,
-              price: finalPrice,
-              stockQty: Number(form.stockQty || 0),
-              inStock: Number(form.stockQty || 0) > 0,
-              sku: generateVariantSKU('new', singleProductVariant.size || '', singleProductVariant.color || '', pack),
-            });
-          });
+        if (singleProductVariant.size || singleProductVariant.pack) {
+          finalVariantPricing = [{
+            size: singleProductVariant.size || undefined,
+            color: singleProductVariant.color || undefined,
+            pack: singleProductVariant.pack || undefined,
+            price: basePrice,
+            stockQty: Number(form.stockQty || 0),
+            inStock: Number(form.stockQty || 0) > 0,
+            sku: generateVariantSKU('new', singleProductVariant.size || '', singleProductVariant.color || '', singleProductVariant.pack || ''),
+          }];
         }
       }
     }
@@ -320,8 +298,6 @@ export default function AdminProductsPage() {
         pack: '',
         quality: '',
         quantity: '',
-        selectedPacks: [],
-        packPrices: { '72': 0, '144': 0 },
         price: 0,
         stockQty: 0,
         sku: '',
@@ -333,8 +309,6 @@ export default function AdminProductsPage() {
         pack: '',
         quality: '',
         quantity: '',
-        selectedPacks: [],
-        packPrices: { '72': 0, '144': 0 },
       });
       setShowVariantSection(false);
       load();
@@ -422,7 +396,7 @@ export default function AdminProductsPage() {
       packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], packPrices: { '72': 0, '144': 0 }, price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const updateProduct = async () => {
@@ -466,7 +440,7 @@ export default function AdminProductsPage() {
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], packPrices: { '72': 0, '144': 0 }, price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
       load(); // This will recalculate inStock for all products
     }
   };
@@ -485,7 +459,7 @@ export default function AdminProductsPage() {
       packs: [] 
     });
     setVariantPricing([]);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], packPrices: { '72': 0, '144': 0 }, price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
   };
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
@@ -530,8 +504,6 @@ export default function AdminProductsPage() {
         pack: '', 
         quality: '', 
         quantity: '', 
-        selectedPacks: [], 
-        packPrices: { '72': 0, '144': 0 },
         price: 0, 
         stockQty: 0, 
         sku: '', 
@@ -575,77 +547,46 @@ export default function AdminProductsPage() {
       }
       
       setVariantPricing([...variantPricing, combination]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], packPrices: { '72': 0, '144': 0 }, price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
       showSuccess('Variant added successfully');
       return;
     }
     
     // For other categories: size, color, pack
-    // Use selectedPacks if available, otherwise fall back to single pack value
-    const packsToAdd = newVariant.selectedPacks.length > 0 
-      ? [...new Set(newVariant.selectedPacks)] // Remove duplicates
-      : (newVariant.pack ? [newVariant.pack] : []);
-    
-    if (!newVariant.size || packsToAdd.length === 0) {
-      showWarning('Please fill size and select at least one pack');
+    if (!newVariant.size || !newVariant.pack) {
+      showWarning('Please fill size and pack');
       return;
-    }
-    if (newVariant.selectedPacks.length > 0) {
-      const missingPackPrices = newVariant.selectedPacks.filter(
-        (pack) => (newVariant.packPrices?.[pack] ?? 0) <= 0
-      );
-      if (missingPackPrices.length > 0) {
-        showWarning(`Please set a price for pack(s): ${missingPackPrices.join(', ')}`);
-        return;
-      }
     }
     if (priceToUse <= 0) {
       showWarning('Please set a valid price');
       return;
     }
 
-    const newVariants: typeof variantPricing = [];
-    
-    // Create a variant for each selected pack
-    for (const pack of packsToAdd) {
-      const packPrice = newVariant.packPrices?.[pack] ?? 0;
-      const finalPrice = packPrice > 0 ? packPrice : priceToUse;
-      const combination = {
-        size: newVariant.size,
-        color: newVariant.color || undefined,
-        pack: pack,
-        price: finalPrice,
-        stockQty: Number(newVariant.stockQty || 0),
-        inStock: Number(newVariant.stockQty || 0) > 0,
-        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', pack),
-        image: newVariant.image?.trim() || undefined
-      };
+    const combination = {
+      size: newVariant.size,
+      color: newVariant.color || undefined,
+      pack: newVariant.pack,
+      price: priceToUse,
+      stockQty: Number(newVariant.stockQty || 0),
+      inStock: Number(newVariant.stockQty || 0) > 0,
+      sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', newVariant.pack),
+      image: newVariant.image?.trim() || undefined
+    };
 
-      // Check if combination already exists
-      const exists = variantPricing.some(v => 
-        v.size === combination.size && 
-        (v.color || '') === (combination.color || '') && 
-        v.pack === combination.pack
-      );
+    const exists = variantPricing.some(v => 
+      v.size === combination.size && 
+      (v.color || '') === (combination.color || '') && 
+      v.pack === combination.pack
+    );
 
-      if (!exists) {
-        newVariants.push(combination);
-      }
-    }
-
-    if (newVariants.length === 0) {
-      showInfo('All selected pack combinations already exist');
+    if (exists) {
+      showInfo('This combination already exists');
       return;
     }
 
-    if (newVariants.length < packsToAdd.length) {
-      showInfo(`Added ${newVariants.length} variant(s). Some combinations already existed.`);
-    } else {
-      showSuccess(`Added ${newVariants.length} variant(s) successfully`);
-    }
-
-    setVariantPricing([...variantPricing, ...newVariants]);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', selectedPacks: [], packPrices: { '72': 0, '144': 0 }, price: 0, stockQty: 0, sku: '', image: '' });
+    setVariantPricing([...variantPricing, combination]);
+    showSuccess('Variant added successfully');
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const removeVariantCombination = (index: number) => {
@@ -1011,107 +952,14 @@ export default function AdminProductsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Pack</label>
-                      <div className="flex flex-wrap gap-3">
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={singleProductVariant.selectedPacks.includes('72')}
-                            onChange={(e) => {
-                              setSingleProductVariant((prev) => {
-                                if (e.target.checked) {
-                                  const updatedPacks = prev.selectedPacks.includes('72')
-                                    ? prev.selectedPacks
-                                    : [...prev.selectedPacks, '72'];
-                                  return {
-                                    ...prev,
-                                    selectedPacks: updatedPacks,
-                                    pack: updatedPacks[0] || ''
-                                  };
-                                } else {
-                                  const updatedPacks = prev.selectedPacks.filter(p => p !== '72');
-                                  return {
-                                    ...prev,
-                                    selectedPacks: updatedPacks,
-                                    pack: updatedPacks[0] || ''
-                                  };
-                                }
-                              });
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="text-sm text-gray-700">72</span>
-                        </label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={singleProductVariant.selectedPacks.includes('144')}
-                            onChange={(e) => {
-                              setSingleProductVariant((prev) => {
-                                if (e.target.checked) {
-                                  const updatedPacks = prev.selectedPacks.includes('144')
-                                    ? prev.selectedPacks
-                                    : [...prev.selectedPacks, '144'];
-                                  return {
-                                    ...prev,
-                                    selectedPacks: updatedPacks,
-                                    pack: updatedPacks[0] || ''
-                                  };
-                                } else {
-                                  const updatedPacks = prev.selectedPacks.filter(p => p !== '144');
-                                  return {
-                                    ...prev,
-                                    selectedPacks: updatedPacks,
-                                    pack: updatedPacks[0] || ''
-                                  };
-                                }
-                              });
-                            }}
-                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                          />
-                          <span className="text-sm text-gray-700">144</span>
-                        </label>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">Select one or both</p>
-                      {singleProductVariant.selectedPacks.length > 0 && (
-                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {singleProductVariant.selectedPacks.includes('72') && (
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">Price for 72</label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={singleProductVariant.packPrices?.['72'] ?? 0}
-                                onChange={(e) =>
-                                  setSingleProductVariant({
-                                    ...singleProductVariant,
-                                    packPrices: { ...singleProductVariant.packPrices, '72': Number(e.target.value) },
-                                  })
-                                }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., 80"
-                              />
-                            </div>
-                          )}
-                          {singleProductVariant.selectedPacks.includes('144') && (
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">Price for 144</label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={singleProductVariant.packPrices?.['144'] ?? 0}
-                                onChange={(e) =>
-                                  setSingleProductVariant({
-                                    ...singleProductVariant,
-                                    packPrices: { ...singleProductVariant.packPrices, '144': Number(e.target.value) },
-                                  })
-                                }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., 120"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      <input
+                        type="text"
+                        value={singleProductVariant.pack}
+                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, pack: e.target.value })}
+                        placeholder="e.g., 72, 144"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Add one pack value (like Shopify)</p>
                     </div>
                   </div>
                 )}
@@ -1258,107 +1106,14 @@ export default function AdminProductsPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
-                    <div className="flex flex-wrap gap-3">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newVariant.selectedPacks.includes('72')}
-                          onChange={(e) => {
-                            setNewVariant((prev) => {
-                              if (e.target.checked) {
-                                const updatedPacks = prev.selectedPacks.includes('72') 
-                                  ? prev.selectedPacks 
-                                  : [...prev.selectedPacks, '72'];
-                                return { 
-                                  ...prev, 
-                                  selectedPacks: updatedPacks,
-                                  pack: updatedPacks[0] || ''
-                                };
-                              } else {
-                                const updatedPacks = prev.selectedPacks.filter(p => p !== '72');
-                                return { 
-                                  ...prev, 
-                                  selectedPacks: updatedPacks,
-                                  pack: updatedPacks[0] || ''
-                                };
-                              }
-                            });
-                          }}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">72</span>
-                      </label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newVariant.selectedPacks.includes('144')}
-                          onChange={(e) => {
-                            setNewVariant((prev) => {
-                              if (e.target.checked) {
-                                const updatedPacks = prev.selectedPacks.includes('144') 
-                                  ? prev.selectedPacks 
-                                  : [...prev.selectedPacks, '144'];
-                                return { 
-                                  ...prev, 
-                                  selectedPacks: updatedPacks,
-                                  pack: updatedPacks[0] || ''
-                                };
-                              } else {
-                                const updatedPacks = prev.selectedPacks.filter(p => p !== '144');
-                                return { 
-                                  ...prev, 
-                                  selectedPacks: updatedPacks,
-                                  pack: updatedPacks[0] || ''
-                                };
-                              }
-                            });
-                          }}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">144</span>
-                      </label>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Select one or both</p>
-                    {newVariant.selectedPacks.length > 0 && (
-                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {newVariant.selectedPacks.includes('72') && (
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Price for 72</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={newVariant.packPrices?.['72'] ?? 0}
-                              onChange={(e) =>
-                                setNewVariant({
-                                  ...newVariant,
-                                  packPrices: { ...newVariant.packPrices, '72': Number(e.target.value) },
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="e.g., 80"
-                            />
-                          </div>
-                        )}
-                        {newVariant.selectedPacks.includes('144') && (
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Price for 144</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={newVariant.packPrices?.['144'] ?? 0}
-                              onChange={(e) =>
-                                setNewVariant({
-                                  ...newVariant,
-                                  packPrices: { ...newVariant.packPrices, '144': Number(e.target.value) },
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="e.g., 120"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <input
+                      type="text"
+                      value={newVariant.pack}
+                      onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
+                      placeholder="e.g., 72, 144"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Add one pack value (like Shopify)</p>
                   </div>
                 </div>
               )}
@@ -2276,67 +2031,14 @@ export default function AdminProductsPage() {
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Pack <span className="text-red-500">*</span></label>
-                            <div className="flex flex-wrap gap-3">
-                              <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newVariant.selectedPacks.includes('72')}
-                                  onChange={(e) => {
-                                    setNewVariant((prev) => {
-                                      if (e.target.checked) {
-                                        const updatedPacks = prev.selectedPacks.includes('72')
-                                          ? prev.selectedPacks
-                                          : [...prev.selectedPacks, '72'];
-                                        return {
-                                          ...prev,
-                                          selectedPacks: updatedPacks,
-                                          pack: updatedPacks[0] || ''
-                                        };
-                                      } else {
-                                        const updatedPacks = prev.selectedPacks.filter(p => p !== '72');
-                                        return {
-                                          ...prev,
-                                          selectedPacks: updatedPacks,
-                                          pack: updatedPacks[0] || ''
-                                        };
-                                      }
-                                    });
-                                  }}
-                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                />
-                                <span className="text-sm text-gray-700">72</span>
-                              </label>
-                              <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={newVariant.selectedPacks.includes('144')}
-                                  onChange={(e) => {
-                                    setNewVariant((prev) => {
-                                      if (e.target.checked) {
-                                        const updatedPacks = prev.selectedPacks.includes('144')
-                                          ? prev.selectedPacks
-                                          : [...prev.selectedPacks, '144'];
-                                        return {
-                                          ...prev,
-                                          selectedPacks: updatedPacks,
-                                          pack: updatedPacks[0] || ''
-                                        };
-                                      } else {
-                                        const updatedPacks = prev.selectedPacks.filter(p => p !== '144');
-                                        return {
-                                          ...prev,
-                                          selectedPacks: updatedPacks,
-                                          pack: updatedPacks[0] || ''
-                                        };
-                                      }
-                                    });
-                                  }}
-                                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                />
-                                <span className="text-sm text-gray-700">144</span>
-                              </label>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">Select one or both</p>
+                            <input
+                              type="text"
+                              value={newVariant.pack}
+                              onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
+                              placeholder="e.g., 72, 144"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Add one pack value (like Shopify)</p>
                           </div>
                         </div>
                       )}
