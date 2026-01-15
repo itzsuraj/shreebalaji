@@ -20,6 +20,17 @@ function extractRateValue(raw: Record<string, unknown>): number | null {
     }
   }
 
+  if (typeof raw.rawText === 'string') {
+    const totalMatch = raw.rawText.match(/<total_amount>([^<]+)<\/total_amount>/i);
+    if (totalMatch && totalMatch[1] && !Number.isNaN(Number(totalMatch[1]))) {
+      return Number(totalMatch[1]);
+    }
+    const grossMatch = raw.rawText.match(/<gross_amount>([^<]+)<\/gross_amount>/i);
+    if (grossMatch && grossMatch[1] && !Number.isNaN(Number(grossMatch[1]))) {
+      return Number(grossMatch[1]);
+    }
+  }
+
   return null;
 }
 
