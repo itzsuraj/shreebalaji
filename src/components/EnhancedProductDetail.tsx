@@ -65,6 +65,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     itemDetails: true, // Keep first accordion open by default
   });
+  const [added, setAdded] = useState(false);
   // const [showShareModal, setShowShareModal] = useState(false);
 
   // Memoize expensive calculations
@@ -233,6 +234,8 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       image: getProductImage(product),
       category: product.category
     });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
   }, [hasVariants, selectedVariant, addItem, product, currentPrice, quantity]);
 
   const toggleSection = useCallback((section: string) => {
@@ -643,9 +646,20 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             <button
               onClick={handleAddToCart}
               disabled={currentStock === 0 || (hasVariants && !selectedVariant)}
-              className="w-full bg-primary-500 text-white py-4 px-6 rounded-lg font-semibold hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className={`w-full text-white py-4 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl ${
+                added
+                  ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
+                  : 'bg-primary-500 hover:bg-primary-600 hover:-translate-y-0.5'
+              }`}
             >
-              Add to cart
+              {added ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <Check className="h-5 w-5" />
+                  Added to cart
+                </span>
+              ) : (
+                'Add to cart'
+              )}
             </button>
           </div>
 
