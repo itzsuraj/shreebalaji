@@ -82,6 +82,17 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     }
     return [variantImage, ...images.filter((img) => img !== variantImage)];
   }, [images, selectedVariant?.image]);
+  const variantImageMap = useMemo(() => {
+    const map = new Map<string, ProductVariant>();
+    if (Array.isArray(product.variantPricing)) {
+      product.variantPricing.forEach((v) => {
+        if (v.image) {
+          map.set(v.image, v);
+        }
+      });
+    }
+    return map;
+  }, [product.variantPricing]);
   // Store variantPricing in a ref to avoid dependency issues
   const variantPricingRef = useRef(product.variantPricing);
   useEffect(() => {
@@ -233,6 +244,23 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     setImageError(false);
     setCurrentImageIndex(0);
   }, [selectedVariant?.image]);
+  const applyVariantSelections = useCallback((variant: ProductVariant) => {
+    if (variant.size) setSelectedSize(variant.size);
+    if (variant.color) setSelectedColor(variant.color);
+    if (variant.pack) setSelectedPack(variant.pack);
+    if (product.category === 'zipper' && (variant as any).quantity) {
+      setSelectedQuantity(String((variant as any).quantity));
+    }
+    setSelectedVariant(variant);
+  }, [product.category]);
+
+  useEffect(() => {
+    const image = displayImages[currentImageIndex];
+    if (!image) return;
+    const variant = variantImageMap.get(image);
+    if (!variant) return;
+    applyVariantSelections(variant);
+  }, [currentImageIndex, displayImages, variantImageMap, applyVariantSelections]);
 
   const handleAddToCart = useCallback(() => {
     if (hasVariants && !selectedVariant) {
