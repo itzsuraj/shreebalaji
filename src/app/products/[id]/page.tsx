@@ -6,6 +6,8 @@ import ProductStructuredData from './ProductStructuredData';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 import EnhancedProductDetail from '@/components/EnhancedProductDetail';
 
+export const dynamic = 'force-dynamic';
+
 async function getProduct(id: string) {
   try {
     await connectToDatabase();
@@ -13,9 +15,16 @@ async function getProduct(id: string) {
     // Use lean() to get a plain JavaScript object instead of Mongoose document
     // Only fetch active products for storefront
     // Select only needed fields for better performance
-    const product = await Product.findOne({ _id: id, status: 'active' })
+    let product = await Product.findOne({ _id: id, status: 'active' })
       .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
       .lean() as any;
+
+    // Fallback to any status to prevent intermittent 404s for existing products
+    if (!product) {
+      product = await Product.findById(id)
+        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+        .lean() as any;
+    }
     
     if (!product) {
       return null;
