@@ -65,7 +65,16 @@ export async function POST(req: NextRequest) {
 
     const response = await createDelhiveryShipment(shipmentPayload);
 
-    const waybill = response.packages?.[0]?.waybill || '';
+    const waybill = response.packages?.[0]?.waybill;
+    if (!waybill) {
+      return NextResponse.json(
+        {
+          error: response.message || 'Delhivery did not return a waybill. Please check pickup location and order details.',
+          response,
+        },
+        { status: 400 }
+      );
+    }
     const status = response.packages?.[0]?.status || 'created';
 
     order.fulfillment = {
