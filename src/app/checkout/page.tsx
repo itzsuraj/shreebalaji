@@ -23,8 +23,8 @@ export default function CheckoutPage() {
 
   const { items: cartItems, subtotalInPaise, clear } = useCart();
   const shippingInPaise = deliveryChargeInPaise ?? 0;
-  const gstInPaise = Math.round((subtotalInPaise + shippingInPaise) * 0.18);
-  const totalInPaise = subtotalInPaise + shippingInPaise + gstInPaise;
+  const gstInPaise = 0;
+  const totalInPaise = subtotalInPaise + shippingInPaise;
 
   useEffect(() => {
     // Load Razorpay script once on mount
@@ -154,6 +154,7 @@ export default function CheckoutPage() {
           },
           paymentMethod: 'UPI',
           shippingInPaise,
+          gstInPaise,
         }),
       });
       const data = await res.json();
@@ -396,10 +397,6 @@ export default function CheckoutPage() {
                 {isCheckingDelivery ? 'Checking...' : deliveryChargeInPaise !== null ? `₹${(deliveryChargeInPaise / 100).toFixed(2)}` : '--'}
               </span>
             </div>
-            <div className="flex justify-between text-sm text-gray-700">
-              <span>GST (18%)</span>
-              <span>₹{(gstInPaise / 100).toFixed(2)}</span>
-            </div>
             <div className="flex justify-between font-semibold pt-2 border-t">
               <span>Total</span>
               <span>₹{(totalInPaise / 100).toFixed(2)}</span>
@@ -409,7 +406,7 @@ export default function CheckoutPage() {
                 {deliveryStatus}
               </p>
             )}
-            <p className="text-xs text-gray-600">Total includes GST and delivery charges</p>
+            <p className="text-xs text-gray-600">Total includes delivery charges</p>
             {errors.orderAmount && (
               <p className="text-xs text-red-600 mt-2">
                 {errors.orderAmount}

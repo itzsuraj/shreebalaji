@@ -32,11 +32,12 @@ export async function POST(req: NextRequest) {
     await connectToDatabase();
     const body = await req.json();
 
-    const { items, customer, paymentMethod, shippingInPaise: shippingOverride } = body as {
+    const { items, customer, paymentMethod, shippingInPaise: shippingOverride, gstInPaise: gstOverride } = body as {
       items: OrderItemPayload[];
       customer: CustomerPayload;
       paymentMethod: 'UPI' | 'COD';
       shippingInPaise?: number;
+      gstInPaise?: number;
     };
 
     if (!items?.length) {
@@ -67,7 +68,9 @@ export async function POST(req: NextRequest) {
     const { shippingInPaise, gstInPaise, grandTotalInPaise } = (() => {
       const base = calculateTotals(subtotalInPaise);
       if (typeof shippingOverride === 'number' && Number.isFinite(shippingOverride) && shippingOverride >= 0) {
-        const gstInPaise = Math.round((subtotalInPaise + shippingOverride) * (18 / 100));
+        const gstInPaise = typeof gstOverride === 'number' && Number.isFinite(gstOverride) && gstOverride >= 0
+          ? gstOverride
+          : Math.round((subtotalInPaise + shippingOverride) * (18 / 100));
         return {
           shippingInPaise: shippingOverride,
           gstInPaise,
