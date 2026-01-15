@@ -143,12 +143,25 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     if (hasVariants && product.variantPricing) {
       const packs = new Set<string>();
       product.variantPricing.forEach((v: any) => {
-        if (v.pack) packs.add(String(v.pack));
+        const matchesSize = !selectedSize || v.size === selectedSize;
+        const matchesColor = !selectedColor || v.color === selectedColor;
+        const matchesQuantity = product.category !== 'zipper' || !selectedQuantity || (v as any).quantity === selectedQuantity;
+        if (matchesSize && matchesColor && matchesQuantity && v.pack) {
+          packs.add(String(v.pack));
+        }
       });
       return Array.from(packs);
     }
     return [];
-  }, [product.packs?.length, hasVariants, product.variantPricing?.length]);
+  }, [
+    product.packs?.length,
+    hasVariants,
+    product.variantPricing?.length,
+    selectedSize,
+    selectedColor,
+    selectedQuantity,
+    product.category,
+  ]);
 
   const availableQuantities = useMemo(() => {
     if (hasVariants && product.variantPricing && product.category === 'zipper') {
@@ -238,6 +251,12 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       setSelectedVariant(null);
     }
   }, [selectedSize, selectedColor, selectedPack, selectedQuantity, hasVariants, product.category]);
+
+  useEffect(() => {
+    if (selectedPack && availablePacks.length > 0 && !availablePacks.includes(selectedPack)) {
+      setSelectedPack(availablePacks[0] || '');
+    }
+  }, [availablePacks, selectedPack]);
 
   useEffect(() => {
     if (!selectedVariant?.image) return;
