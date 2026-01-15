@@ -57,7 +57,8 @@ async function getProduct(id: string) {
             price: Number(v.price || 0),
             stockQty: Number(v.stockQty || 0),
             inStock: Boolean(v.inStock),
-            sku: v.sku ? String(v.sku) : undefined
+            sku: v.sku ? String(v.sku) : undefined,
+            image: v.image ? String(v.image) : undefined
           }))
         : [],
       inStock: Boolean(calculatedInStock),
