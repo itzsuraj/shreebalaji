@@ -13,6 +13,7 @@ DELHIVERY_BASE_URL=https://track.delhivery.com/api
 DELHIVERY_AUTH_SCHEME=Token
 DELHIVERY_RATE_PATH=/kinko/v1/invoice/charges/
 DELHIVERY_PICKUP_PIN=400001
+DELHIVERY_RATE_SS=Delivered
 
 # Defaults for shipment creation
 DELHIVERY_DEFAULT_WEIGHT_KG=0.5

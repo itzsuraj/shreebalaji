@@ -159,6 +159,7 @@ export interface DelhiveryRateParams {
   paymentMode: 'Pre-paid' | 'COD';
   declaredValue?: number;
   mode?: string;
+  shipmentStatus?: 'Delivered' | 'RTO' | 'DTO';
 }
 
 export interface DelhiveryRateResponse {
@@ -181,6 +182,7 @@ export async function getDelhiveryRate(params: DelhiveryRateParams): Promise<Del
     cgm: String(weightGrams),
     pt: params.paymentMode,
     md: params.mode || 'E',
+    ss: params.shipmentStatus || 'Delivered',
   });
 
   if (typeof params.declaredValue === 'number') {

@@ -46,12 +46,14 @@ export async function GET(req: NextRequest) {
     const paymentMode = codParam === '1' ? 'COD' : 'Pre-paid';
     const declaredValue = orderValueParam ? Number(orderValueParam) : undefined;
 
+    const shipmentStatus = (process.env.DELHIVERY_RATE_SS as 'Delivered' | 'RTO' | 'DTO') || 'Delivered';
     const raw = await getDelhiveryRate({
       originPin,
       destPin: pin,
       weightKg: Number.isFinite(weightKg) ? weightKg : 0.5,
       paymentMode,
       declaredValue: Number.isFinite(declaredValue as number) ? (declaredValue as number) : undefined,
+      shipmentStatus,
     });
 
     const rateValue = extractRateValue(raw as Record<string, unknown>);
