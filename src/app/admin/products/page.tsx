@@ -148,6 +148,8 @@ export default function AdminProductsPage() {
     pack: '',
     quality: '', // For elastic category
     quantity: '', // For elastic category (in rolls)
+    values: [] as string[],
+    pendingValue: '',
     price: 0,
     stockQty: 0,
     sku: '',
@@ -298,6 +300,8 @@ export default function AdminProductsPage() {
         pack: '',
         quality: '',
         quantity: '',
+        values: [],
+        pendingValue: '',
         price: 0,
         stockQty: 0,
         sku: '',
@@ -396,7 +400,7 @@ export default function AdminProductsPage() {
       packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const updateProduct = async () => {
@@ -440,7 +444,7 @@ export default function AdminProductsPage() {
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
       load(); // This will recalculate inStock for all products
     }
   };
@@ -459,7 +463,7 @@ export default function AdminProductsPage() {
       packs: [] 
     });
     setVariantPricing([]);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
   };
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
@@ -507,6 +511,8 @@ export default function AdminProductsPage() {
         pack: '', 
         quality: '', 
         quantity: '', 
+        values: [],
+        pendingValue: '',
         price: 0, 
         stockQty: 0, 
         sku: '', 
@@ -550,42 +556,50 @@ export default function AdminProductsPage() {
       }
       
       setVariantPricing([...variantPricing, combination]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
       showSuccess('Variant added successfully');
       return;
     }
     
     // For other categories: size, color, pack
-    if (!newVariant.size || !newVariant.pack) {
-      showWarning('Please fill option and value');
+    const valuesToAdd = newVariant.values.length > 0 ? newVariant.values : (newVariant.pack ? [newVariant.pack] : []);
+    if (!newVariant.size || valuesToAdd.length === 0) {
+      showWarning('Please fill option and at least one value');
       return;
     }
 
-    const combination = {
-      size: newVariant.size,
-      color: newVariant.color || undefined,
-      pack: newVariant.pack,
-      price: priceToUse,
-      stockQty: Number(newVariant.stockQty || 0),
-      inStock: Number(newVariant.stockQty || 0) > 0,
-      sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', newVariant.pack),
-      image: newVariant.image?.trim() || undefined
-    };
+    const newVariants: typeof variantPricing = [];
+    for (const value of valuesToAdd) {
+      const combination = {
+        size: newVariant.size,
+        color: newVariant.color || undefined,
+        pack: value,
+        price: priceToUse,
+        stockQty: Number(newVariant.stockQty || 0),
+        inStock: Number(newVariant.stockQty || 0) > 0,
+        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', value),
+        image: newVariant.image?.trim() || undefined
+      };
 
-    const exists = variantPricing.some(v => 
-      v.size === combination.size && 
-      (v.color || '') === (combination.color || '') && 
-      v.pack === combination.pack
-    );
+      const exists = variantPricing.some(v => 
+        v.size === combination.size && 
+        (v.color || '') === (combination.color || '') && 
+        v.pack === combination.pack
+      );
 
-    if (exists) {
-      showInfo('This combination already exists');
+      if (!exists) {
+        newVariants.push(combination);
+      }
+    }
+
+    if (newVariants.length === 0) {
+      showInfo('All values already exist for this option');
       return;
     }
 
-    setVariantPricing([...variantPricing, combination]);
-    showSuccess('Variant added successfully');
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', price: 0, stockQty: 0, sku: '', image: '' });
+    setVariantPricing([...variantPricing, ...newVariants]);
+    showSuccess(`Added ${newVariants.length} variant(s)`);
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const removeVariantCombination = (index: number) => {
@@ -1083,14 +1097,56 @@ export default function AdminProductsPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Value <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={newVariant.pack}
-                      onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
-                      placeholder="e.g., 72, 144"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Add one value (like Shopify)</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newVariant.pendingValue}
+                        onChange={(e) => setNewVariant({ ...newVariant, pendingValue: e.target.value })}
+                        placeholder="e.g., 72, 144"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const value = newVariant.pendingValue.trim();
+                          if (!value) return;
+                          if (newVariant.values.includes(value)) return;
+                          setNewVariant({
+                            ...newVariant,
+                            values: [...newVariant.values, value],
+                            pendingValue: '',
+                          });
+                        }}
+                        className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm hover:bg-gray-200"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {newVariant.values.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {newVariant.values.map((value) => (
+                          <span
+                            key={value}
+                            className="inline-flex items-center gap-2 text-xs bg-gray-100 border border-gray-300 rounded-full px-2 py-1"
+                          >
+                            {value}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setNewVariant({
+                                  ...newVariant,
+                                  values: newVariant.values.filter((v) => v !== value),
+                                })
+                              }
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">Add multiple values, then click Add Variant</p>
                   </div>
                 </div>
               )}
