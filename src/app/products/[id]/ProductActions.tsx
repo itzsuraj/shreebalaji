@@ -167,7 +167,7 @@ export default function ProductActions({ productName, productId, price, image, c
           onClick={handleAddToCart}
           aria-live="polite"
           disabled={isActionDisabled}
-          className={`flex-1 ${added ? 'bg-green-700' : 'bg-green-600'} text-white py-3 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center ${added ? 'scale-[0.98]' : ''} ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`flex-1 ${added ? 'bg-green-700 ring-2 ring-green-200 scale-[1.02] animate-pulse' : 'bg-green-600'} text-white py-3 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {added ? (
             <>

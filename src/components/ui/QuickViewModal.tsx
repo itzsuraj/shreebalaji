@@ -109,7 +109,7 @@ export default function QuickViewModal({
                       disabled={!product.inStock}
                       className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
                         addedToCart
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-green-600 text-white ring-2 ring-green-200 scale-[1.02] animate-pulse'
                           : 'bg-blue-600 text-white hover:bg-blue-700'
                       } ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
