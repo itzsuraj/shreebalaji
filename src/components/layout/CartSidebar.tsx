@@ -82,7 +82,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         </div>
 
         {/* Cart Items */}
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-0">
+        <div className="px-4 pt-4 pb-0">
           {!mounted || items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-16">
               <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
@@ -97,7 +97,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
               </Link>
             </div>
           ) : (
-            <div className="space-y-3 pb-0">
+            <div className="space-y-3 pb-2">
               {items.map((item) => (
                 <div
                   key={`${item.productId}-${item.size || ''}-${item.color || ''}-${item.pack || ''}-${item.sku || ''}`}
@@ -177,8 +177,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
         {/* Footer with Total and Actions */}
         {mounted && items.length > 0 && (
-          <div className="border-t-2 border-gray-200 px-6 pt-4 pb-6 bg-gradient-to-br from-gray-50 to-primary-50">
-            <div className="space-y-3 mb-4">
+          <div className="border-t-2 border-gray-200 px-6 pt-3 pb-4 bg-gradient-to-br from-gray-50 to-primary-50">
+            <div className="space-y-2 mb-2">
               <div className="flex justify-between items-center">
                 <span className="text-base font-medium text-gray-700">Subtotal:</span>
                 <span className="text-xl font-bold text-primary-600">
@@ -189,7 +189,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 Shipping and taxes calculated at checkout
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <button
                 onClick={handleCheckout}
                 className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 px-4 rounded-lg transition-all duration-200 font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5"

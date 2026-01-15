@@ -318,8 +318,11 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   const filteredProducts = useMemo(() => {
     return smartSearch(searchTerm, products)
       .filter(product => {
-        // Category filter
-        if (selectedCategory !== 'all' && product.category !== selectedCategory) return false;
+        // Category filter - case-insensitive comparison
+        if (selectedCategory.toLowerCase().trim() !== 'all' && 
+            product.category.toLowerCase().trim() !== selectedCategory.toLowerCase().trim()) {
+          return false;
+        }
         // Price range filter
         if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
         return true;
@@ -492,19 +495,22 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                   Categories
                 </h2>
             <div className="space-y-2">
-              {categories.map(category => (
-                <button
-                  key={category}
-                      onClick={() => handleCategoryChange(category)}
-                      className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                    selectedCategory === category
-                          ? 'bg-primary-500 text-white shadow-md transform scale-[1.02]'
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
+              {categories.map(category => {
+                const isSelected = selectedCategory.toLowerCase().trim() === category.toLowerCase().trim();
+                return (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryChange(category)}
+                    className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
+                      isSelected
+                        ? 'bg-primary-500 text-white shadow-md transform scale-[1.02]'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

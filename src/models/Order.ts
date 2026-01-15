@@ -41,6 +41,12 @@ const FulfillmentSchema = new Schema({
   shippedAt: { type: Date },
   deliveredAt: { type: Date },
   estimatedDelivery: { type: Date },
+  // Delhivery specific fields
+  delhiveryWaybill: { type: String },
+  delhiveryStatus: { type: String },
+  delhiveryLabelUrl: { type: String },
+  delhiveryInvoiceUrl: { type: String },
+  delhiveryManifestUrl: { type: String },
   items: [{
     itemIndex: { type: Number, required: true },
     quantity: { type: Number, required: true },

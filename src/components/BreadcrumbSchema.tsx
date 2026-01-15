@@ -33,7 +33,7 @@ export default function BreadcrumbSchema({ items, showVisualBreadcrumb = true }:
       
       {/* Visual Breadcrumb Navigation */}
       {showVisualBreadcrumb && (
-        <nav className="flex items-center space-x-2 text-sm text-gray-600 py-2" aria-label="Breadcrumb">
+        <nav className="max-w-7xl mx-auto pl-9 pt-4 flex items-center space-x-2 text-sm text-gray-600 py-2" aria-label="Breadcrumb">
           <Link 
             href="/" 
             className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"

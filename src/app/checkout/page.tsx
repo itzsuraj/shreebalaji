@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useCart } from '@/context/CartContext';
-import { MINIMUM_ORDER_AMOUNT_INR } from '@/lib/config';
+import { DEFAULT_SHIPPING_FEE_INR, MINIMUM_ORDER_AMOUNT_INR } from '@/lib/config';
 
 export default function CheckoutPage() {
   const [fullName, setFullName] = useState('');
@@ -14,6 +14,9 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [gstin, setGstin] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deliveryChargeInPaise, setDeliveryChargeInPaise] = useState<number | null>(null);
+  const [deliveryStatus, setDeliveryStatus] = useState<string>('');
+  const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
   
   // Error states for form validation
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -30,6 +33,59 @@ export default function CheckoutPage() {
     script.async = true;
     document.body.appendChild(script);
   }, []);
+
+  useEffect(() => {
+    const pin = postalCode.replace(/\D/g, '');
+    if (pin.length !== 6) {
+      setDeliveryChargeInPaise(null);
+      setDeliveryStatus('');
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setIsCheckingDelivery(true);
+      try {
+        const res = await fetch(`/api/delhivery/pincode?pin=${pin}`);
+        const data = await res.json();
+        const code = data?.delivery_codes?.[0]?.postal_code;
+        const isServiceable = !!code && (code.pre_paid === 'Y' || code.cash === 'Y');
+
+        if (!cancelled) {
+          if (isServiceable) {
+            const rateRes = await fetch(
+              `/api/delhivery/rate?pin=${pin}&weightKg=0.5&cod=0&orderValue=${(subtotalInPaise / 100).toFixed(2)}`
+            );
+            const rateData = await rateRes.json();
+            if (rateRes.ok && typeof rateData.rateInPaise === 'number') {
+              setDeliveryChargeInPaise(rateData.rateInPaise);
+              setDeliveryStatus('Delivery available');
+            } else {
+              setDeliveryChargeInPaise(DEFAULT_SHIPPING_FEE_INR * 100);
+              setDeliveryStatus('Delivery available (standard rate)');
+            }
+          } else {
+            setDeliveryChargeInPaise(null);
+            setDeliveryStatus('Delivery not available for this pincode');
+          }
+        }
+      } catch (_e) {
+        if (!cancelled) {
+          setDeliveryChargeInPaise(DEFAULT_SHIPPING_FEE_INR * 100);
+          setDeliveryStatus('Unable to fetch rates, showing standard delivery');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCheckingDelivery(false);
+        }
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [postalCode, subtotalInPaise]);
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -329,6 +385,17 @@ export default function CheckoutPage() {
               <span>Subtotal</span>
               <span>₹{(subtotalInPaise/100).toFixed(2)}</span>
             </div>
+            <div className="flex justify-between text-sm text-gray-700">
+              <span>Delivery Charges</span>
+              <span>
+                {isCheckingDelivery ? 'Checking...' : deliveryChargeInPaise !== null ? `₹${(deliveryChargeInPaise / 100).toFixed(2)}` : '--'}
+              </span>
+            </div>
+            {deliveryStatus && (
+              <p className={`text-xs ${deliveryStatus.includes('not') ? 'text-red-600' : 'text-gray-600'}`}>
+                {deliveryStatus}
+              </p>
+            )}
             <p className="text-xs text-gray-600">GST 18% and shipping calculated at next step</p>
             {errors.orderAmount && (
               <p className="text-xs text-red-600 mt-2">
