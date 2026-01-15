@@ -148,8 +148,7 @@ export default function AdminProductsPage() {
     pack: '',
     quality: '', // For elastic category
     quantity: '', // For elastic category (in rolls)
-    values: [] as string[],
-    pendingValue: '',
+    values: [''] as string[],
     price: 0,
     stockQty: 0,
     sku: '',
@@ -300,8 +299,7 @@ export default function AdminProductsPage() {
         pack: '',
         quality: '',
         quantity: '',
-        values: [],
-        pendingValue: '',
+        values: [''],
         price: 0,
         stockQty: 0,
         sku: '',
@@ -400,7 +398,7 @@ export default function AdminProductsPage() {
       packs: product.packs || []
     });
     setVariantPricing(product.variantPricing || []);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const updateProduct = async () => {
@@ -444,7 +442,7 @@ export default function AdminProductsPage() {
         packs: [] 
       });
       setVariantPricing([]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
       load(); // This will recalculate inStock for all products
     }
   };
@@ -463,7 +461,7 @@ export default function AdminProductsPage() {
       packs: [] 
     });
     setVariantPricing([]);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
   };
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
@@ -511,8 +509,7 @@ export default function AdminProductsPage() {
         pack: '', 
         quality: '', 
         quantity: '', 
-        values: [],
-        pendingValue: '',
+        values: [''],
         price: 0, 
         stockQty: 0, 
         sku: '', 
@@ -556,13 +553,13 @@ export default function AdminProductsPage() {
       }
       
       setVariantPricing([...variantPricing, combination]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
       showSuccess('Variant added successfully');
       return;
     }
     
     // For other categories: size, color, pack
-    const valuesToAdd = newVariant.values.length > 0 ? newVariant.values : (newVariant.pack ? [newVariant.pack] : []);
+    const valuesToAdd = (newVariant.values || []).map((v) => v.trim()).filter(Boolean);
     if (!newVariant.size || valuesToAdd.length === 0) {
       showWarning('Please fill option and at least one value');
       return;
@@ -599,7 +596,7 @@ export default function AdminProductsPage() {
 
     setVariantPricing([...variantPricing, ...newVariants]);
     showSuccess(`Added ${newVariants.length} variant(s)`);
-    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [], pendingValue: '', price: 0, stockQty: 0, sku: '', image: '' });
+    setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
   };
 
   const removeVariantCombination = (index: number) => {
@@ -1097,56 +1094,46 @@ export default function AdminProductsPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Value <span className="text-red-500">*</span></label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newVariant.pendingValue}
-                        onChange={(e) => setNewVariant({ ...newVariant, pendingValue: e.target.value })}
-                        placeholder="e.g., 72, 144"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const value = newVariant.pendingValue.trim();
-                          if (!value) return;
-                          if (newVariant.values.includes(value)) return;
-                          setNewVariant({
-                            ...newVariant,
-                            values: [...newVariant.values, value],
-                            pendingValue: '',
-                          });
-                        }}
-                        className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm hover:bg-gray-200"
-                      >
-                        Add
-                      </button>
-                    </div>
-                    {newVariant.values.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {newVariant.values.map((value) => (
-                          <span
-                            key={value}
-                            className="inline-flex items-center gap-2 text-xs bg-gray-100 border border-gray-300 rounded-full px-2 py-1"
-                          >
-                            {value}
+                    <div className="space-y-2">
+                      {(newVariant.values || ['']).map((value, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => {
+                              const next = [...(newVariant.values || [''])];
+                              next[index] = e.target.value;
+                              // Ensure there is always a trailing empty input (Shopify style)
+                              const trimmed = next.map((v) => v.trim());
+                              const hasTrailingEmpty = trimmed[trimmed.length - 1] === '';
+                              if (!hasTrailingEmpty) next.push('');
+                              setNewVariant({ ...newVariant, values: next });
+                            }}
+                            placeholder={index === 0 ? 'e.g., 72' : 'Add another value'}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          {((newVariant.values || []).length > 1 || value.trim() !== '') && (
                             <button
                               type="button"
-                              onClick={() =>
-                                setNewVariant({
-                                  ...newVariant,
-                                  values: newVariant.values.filter((v) => v !== value),
-                                })
-                              }
-                              className="text-gray-500 hover:text-gray-700"
+                              onClick={() => {
+                                const next = [...(newVariant.values || [''])];
+                                next.splice(index, 1);
+                                if (next.length === 0) next.push('');
+                                // Keep trailing empty
+                                const trimmed = next.map((v) => v.trim());
+                                if (trimmed[trimmed.length - 1] !== '') next.push('');
+                                setNewVariant({ ...newVariant, values: next });
+                              }}
+                              className="px-2 py-2 text-gray-500 hover:text-gray-700"
+                              aria-label="Remove value"
                             >
                               ×
                             </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">Add multiple values, then click Add Variant</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Type a value and a new row will appear automatically</p>
                   </div>
                 </div>
               )}
