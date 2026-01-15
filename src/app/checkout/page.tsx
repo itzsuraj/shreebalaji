@@ -49,6 +49,8 @@ export default function CheckoutPage() {
     }
 
     let cancelled = false;
+    setDeliveryChargeInPaise(null);
+    setDeliveryStatus(`Checking ${paymentMethod === 'COD' ? 'COD' : 'Prepaid'} rate...`);
     const timer = setTimeout(async () => {
       setIsCheckingDelivery(true);
       try {
