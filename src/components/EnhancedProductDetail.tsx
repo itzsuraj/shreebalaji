@@ -15,6 +15,7 @@ interface ProductVariant {
   price: number;
   stockQty: number;
   sku: string;
+  image?: string;
 }
 
 interface Product {
@@ -74,6 +75,13 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     const mainImage = productImage;
     return product.images && product.images.length > 0 ? product.images : [mainImage];
   }, [product.images, productImage]);
+  const displayImages = useMemo(() => {
+    const variantImage = selectedVariant?.image?.trim();
+    if (!variantImage) {
+      return images;
+    }
+    return [variantImage, ...images.filter((img) => img !== variantImage)];
+  }, [images, selectedVariant?.image]);
   // Store variantPricing in a ref to avoid dependency issues
   const variantPricingRef = useRef(product.variantPricing);
   useEffect(() => {
@@ -220,6 +228,12 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     }
   }, [selectedSize, selectedColor, selectedPack, selectedQuantity, hasVariants, product.category]);
 
+  useEffect(() => {
+    if (!selectedVariant?.image) return;
+    setImageError(false);
+    setCurrentImageIndex(0);
+  }, [selectedVariant?.image]);
+
   const handleAddToCart = useCallback(() => {
     if (hasVariants && !selectedVariant) {
       alert('Please select all required options');
@@ -231,7 +245,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       name: product.name,
       price: currentPrice,
       quantity,
-      image: getProductImage(product),
+      image: selectedVariant?.image || getProductImage(product),
       category: product.category
     });
     setAdded(true);
@@ -281,7 +295,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           <div className="relative">
             <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
               <Image
-                src={imageError ? getProductImage({ category: product.category, image: undefined }) : images[currentImageIndex] || productImage}
+                src={imageError ? getProductImage({ category: product.category, image: undefined }) : displayImages[currentImageIndex] || productImage}
                 alt={product.name}
                 fill
                 className="object-cover"
@@ -306,7 +320,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                 <Heart className={`h-5 w-5 ${isWishlisted ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
               </button>
               {/* Image Navigation */}
-              {images.length > 1 && (
+              {displayImages.length > 1 && (
                 <>
                   <button
                     onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
@@ -316,8 +330,8 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                     ←
                   </button>
                   <button
-                    onClick={() => setCurrentImageIndex(Math.min(images.length - 1, currentImageIndex + 1))}
-                    disabled={currentImageIndex === images.length - 1}
+                    onClick={() => setCurrentImageIndex(Math.min(displayImages.length - 1, currentImageIndex + 1))}
+                    disabled={currentImageIndex === displayImages.length - 1}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 disabled:opacity-50 transition-all"
                   >
                     →
@@ -328,9 +342,9 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           </div>
 
           {/* Thumbnail Images - Vertical Stack */}
-          {images.length > 1 && (
+          {displayImages.length > 1 && (
             <div className="flex space-x-2">
-              {images.map((image, index) => (
+              {displayImages.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
