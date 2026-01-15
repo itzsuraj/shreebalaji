@@ -475,9 +475,11 @@ export default function AdminProductsPage() {
 
   // New variant dropdown functions
   const addVariantCombination = () => {
-    const isElastic = form.category === 'elastic';
-    const isZipper = form.category === 'zipper';
-    const priceToUse = newVariant.price > 0 ? newVariant.price : Number(form.price || 0);
+    const activeCategory = editingProduct ? editForm.category : form.category;
+    const basePrice = editingProduct ? editForm.price : form.price;
+    const isElastic = activeCategory === 'elastic';
+    const isZipper = activeCategory === 'zipper';
+    const priceToUse = newVariant.price > 0 ? newVariant.price : Number(basePrice || 0);
     
     if (isElastic) {
       // For elastic: size, quality, color, quantity (meter roll)
