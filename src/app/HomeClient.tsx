@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShoppingCart, Eye, Heart } from "lucide-react";
+import { Star, ShoppingCart, Eye, Heart, Check } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { getProductImage } from "@/utils/imageUtils";
@@ -41,6 +41,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   }>>([]);
   const [loading, setLoading] = useState(initialProducts.length === 0);
   const [toast, setToast] = useState({ isVisible: false, message: '' });
+  const [addedId, setAddedId] = useState<string | null>(null);
 
   // Fetch products from database
   useEffect(() => {
@@ -100,6 +101,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   const handleAddToCart = (product: typeof products[0]) => {
     addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
     setToast({ isVisible: true, message: `${product.name} added to cart!` });
+    setAddedId(product.id);
+    setTimeout(() => setAddedId(null), 1500);
   };
 
   const handleBuyNow = (product: typeof products[0]) => {
@@ -426,11 +429,24 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     <div className="grid grid-cols-2 gap-2">
                       <button 
                         onClick={() => handleAddToCart(product)}
-                        className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                        className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
+                          addedId === product.id
+                            ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
+                            : 'bg-primary-500 hover:bg-primary-600'
+                        }`}
                       >
-                        <ShoppingCart className="h-4 w-4" />
-                        <span className="hidden sm:inline">Add to Cart</span>
-                        <span className="sm:hidden">Add</span>
+                        {addedId === product.id ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            <span>Added</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingCart className="h-4 w-4" />
+                            <span className="hidden sm:inline">Add to Cart</span>
+                            <span className="sm:hidden">Add</span>
+                          </>
+                        )}
                       </button>
                       <button 
                         onClick={() => handleBuyNow(product)}
@@ -607,11 +623,24 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
+                            addedId === product.id
+                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
+                              : 'bg-primary-500 hover:bg-primary-600'
+                          }`}
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
+                          {addedId === product.id ? (
+                            <>
+                              <Check className="h-4 w-4" />
+                              <span>Added</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-4 w-4" />
+                              <span className="hidden sm:inline">Add to Cart</span>
+                              <span className="sm:hidden">Add</span>
+                            </>
+                          )}
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
@@ -726,11 +755,24 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
+                            addedId === product.id
+                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
+                              : 'bg-primary-500 hover:bg-primary-600'
+                          }`}
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
+                          {addedId === product.id ? (
+                            <>
+                              <Check className="h-4 w-4" />
+                              <span>Added</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-4 w-4" />
+                              <span className="hidden sm:inline">Add to Cart</span>
+                              <span className="sm:hidden">Add</span>
+                            </>
+                          )}
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
@@ -845,11 +887,24 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
+                            addedId === product.id
+                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
+                              : 'bg-primary-500 hover:bg-primary-600'
+                          }`}
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
+                          {addedId === product.id ? (
+                            <>
+                              <Check className="h-4 w-4" />
+                              <span>Added</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-4 w-4" />
+                              <span className="hidden sm:inline">Add to Cart</span>
+                              <span className="sm:hidden">Add</span>
+                            </>
+                          )}
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
@@ -964,11 +1019,24 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => handleAddToCart(product)}
-                          className="bg-primary-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
+                            addedId === product.id
+                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
+                              : 'bg-primary-500 hover:bg-primary-600'
+                          }`}
                         >
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
+                          {addedId === product.id ? (
+                            <>
+                              <Check className="h-4 w-4" />
+                              <span>Added</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="h-4 w-4" />
+                              <span className="hidden sm:inline">Add to Cart</span>
+                              <span className="sm:hidden">Add</span>
+                            </>
+                          )}
                         </button>
                         <button 
                           onClick={() => handleBuyNow(product)}
