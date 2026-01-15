@@ -68,7 +68,8 @@ export default function CheckoutPage() {
             );
             const rateData = await rateRes.json();
             if (rateRes.ok && typeof rateData.rateInPaise === 'number') {
-              setDeliveryChargeInPaise(rateData.rateInPaise);
+              const codSurcharge = paymentMethod === 'COD' ? 3000 : 0;
+              setDeliveryChargeInPaise(rateData.rateInPaise + codSurcharge);
               setDeliveryStatus('Delivery available');
             } else {
               setDeliveryChargeInPaise(DEFAULT_SHIPPING_FEE_INR * 100);
