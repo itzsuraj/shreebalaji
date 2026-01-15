@@ -18,6 +18,7 @@ export default function CheckoutPage() {
   const [deliveryChargeInPaise, setDeliveryChargeInPaise] = useState<number | null>(null);
   const [deliveryStatus, setDeliveryStatus] = useState<string>('');
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
+  const [isServiceable, setIsServiceable] = useState(false);
   
   // Error states for form validation
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
     if (pin.length !== 6) {
       setDeliveryChargeInPaise(null);
       setDeliveryStatus('');
+      setIsServiceable(false);
       return;
     }
 
@@ -58,6 +60,7 @@ export default function CheckoutPage() {
 
         if (!cancelled) {
           if (isServiceable) {
+            setIsServiceable(true);
             const rateRes = await fetch(
               `/api/delhivery/rate?pin=${pin}&weightKg=0.5&cod=${paymentMethod === 'COD' ? 1 : 0}&orderValue=${(subtotalInPaise / 100).toFixed(2)}`
             );
@@ -72,12 +75,14 @@ export default function CheckoutPage() {
           } else {
             setDeliveryChargeInPaise(null);
             setDeliveryStatus('Delivery not available for this pincode');
+            setIsServiceable(false);
           }
         }
       } catch (_e) {
         if (!cancelled) {
           setDeliveryChargeInPaise(DEFAULT_SHIPPING_FEE_INR * 100);
           setDeliveryStatus('Unable to fetch rates, showing standard delivery');
+          setIsServiceable(true);
         }
       } finally {
         if (!cancelled) {
@@ -444,14 +449,14 @@ export default function CheckoutPage() {
                 />
                 <span>UPI (GPay/PhonePe/Paytm)</span>
               </label>
-              <label className={`flex items-center gap-2 ${deliveryChargeInPaise === null ? 'text-gray-400' : ''}`}>
+              <label className={`flex items-center gap-2 ${!isServiceable ? 'text-gray-400' : ''}`}>
                 <input
                   type="radio"
                   name="paymethod"
                   value="COD"
                   checked={paymentMethod === 'COD'}
                   onChange={() => setPaymentMethod('COD')}
-                  disabled={deliveryChargeInPaise === null}
+                  disabled={!isServiceable}
                 />
                 <span>Cash on Delivery</span>
               </label>
