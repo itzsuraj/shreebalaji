@@ -1225,16 +1225,29 @@ export default function AdminProductsPage() {
                                   </span>
                                 )}
                               </>
-                            ) : (
+                            ) : form.category === 'zipper' ? (
                               <>
                                 {variant.color && (
                                   <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
                                     {variant.color}
                                   </span>
                                 )}
+                                {(variant as any).quantity && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    Qty: {(variant as any).quantity}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {variant.size && (
+                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                    Option: {variant.size}
+                                  </span>
+                                )}
                                 {variant.pack && (
                                   <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    Pack: {variant.pack}
+                                    Value: {variant.pack}
                                   </span>
                                 )}
                               </>
