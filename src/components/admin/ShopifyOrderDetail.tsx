@@ -88,6 +88,7 @@ export default function ShopifyOrderDetail({ order, onClose, onUpdate }: Shopify
   const { toast, showToast, hideToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingShipment, setIsCreatingShipment] = useState(false);
   const [fullOrder, setFullOrder] = useState<Order>(order);
   const [editedOrder, setEditedOrder] = useState({
     status: order.status,
@@ -102,30 +103,31 @@ export default function ShopifyOrderDetail({ order, onClose, onUpdate }: Shopify
   const [newTag, setNewTag] = useState('');
 
   // Fetch full order data when component mounts
-  useEffect(() => {
-    const fetchFullOrder = async () => {
-      try {
-        const res = await fetch(`/api/admin/orders/${order._id}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.order) {
-            setFullOrder(data.order);
-            setEditedOrder({
-              status: data.order.status,
-              trackingNumber: data.order.trackingNumber || data.order.fulfillment?.trackingNumber || '',
-              carrier: data.order.fulfillment?.carrier || '',
-              trackingUrl: data.order.fulfillment?.trackingUrl || '',
-              internalNotes: data.order.internalNotes || '',
-              customerNotes: data.order.customerNotes || '',
-              tags: data.order.tags || [],
-              estimatedDelivery: data.order.estimatedDelivery || data.order.fulfillment?.estimatedDelivery || '',
-            });
-          }
+  const fetchFullOrder = async () => {
+    try {
+      const res = await fetch(`/api/admin/orders/${order._id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.order) {
+          setFullOrder(data.order);
+          setEditedOrder({
+            status: data.order.status,
+            trackingNumber: data.order.trackingNumber || data.order.fulfillment?.trackingNumber || '',
+            carrier: data.order.fulfillment?.carrier || '',
+            trackingUrl: data.order.fulfillment?.trackingUrl || '',
+            internalNotes: data.order.internalNotes || '',
+            customerNotes: data.order.customerNotes || '',
+            tags: data.order.tags || [],
+            estimatedDelivery: data.order.estimatedDelivery || data.order.fulfillment?.estimatedDelivery || '',
+          });
         }
-      } catch (error) {
-        console.error('Error fetching full order:', error);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching full order:', error);
+    }
+  };
+
+  useEffect(() => {
     fetchFullOrder();
   }, [order._id]);
 
@@ -240,6 +242,36 @@ export default function ShopifyOrderDetail({ order, onClose, onUpdate }: Shopify
       ...editedOrder,
       tags: editedOrder.tags.filter(t => t !== tag),
     });
+  };
+
+  const handleCreateShipment = async () => {
+    const pickupLocation = window.prompt('Enter Delhivery pickup location name');
+    if (!pickupLocation) {
+      return;
+    }
+    setIsCreatingShipment(true);
+    try {
+      const res = await fetch('/api/delhivery/create-shipment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: fullOrder._id,
+          pickupLocation,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create shipment');
+      }
+      showToast(`Shipment created. Waybill: ${data.shipment?.waybill || 'N/A'}`, 'success');
+      await fetchFullOrder();
+      onUpdate();
+    } catch (error) {
+      console.error('Create shipment error:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to create shipment', 'error');
+    } finally {
+      setIsCreatingShipment(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -747,6 +779,18 @@ export default function ShopifyOrderDetail({ order, onClose, onUpdate }: Shopify
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
                   <div className="space-y-2">
+                    <button
+                      onClick={handleCreateShipment}
+                      disabled={isCreatingShipment || Boolean(fullOrder.fulfillment?.trackingNumber)}
+                      className="w-full px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Truck className="h-4 w-4" />
+                      {fullOrder.fulfillment?.trackingNumber
+                        ? 'Shipment Created'
+                        : isCreatingShipment
+                        ? 'Creating Shipment...'
+                        : 'Create Shipment (Delhivery)'}
+                    </button>
                     <button
                       onClick={() => window.print()}
                       className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
