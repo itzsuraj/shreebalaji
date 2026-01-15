@@ -477,11 +477,16 @@ export default function AdminProductsPage() {
   const addVariantCombination = () => {
     const isElastic = form.category === 'elastic';
     const isZipper = form.category === 'zipper';
+    const priceToUse = newVariant.price > 0 ? newVariant.price : Number(form.price || 0);
     
     if (isElastic) {
       // For elastic: size, quality, color, quantity (meter roll)
-      if (!newVariant.size || !newVariant.quality || !newVariant.color || !newVariant.quantity || newVariant.price <= 0) {
-        showWarning('Please fill size, quality, color, quantity (meter roll), and set a valid price');
+      if (!newVariant.size || !newVariant.quality || !newVariant.color || !newVariant.quantity) {
+        showWarning('Please fill size, quality, color, and quantity (meter roll)');
+        return;
+      }
+      if (priceToUse <= 0) {
+        showWarning('Please set a valid price');
         return;
       }
       
@@ -490,7 +495,7 @@ export default function AdminProductsPage() {
         quality: newVariant.quality,
         color: newVariant.color,
         quantity: newVariant.quantity,
-        price: newVariant.price,
+        price: priceToUse,
         stockQty: Number(newVariant.stockQty || 0),
         inStock: Number(newVariant.stockQty || 0) > 0,
         sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.quality || '', newVariant.quantity || ''),
@@ -498,13 +503,13 @@ export default function AdminProductsPage() {
       };
       
       setVariantPricing([...variantPricing, combination]);
-      // Reset to defaults for elastic category, empty for others
+      // Reset to empty values (no prefill)
       setNewVariant({ 
-        size: '10mm', 
-        color: 'Black', 
+        size: '', 
+        color: '', 
         pack: '', 
-        quality: 'Woven', 
-        quantity: '25 mtr roll', 
+        quality: '', 
+        quantity: '', 
         selectedPacks: [], 
         price: 0, 
         stockQty: 0, 
@@ -516,8 +521,12 @@ export default function AdminProductsPage() {
     
     if (isZipper) {
       // For zipper: size, color, quantity
-      if (!newVariant.size || !newVariant.quantity || newVariant.price <= 0) {
-        showWarning('Please fill size, quantity, and set a valid price');
+      if (!newVariant.size || !newVariant.quantity) {
+        showWarning('Please fill size and quantity');
+        return;
+      }
+      if (priceToUse <= 0) {
+        showWarning('Please set a valid price');
         return;
       }
       
@@ -525,7 +534,7 @@ export default function AdminProductsPage() {
         size: newVariant.size,
         color: newVariant.color || undefined,
         quantity: newVariant.quantity,
-        price: newVariant.price,
+        price: priceToUse,
         stockQty: Number(newVariant.stockQty || 0),
         inStock: Number(newVariant.stockQty || 0) > 0,
         sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', newVariant.quantity || ''),
@@ -556,8 +565,12 @@ export default function AdminProductsPage() {
       ? [...new Set(newVariant.selectedPacks)] // Remove duplicates
       : (newVariant.pack ? [newVariant.pack] : []);
     
-    if (!newVariant.size || packsToAdd.length === 0 || newVariant.price <= 0) {
-      showWarning('Please fill size, select at least one pack, and set a valid price');
+    if (!newVariant.size || packsToAdd.length === 0) {
+      showWarning('Please fill size and select at least one pack');
+      return;
+    }
+    if (priceToUse <= 0) {
+      showWarning('Please set a valid price');
       return;
     }
 
@@ -569,7 +582,7 @@ export default function AdminProductsPage() {
         size: newVariant.size,
         color: newVariant.color || undefined,
         pack: pack,
-        price: newVariant.price,
+        price: priceToUse,
         stockQty: Number(newVariant.stockQty || 0),
         inStock: Number(newVariant.stockQty || 0) > 0,
         sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', pack),
