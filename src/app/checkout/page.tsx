@@ -14,6 +14,7 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState('');
   const [gstin, setGstin] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'COD'>('UPI');
   const [deliveryChargeInPaise, setDeliveryChargeInPaise] = useState<number | null>(null);
   const [deliveryStatus, setDeliveryStatus] = useState<string>('');
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
@@ -58,7 +59,7 @@ export default function CheckoutPage() {
         if (!cancelled) {
           if (isServiceable) {
             const rateRes = await fetch(
-              `/api/delhivery/rate?pin=${pin}&weightKg=0.5&cod=0&orderValue=${(subtotalInPaise / 100).toFixed(2)}`
+              `/api/delhivery/rate?pin=${pin}&weightKg=0.5&cod=${paymentMethod === 'COD' ? 1 : 0}&orderValue=${(subtotalInPaise / 100).toFixed(2)}`
             );
             const rateData = await rateRes.json();
             if (rateRes.ok && typeof rateData.rateInPaise === 'number') {
@@ -89,7 +90,7 @@ export default function CheckoutPage() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [postalCode, subtotalInPaise]);
+  }, [postalCode, subtotalInPaise, paymentMethod]);
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -152,13 +153,19 @@ export default function CheckoutPage() {
           customer: {
             fullName, phone, email, addressLine1: address1, addressLine2: address2, city, state, postalCode, country: 'IN', gstin
           },
-          paymentMethod: 'UPI',
+          paymentMethod,
           shippingInPaise,
           gstInPaise,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create order');
+
+      if (paymentMethod === 'COD') {
+        clear();
+        window.location.href = `/checkout/success?orderId=${data.orderId}`;
+        return;
+      }
 
       // Create Razorpay order (UPI-only)
       const rz = await fetch('/api/payments/razorpay/order', {
@@ -425,15 +432,28 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-6">
-            <h3 className="font-semibold mb-2">Payment Method</h3>
+          <h3 className="font-semibold mb-2">Payment Method</h3>
             <div className="space-y-2">
               <label className="flex items-center gap-2">
-                <input type="radio" name="paymethod" defaultChecked readOnly />
+                <input
+                  type="radio"
+                  name="paymethod"
+                  value="UPI"
+                  checked={paymentMethod === 'UPI'}
+                  onChange={() => setPaymentMethod('UPI')}
+                />
                 <span>UPI (GPay/PhonePe/Paytm)</span>
               </label>
-              <label className="flex items-center gap-2 text-gray-400">
-                <input type="radio" name="paymethod" disabled readOnly />
-                <span>Cash on Delivery (coming soon)</span>
+              <label className={`flex items-center gap-2 ${deliveryChargeInPaise === null ? 'text-gray-400' : ''}`}>
+                <input
+                  type="radio"
+                  name="paymethod"
+                  value="COD"
+                  checked={paymentMethod === 'COD'}
+                  onChange={() => setPaymentMethod('COD')}
+                  disabled={deliveryChargeInPaise === null}
+                />
+                <span>Cash on Delivery</span>
               </label>
             </div>
           </div>
@@ -443,7 +463,13 @@ export default function CheckoutPage() {
             onClick={createOrder} 
             className="mt-6 w-full bg-primary-500 text-white py-3 rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
           >
-            {isSubmitting ? 'Processing...' : subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100 ? `Minimum ₹${MINIMUM_ORDER_AMOUNT_INR} required` : 'Pay via UPI'}
+            {isSubmitting
+              ? 'Processing...'
+              : subtotalInPaise < MINIMUM_ORDER_AMOUNT_INR * 100
+              ? `Minimum ₹${MINIMUM_ORDER_AMOUNT_INR} required`
+              : paymentMethod === 'COD'
+              ? 'Place Order (COD)'
+              : 'Pay via UPI'}
           </button>
         </div>
       </div>
