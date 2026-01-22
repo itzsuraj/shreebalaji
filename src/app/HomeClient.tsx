@@ -46,6 +46,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   // Fetch products from database
   useEffect(() => {
     if (initialProducts.length > 0) {
+      console.log('[HomeClient] Using initial products from SSR:', initialProducts.length);
       setProducts(initialProducts as unknown as typeof products);
       setLoading(false);
       return;
@@ -53,21 +54,20 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
     const fetchProducts = async () => {
       try {
         const response = await fetch('/api/products', {
-          cache: 'force-cache',
-          next: { revalidate: 3600 }, // Cache for 1 hour
+          cache: 'no-store', // Don't cache - always fetch fresh
           headers: {
-            'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+            'Cache-Control': 'no-cache',
           },
         });
         if (response.ok) {
           const data = await response.json();
+          console.log('[HomeClient] Fetched products from API:', data.products?.length || 0);
           setProducts(data.products || []);
+        } else {
+          console.error('[HomeClient] API error:', response.status, response.statusText);
         }
       } catch (error) {
-        // Silently handle errors in production
-        if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching products:', error);
-        }
+        console.error('[HomeClient] Error fetching products:', error);
       } finally {
         setLoading(false);
       }

@@ -4,9 +4,25 @@ import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
 
 export async function GET() {
-  await connectToDatabase();
-  const products = await Product.find().sort({ createdAt: -1 }).limit(200);
-  return NextResponse.json({ products });
+  try {
+    await connectToDatabase();
+    const products = await Product.find().sort({ createdAt: -1 }).limit(200).lean();
+    
+    // Log for debugging
+    console.log(`[Admin Products API] Found ${products?.length || 0} products in database`);
+    if (products && products.length > 0) {
+      console.log(`[Admin Products API] Product names:`, products.map((p: any) => p.name));
+      console.log(`[Admin Products API] Product statuses:`, products.map((p: any) => ({ name: p.name, status: p.status })));
+    }
+    
+    return NextResponse.json({ products: products || [] });
+  } catch (error) {
+    console.error('[Admin Products API] Error fetching products:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Failed to fetch products',
+      products: [] 
+    }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

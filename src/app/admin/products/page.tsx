@@ -191,16 +191,32 @@ export default function AdminProductsPage() {
 
   const load = async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/products');
-    const data = await res.json();
-    // Recalculate inStock for all products based on actual stock
-    const productsWithCorrectStock = (data.products || []).map((product: AdminProductRow) => ({
-      ...product,
-      inStock: calculateInStock(product),
-      status: (product.status as 'active' | 'draft') || 'active',
-    }));
-    setProducts(productsWithCorrectStock);
-    setLoading(false);
+    try {
+      const res = await fetch('/api/admin/products');
+      if (!res.ok) {
+        console.error('[Admin Products] API error:', res.status, res.statusText);
+        showError(`Failed to load products: ${res.status} ${res.statusText}`);
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      console.log('[Admin Products] Loaded products:', data.products?.length || 0);
+      
+      // Recalculate inStock for all products based on actual stock
+      const productsWithCorrectStock = (data.products || []).map((product: AdminProductRow) => ({
+        ...product,
+        inStock: calculateInStock(product),
+        status: (product.status as 'active' | 'draft') || 'active',
+      }));
+      setProducts(productsWithCorrectStock);
+    } catch (error) {
+      console.error('[Admin Products] Error loading products:', error);
+      showError('Failed to load products. Please check console for details.');
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => { load(); }, []);
 
