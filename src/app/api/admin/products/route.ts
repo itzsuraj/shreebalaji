@@ -13,9 +13,32 @@ export async function GET() {
     if (products && products.length > 0) {
       console.log(`[Admin Products API] Product names:`, products.map((p: any) => p.name));
       console.log(`[Admin Products API] Product statuses:`, products.map((p: any) => ({ name: p.name, status: p.status })));
+      console.log(`[Admin Products API] First product keys:`, products[0] ? Object.keys(products[0]) : 'none');
+      console.log(`[Admin Products API] First product data:`, JSON.stringify(products[0], null, 2));
     }
     
-    return NextResponse.json({ products: products || [] });
+    // Ensure all products have required fields and proper serialization
+    const serializedProducts = (products || []).map((p: any) => ({
+      _id: String(p._id),
+      name: p.name || 'Unnamed Product',
+      category: p.category || 'uncategorized',
+      price: p.price || 0,
+      description: p.description || '',
+      image: p.image || '',
+      inStock: p.inStock ?? true,
+      status: p.status || 'active', // Default to active if missing
+      stockQty: p.stockQty || 0,
+      sizes: p.sizes || [],
+      colors: p.colors || [],
+      packs: p.packs || [],
+      variantPricing: p.variantPricing || [],
+      createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : new Date().toISOString(),
+    }));
+    
+    console.log(`[Admin Products API] Serialized ${serializedProducts.length} products`);
+    
+    return NextResponse.json({ products: serializedProducts });
   } catch (error) {
     console.error('[Admin Products API] Error fetching products:', error);
     return NextResponse.json({ 

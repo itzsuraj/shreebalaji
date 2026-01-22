@@ -201,7 +201,17 @@ export default function AdminProductsPage() {
         return;
       }
       const data = await res.json();
+      console.log('[Admin Products] API response:', data);
       console.log('[Admin Products] Loaded products:', data.products?.length || 0);
+      console.log('[Admin Products] Products data:', data.products);
+      
+      if (!data.products || !Array.isArray(data.products)) {
+        console.error('[Admin Products] Invalid products data:', data);
+        showError('Invalid response from server');
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
       
       // Recalculate inStock for all products based on actual stock
       const productsWithCorrectStock = (data.products || []).map((product: AdminProductRow) => ({
@@ -209,6 +219,10 @@ export default function AdminProductsPage() {
         inStock: calculateInStock(product),
         status: (product.status as 'active' | 'draft') || 'active',
       }));
+      
+      console.log('[Admin Products] Processed products:', productsWithCorrectStock.length);
+      console.log('[Admin Products] First product:', productsWithCorrectStock[0]);
+      
       setProducts(productsWithCorrectStock);
     } catch (error) {
       console.error('[Admin Products] Error loading products:', error);
