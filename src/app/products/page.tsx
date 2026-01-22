@@ -3,6 +3,9 @@ import ProductsClient from './ProductsClient';
 import ProductsStructuredData from './ProductsStructuredData';
 import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 
+// Force this page to be dynamic so it always uses fresh product data
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "All Products - Garment Accessories | Shree Balaji Enterprises",
   description: "Browse our complete collection of premium garment accessories including buttons, zippers, elastic bands, and cotton cords. Quality products for professional garment making.",
@@ -90,6 +93,8 @@ async function getProducts() {
               size: v.size ? String(v.size) : undefined,
               color: v.color ? String(v.color) : undefined,
               pack: v.pack ? String(v.pack) : undefined,
+              quality: v.quality ? String(v.quality) : undefined,
+              quantity: v.quantity ? String(v.quantity) : undefined,
               price: Number(v.price || 0),
               stockQty: Number(v.stockQty || 0),
               inStock: Boolean(v.inStock),

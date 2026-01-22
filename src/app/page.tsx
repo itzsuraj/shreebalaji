@@ -5,6 +5,9 @@ import ProductModel from '@/models/Product';
 
 import type { Product } from '@/types/product';
 
+// Force this page to be dynamic so it always uses fresh product data
+export const dynamic = 'force-dynamic';
+
 async function getProductsSSR(): Promise<Product[]> {
   try {
     await connectToDatabase();

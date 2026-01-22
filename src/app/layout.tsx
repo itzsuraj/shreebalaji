@@ -144,13 +144,13 @@ export default function RootLayout({
         <EnquiryProvider>
           <CartProvider>
             <WishlistProvider>
-              <div className="min-h-screen flex flex-col bg-white">
-                <Header />
-                <main id="main-content" className="flex-grow bg-white">
-                  {children}
-                </main>
-                <Footer />
-              </div>
+            <div className="min-h-screen flex flex-col bg-white">
+              <Header />
+              <main id="main-content" className="flex-grow bg-white">
+                {children}
+              </main>
+              <Footer />
+            </div>
             </WishlistProvider>
           </CartProvider>
         </EnquiryProvider>

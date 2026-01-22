@@ -36,17 +36,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
     try {
       if (typeof window !== 'undefined') {
-        const raw = localStorage.getItem('cart:v1');
-        if (raw) setItems(JSON.parse(raw));
+      const raw = localStorage.getItem('cart:v1');
+      if (raw) setItems(JSON.parse(raw));
       }
     } catch {}
   }, []);
 
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('cart:v1', JSON.stringify(items));
-      } catch {}
+    try {
+      localStorage.setItem('cart:v1', JSON.stringify(items));
+    } catch {}
     }
   }, [items, mounted]);
 

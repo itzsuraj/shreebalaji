@@ -395,12 +395,17 @@ export default function CheckoutPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
           <div className="border rounded p-4 space-y-2">
-            {cartItems.map((p) => (
+            {cartItems.map((p) => {
+              const lineTotal = p.price * p.quantity;
+              return (
               <div key={p.productId} className="flex justify-between text-sm">
                 <span>{p.name}</span>
-                <span>₹{p.price}</span>
+                  <span>
+                    ₹{p.price} x {p.quantity} = ₹{lineTotal}
+                  </span>
               </div>
-            ))}
+              );
+            })}
             <div className="flex justify-between font-semibold pt-2 border-t">
               <span>Subtotal</span>
               <span>₹{(subtotalInPaise/100).toFixed(2)}</span>
@@ -439,7 +444,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-6">
-          <h3 className="font-semibold mb-2">Payment Method</h3>
+            <h3 className="font-semibold mb-2">Payment Method</h3>
             <div className="space-y-2">
               <label className="flex items-center gap-2">
                 <input

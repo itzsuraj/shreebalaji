@@ -261,7 +261,8 @@ export default function ShopifyOrderDetail({ order, onClose, onUpdate }: Shopify
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to create shipment');
+        const details = data?.response ? ` Details: ${JSON.stringify(data.response)}` : '';
+        throw new Error(`${data.error || 'Failed to create shipment'}.${details}`);
       }
       showToast(`Shipment created. Waybill: ${data.shipment?.waybill || 'N/A'}`, 'success');
       await fetchFullOrder();

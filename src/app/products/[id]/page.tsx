@@ -91,10 +91,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const product = await getProduct(resolvedParams.id);
 
   if (!product) {
-    return {
+  return {
       title: 'Product Not Found - Shree Balaji Enterprises',
       description: 'The requested product could not be found.',
-      robots: {
+    robots: {
         index: false,
         follow: false,
       },

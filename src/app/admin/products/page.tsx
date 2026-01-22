@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { generateVariantSKU } from '@/utils/skuGenerator';
 import Head from 'next/head';
 import DeleteModal from '@/components/ui/DeleteModal';
@@ -106,6 +106,22 @@ export default function AdminProductsPage() {
     sku?: string;
     image?: string;
   }>>([]);
+  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(null);
+  const [editingVariantDraft, setEditingVariantDraft] = useState<{
+    size?: string;
+    color?: string;
+    pack?: string;
+    quality?: string;
+    quantity?: string;
+  } | null>(null);
+  const [variantGroupBy, setVariantGroupBy] = useState<'size' | 'color' | 'pack' | 'quality' | 'quantity'>('size');
+  const [expandedVariantGroups, setExpandedVariantGroups] = useState<Record<string, boolean>>({});
+  const [uploadingVariantImageIndex, setUploadingVariantImageIndex] = useState<number | null>(null);
+  
+  // Edit mode variant selection and filtering
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number | null>(null);
+  const [variantSearchQuery, setVariantSearchQuery] = useState('');
+  const [variantOptionFilters, setVariantOptionFilters] = useState<Record<string, string>>({});
   
   // Stock management states
   const [showStockManagement, setShowStockManagement] = useState(false);
@@ -154,6 +170,13 @@ export default function AdminProductsPage() {
     sku: '',
     image: ''
   });
+
+  type ShopifyOption = { key: 'size' | 'pack' | 'color' | 'quality' | 'quantity'; name: string; values: string[] };
+  const [shopifyOptions, setShopifyOptions] = useState<ShopifyOption[]>([
+    { key: 'size', name: 'Size', values: [''] },
+  ]);
+  // Separate shopifyOptions for edit mode
+  const [editShopifyOptions, setEditShopifyOptions] = useState<ShopifyOption[]>([]);
   const { toast, hideToast, showError, showSuccess, showWarning, showInfo } = useToast();
 
   // Helper function to calculate inStock status based on actual stock
@@ -181,6 +204,13 @@ export default function AdminProductsPage() {
   };
   useEffect(() => { load(); }, []);
 
+  // Initialize shopifyOptions - always start with just one option (Size) for all categories
+  useEffect(() => {
+    setShopifyOptions([
+      { key: 'size', name: 'Size', values: [''] },
+    ]);
+  }, [form.category]);
+
   const createProduct = async () => {
     // Basic validation before sending to API
     const basePrice =
@@ -192,6 +222,10 @@ export default function AdminProductsPage() {
     }
     if (!form.category) {
       showWarning('Please select a category');
+      return;
+    }
+    if (form.category === 'buttons' && variantPricing.length === 0) {
+      showWarning('Please add at least one variant in the Variants section (Shopify style)');
       return;
     }
     if (basePrice <= 0) {
@@ -399,6 +433,17 @@ export default function AdminProductsPage() {
     });
     setVariantPricing(product.variantPricing || []);
     setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
+    setShopifyOptions([{ key: 'size', name: 'Size', values: [''] }]);
+    
+    // Initialize edit mode Shopify options - always start with just one option (Size) for all categories
+    setEditShopifyOptions([
+      { key: 'size', name: 'Size', values: [''] },
+    ]);
+    
+    // Reset variant selection and filters
+    setSelectedVariantIndex(product.variantPricing && product.variantPricing.length > 0 ? 0 : null);
+    setVariantSearchQuery('');
+    setVariantOptionFilters({});
   };
 
   const updateProduct = async () => {
@@ -443,6 +488,10 @@ export default function AdminProductsPage() {
       });
       setVariantPricing([]);
       setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
+      setEditShopifyOptions([]);
+      setSelectedVariantIndex(null);
+      setVariantSearchQuery('');
+      setVariantOptionFilters({});
       load(); // This will recalculate inStock for all products
     }
   };
@@ -461,7 +510,11 @@ export default function AdminProductsPage() {
       packs: [] 
     });
     setVariantPricing([]);
+    setSelectedVariantIndex(null);
+    setVariantSearchQuery('');
+    setVariantOptionFilters({});
     setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
+    setEditShopifyOptions([]);
   };
   const handleImageRemove = () => {
     setForm({ ...form, image: '' });
@@ -471,136 +524,352 @@ export default function AdminProductsPage() {
   const addVariantCombination = () => {
     const activeCategory = editingProduct ? editForm.category : form.category;
     const basePrice = editingProduct ? editForm.price : form.price;
-    const isElastic = activeCategory === 'elastic';
-    const isZipper = activeCategory === 'zipper';
-    const isSimpleOption = !isElastic && !isZipper;
-    const priceToUse = isSimpleOption
-      ? Number(basePrice || 0)
-      : (newVariant.price > 0 ? newVariant.price : Number(basePrice || 0));
+    const priceToUse = newVariant.price > 0 ? newVariant.price : Number(basePrice || 0);
     
-    if (isElastic) {
-      // For elastic: size, quality, color, quantity (meter roll)
-      if (!newVariant.size || !newVariant.quality || !newVariant.color || !newVariant.quantity) {
-        showWarning('Please fill size, quality, color, and quantity (meter roll)');
+    // Shopify-style approach for edit mode - works for all categories
+    if (editingProduct) {
+      // Get all option values (filter out empty values)
+      const optionValuesMap: Record<string, string[]> = {};
+      editShopifyOptions.forEach(opt => {
+        const values = opt.values.map(v => v.trim()).filter(Boolean);
+        if (values.length > 0) {
+          optionValuesMap[opt.key] = values;
+        }
+      });
+      
+      if (Object.keys(optionValuesMap).length === 0) {
+        showWarning('Please add at least one option value');
         return;
       }
-      if (priceToUse <= 0) {
+      
+      if (newVariant.price <= 0) {
         showWarning('Please set a valid price');
         return;
       }
       
-      const combination = {
-        size: newVariant.size,
-        quality: newVariant.quality,
-        color: newVariant.color,
-        quantity: newVariant.quantity,
-        price: priceToUse,
-        stockQty: Number(newVariant.stockQty || 0),
-        inStock: Number(newVariant.stockQty || 0) > 0,
-        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.quality || '', newVariant.quantity || ''),
-        image: newVariant.image?.trim() || undefined
+      // Generate cartesian product of all option values
+      const optionKeys = Object.keys(optionValuesMap);
+      const valueArrays = optionKeys.map(key => optionValuesMap[key]);
+      
+      // Helper function to generate cartesian product
+      const cartesian = (arrays: string[][], keys: string[]): Record<string, string>[] => {
+        if (arrays.length === 0) return [{}];
+        if (arrays.length === 1) {
+          return arrays[0].map(v => ({ [keys[0]]: v }));
+        }
+        const result: Record<string, string>[] = [];
+        const first = arrays[0];
+        const rest = cartesian(arrays.slice(1), keys.slice(1));
+        for (const f of first) {
+          for (const r of rest) {
+            result.push({ [keys[0]]: f, ...r });
+          }
+        }
+        return result;
       };
       
-      setVariantPricing([...variantPricing, combination]);
-      // Reset to empty values (no prefill)
-      setNewVariant({ 
-        size: '', 
-        color: '', 
-        pack: '', 
-        quality: '', 
-        quantity: '', 
-        values: [''],
-        price: 0, 
-        stockQty: 0, 
-        sku: '', 
-        image: '' 
-      });
+      const combinations = cartesian(valueArrays, optionKeys);
+      
+      // Build variants from combinations
+      const newVariants: typeof variantPricing = [];
+      for (const combo of combinations) {
+        const variant: any = {
+          price: newVariant.price,
+          stockQty: Number(newVariant.stockQty || 0),
+          inStock: Number(newVariant.stockQty || 0) > 0,
+          sku: generateVariantSKU(editingProduct?._id || 'new', combo.size || '', combo.color || '', combo.pack || ''),
+          image: newVariant.image?.trim() || undefined
+        };
+        
+        // Add all option fields
+        optionKeys.forEach(key => {
+          variant[key] = combo[key];
+        });
+        
+        // Check if combination already exists
+        const exists = variantPricing.some(v => {
+          return optionKeys.every(key => {
+            const variantValue = (v as any)[key] || '';
+            const newValue = variant[key] || '';
+            return String(variantValue).trim() === String(newValue).trim();
+          });
+        });
+        
+        if (!exists) {
+          newVariants.push(variant);
+        }
+      }
+      
+      if (newVariants.length === 0) {
+        showInfo('All variant combinations already exist');
+        return;
+      }
+      
+      const updatedVariants = [...variantPricing, ...newVariants];
+      setVariantPricing(updatedVariants);
+      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
+      // Reset option values but keep option names
+      setEditShopifyOptions(editShopifyOptions.map(opt => ({ ...opt, values: [''] })));
+      // Select the first newly added variant
+      setSelectedVariantIndex(variantPricing.length);
+      showSuccess(`Added ${newVariants.length} variant(s)`);
       return;
     }
     
-    if (isZipper) {
-      // For zipper: size, color, quantity
-      if (!newVariant.size || !newVariant.quantity) {
-        showWarning('Please fill size and quantity');
-        return;
+    // Shopify-style for ALL categories in create mode
+    // Get all option values (filter out empty values)
+    const optionValuesMap: Record<string, string[]> = {};
+    shopifyOptions.forEach(opt => {
+      const values = opt.values.map(v => v.trim()).filter(Boolean);
+      if (values.length > 0) {
+        optionValuesMap[opt.key] = values;
       }
-      if (priceToUse <= 0) {
-        showWarning('Please set a valid price');
-        return;
+    });
+    
+    if (Object.keys(optionValuesMap).length === 0) {
+      showWarning('Please add at least one option value');
+      return;
+    }
+    
+    if (priceToUse <= 0) {
+      showWarning('Please set a valid price');
+      return;
+    }
+    
+    // Generate cartesian product of all option values
+    const optionKeys = Object.keys(optionValuesMap);
+    const valueArrays = optionKeys.map(key => optionValuesMap[key]);
+    
+    // Helper function to generate cartesian product
+    const cartesian = (arrays: string[][], keys: string[]): Record<string, string>[] => {
+      if (arrays.length === 0) return [{}];
+      if (arrays.length === 1) {
+        return arrays[0].map(v => ({ [keys[0]]: v }));
       }
-      
-      const combination = {
-        size: newVariant.size,
-        color: newVariant.color || undefined,
-        quantity: newVariant.quantity,
+      const result: Record<string, string>[] = [];
+      const first = arrays[0];
+      const rest = cartesian(arrays.slice(1), keys.slice(1));
+      for (const f of first) {
+        for (const r of rest) {
+          result.push({ [keys[0]]: f, ...r });
+        }
+      }
+      return result;
+    };
+    
+    const combinations = cartesian(valueArrays, optionKeys);
+    
+    // Build variants from combinations
+    const newVariants: typeof variantPricing = [];
+    for (const combo of combinations) {
+      const variant: any = {
         price: priceToUse,
         stockQty: Number(newVariant.stockQty || 0),
         inStock: Number(newVariant.stockQty || 0) > 0,
-        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', newVariant.quantity || ''),
+        sku: generateVariantSKU('new', combo.size || '', combo.color || '', combo.pack || ''),
         image: newVariant.image?.trim() || undefined
       };
+      
+      // Add all option fields
+      optionKeys.forEach(key => {
+        variant[key] = combo[key];
+      });
       
       // Check if combination already exists
-      const exists = variantPricing.some(v => 
-        v.size === combination.size && 
-        (v.color || '') === (combination.color || '') && 
-        (v as any).quantity === combination.quantity
-      );
-
-      if (exists) {
-        showInfo('This combination already exists');
-        return;
-      }
+      const exists = variantPricing.some(v => {
+        return optionKeys.every(key => {
+          const variantValue = (v as any)[key] || '';
+          const newValue = variant[key] || '';
+          return String(variantValue).trim() === String(newValue).trim();
+        });
+      });
       
-      setVariantPricing([...variantPricing, combination]);
-      setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
-      showSuccess('Variant added successfully');
+      if (!exists) {
+        newVariants.push(variant);
+      }
+    }
+    
+    if (newVariants.length === 0) {
+      showInfo('All variant combinations already exist');
       return;
     }
     
-    // For other categories: size, color, pack
-    const valuesToAdd = (newVariant.values || []).map((v) => v.trim()).filter(Boolean);
-    if (!newVariant.size || valuesToAdd.length === 0) {
-      showWarning('Please fill option and at least one value');
-      return;
-    }
-
-    const newVariants: typeof variantPricing = [];
-    for (const value of valuesToAdd) {
-      const combination = {
-        size: newVariant.size,
-        color: newVariant.color || undefined,
-        pack: value,
-        price: priceToUse,
-        stockQty: Number(newVariant.stockQty || 0),
-        inStock: Number(newVariant.stockQty || 0) > 0,
-        sku: generateVariantSKU(editingProduct?._id || 'new', newVariant.size, newVariant.color || '', value),
-        image: newVariant.image?.trim() || undefined
-      };
-
-      const exists = variantPricing.some(v => 
-        v.size === combination.size && 
-        (v.color || '') === (combination.color || '') && 
-        v.pack === combination.pack
-      );
-
-      if (!exists) {
-        newVariants.push(combination);
-      }
-    }
-
-    if (newVariants.length === 0) {
-      showInfo('All values already exist for this option');
-      return;
-    }
-
     setVariantPricing([...variantPricing, ...newVariants]);
     showSuccess(`Added ${newVariants.length} variant(s)`);
     setNewVariant({ size: '', color: '', pack: '', quality: '', quantity: '', values: [''], price: 0, stockQty: 0, sku: '', image: '' });
+    // Reset option values but keep option names
+    setShopifyOptions(shopifyOptions.map(opt => ({ ...opt, values: [''] })));
   };
 
   const removeVariantCombination = (index: number) => {
     setVariantPricing(variantPricing.filter((_, i) => i !== index));
+  };
+
+  const getVariantOptionDefs = useCallback(() => {
+    const activeCategory = editingProduct ? editForm.category : form.category;
+
+    // Shopify-style names for buttons
+    const sizeName =
+      shopifyOptions.find((o) => o.key === 'size')?.name?.trim() || 'Option';
+    const packName =
+      shopifyOptions.find((o) => o.key === 'pack')?.name?.trim() || 'Value';
+
+    if (activeCategory === 'elastic') {
+      const hasQuality = variantPricing.some((v) => Boolean(v.quality));
+      const hasQuantity = variantPricing.some((v) => Boolean(v.quantity));
+      return [
+        { key: 'size' as const, label: 'size' },
+        { key: 'color' as const, label: 'color' },
+        ...(hasQuality ? [{ key: 'quality' as const, label: 'quality' }] : []),
+        ...(hasQuantity ? [{ key: 'quantity' as const, label: 'quantity' }] : []),
+      ];
+    }
+
+    if (activeCategory === 'zipper') {
+      const hasQuantity = variantPricing.some((v) => Boolean((v as any).quantity));
+      return [
+        { key: 'size' as const, label: 'size' },
+        { key: 'color' as const, label: 'color' },
+        ...(hasQuantity ? [{ key: 'quantity' as const, label: 'quantity' }] : []),
+      ];
+    }
+
+    // buttons + other categories
+    const hasPack = variantPricing.some((v) => Boolean(v.pack));
+    return [
+      { key: 'size' as const, label: sizeName },
+      ...(hasPack ? [{ key: 'pack' as const, label: packName }] : []),
+    ];
+  }, [editForm.category, editingProduct, form.category, shopifyOptions, variantPricing]);
+
+  const getDistinctOptionValues = useCallback(
+    (key: 'size' | 'color' | 'pack' | 'quality' | 'quantity') => {
+      const vals = new Set<string>();
+      for (const v of variantPricing) {
+        const raw = (v as any)[key];
+        const s = typeof raw === 'string' ? raw.trim() : '';
+        if (s) vals.add(s);
+      }
+      return Array.from(vals).sort((a, b) => a.localeCompare(b));
+    },
+    [variantPricing]
+  );
+
+  const getVariantCompactLabel = useCallback(
+    (
+      variant: {
+        size?: string;
+        color?: string;
+        pack?: string;
+        quality?: string;
+        quantity?: string;
+      },
+      excludeKey?: 'size' | 'color' | 'pack' | 'quality' | 'quantity'
+    ) => {
+      const parts: string[] = [];
+      const push = (k: typeof excludeKey, v?: string) => {
+        if (excludeKey === k) return;
+        const s = (v || '').trim();
+        if (s) parts.push(s);
+      };
+      push('size', variant.size);
+      push('color', variant.color);
+      push('quality', variant.quality);
+      push('quantity', (variant as any).quantity);
+      push('pack', variant.pack);
+      return parts.join(' • ') || '—';
+    },
+    []
+  );
+
+  const startEditVariant = (index: number) => {
+    const v = variantPricing[index];
+    setEditingVariantIndex(index);
+    setEditingVariantDraft({
+      size: v.size,
+      color: v.color,
+      pack: v.pack,
+      quality: v.quality,
+      quantity: (v as any).quantity,
+    });
+  };
+
+  const cancelEditVariant = () => {
+    setEditingVariantIndex(null);
+    setEditingVariantDraft(null);
+  };
+
+  const uploadVariantImageForIndex = async (index: number, file: File) => {
+    setUploadingVariantImageIndex(index);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data?.imageUrl) {
+        const newVariants = [...variantPricing];
+        newVariants[index] = { ...newVariants[index], image: data.imageUrl };
+        setVariantPricing(newVariants);
+        showSuccess('Variant image uploaded');
+      } else {
+        showError(data?.error || 'Failed to upload variant image');
+      }
+    } catch (error) {
+      console.error('Variant image upload error:', error);
+      showError('Something went wrong while uploading the variant image');
+    } finally {
+      setUploadingVariantImageIndex(null);
+    }
+  };
+
+  const saveEditVariant = () => {
+    if (editingVariantIndex === null || !editingVariantDraft) return;
+
+    const idx = editingVariantIndex;
+    const current = variantPricing[idx];
+    const activeCategory = editingProduct ? editForm.category : form.category;
+
+    const next = {
+      ...current,
+      size: editingVariantDraft.size || undefined,
+      color: editingVariantDraft.color || undefined,
+      pack: editingVariantDraft.pack || undefined,
+      quality: editingVariantDraft.quality || undefined,
+      quantity: editingVariantDraft.quantity || undefined,
+    } as any;
+
+    // regenerate SKU when key option fields change
+    if (activeCategory === 'elastic') {
+      next.sku = generateVariantSKU(
+        editingProduct?._id || 'new',
+        next.size || '',
+        next.quality || '',
+        next.quantity || ''
+      );
+    } else if (activeCategory === 'zipper') {
+      next.sku = generateVariantSKU(
+        editingProduct?._id || 'new',
+        next.size || '',
+        next.color || '',
+        next.quantity || ''
+      );
+    } else {
+      next.sku = generateVariantSKU(
+        editingProduct?._id || 'new',
+        next.size || '',
+        '',
+        next.pack || ''
+      );
+    }
+
+    const newVariants = [...variantPricing];
+    newVariants[idx] = next;
+    setVariantPricing(newVariants);
+    showSuccess('Variant updated');
+    cancelEditVariant();
   };
 
   // Stock management functions
@@ -849,122 +1118,6 @@ export default function AdminProductsPage() {
                 </div>
               </div>
             </div>
-            {/* Single Product Variant Fields - Always Visible */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Product Details</h3>
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                {form.category === 'elastic' ? (
-                  /* Elastic Category: Size / Quality / Color / Quantity (meter rolls) */
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.size}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, size: e.target.value })}
-                        placeholder="e.g., 10mm (16L), 12mm (20L)"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Quality</label>
-                      <select
-                        value={singleProductVariant.quality}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, quality: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Quality</option>
-                        <option value="Woven">Woven</option>
-                        <option value="Knitted">Knitted</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                      <select
-                        value={singleProductVariant.color}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, color: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Color</option>
-                        <option value="Black">Black</option>
-                        <option value="White">White</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (meter roll)</label>
-                      <select
-                        value={singleProductVariant.quantity}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, quantity: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select Roll Size</option>
-                        <option value="25 mtr roll">25 mtr roll</option>
-                        <option value="30 mtr roll">30 mtr roll</option>
-                      </select>
-                    </div>
-                  </div>
-                ) : form.category === 'zipper' ? (
-                  /* Zipper Category: Size / Color / Quantity */
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.size}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, size: e.target.value })}
-                        placeholder="e.g., 5 inch, 7 inch, 9 inch"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.color}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, color: e.target.value })}
-                        placeholder="Enter color"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.quantity}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, quantity: e.target.value })}
-                        placeholder="e.g., 1, 5, 10"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  /* Other Categories: Option / Value */
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Option</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.size}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, size: e.target.value })}
-                        placeholder="e.g., 16L, 18L"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
-                      <input
-                        type="text"
-                        value={singleProductVariant.pack}
-                        onChange={(e) => setSingleProductVariant({ ...singleProductVariant, pack: e.target.value })}
-                        placeholder="e.g., 72, 144"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Add one value (like Shopify)</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Variant Management Section - Collapsible */}
             <div>
@@ -984,145 +1137,67 @@ export default function AdminProductsPage() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="font-medium text-gray-800 mb-4">Add Variant Combination</h4>
             <div className="space-y-4">
-              {/* Conditional Fields Based on Category */}
-              {form.category === 'elastic' ? (
-                /* Elastic Category: Size / Quality / Color / Quantity (meter rolls) */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Size <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={newVariant.size}
-                      onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                      placeholder="e.g., 10mm (16L), 12mm (20L)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter custom size</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quality <span className="text-red-500">*</span></label>
-                    <select
-                      value={newVariant.quality}
-                      onChange={(e) => setNewVariant({ ...newVariant, quality: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Quality</option>
-                      <option value="Woven">Woven</option>
-                      <option value="Knitted">Knitted</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-red-500">*</span></label>
-                    <select
-                      value={newVariant.color}
-                      onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Color</option>
-                      <option value="Black">Black</option>
-                      <option value="White">White</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (meter roll) <span className="text-red-500">*</span></label>
-                    <select
-                      value={newVariant.quantity}
-                      onChange={(e) => setNewVariant({ ...newVariant, quantity: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Roll Size</option>
-                      <option value="25 mtr roll">25 mtr roll</option>
-                      <option value="30 mtr roll">30 mtr roll</option>
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">Select meter roll size</p>
-                  </div>
-                </div>
-              ) : form.category === 'zipper' ? (
-                /* Zipper Category: Size / Color / Quantity */
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Size <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={newVariant.size}
-                      onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                      placeholder="e.g., 5 inch, 7 inch, 9 inch"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter zipper size</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-gray-400 text-xs">(Optional)</span></label>
-                    <input
-                      type="text"
-                      value={newVariant.color}
-                      onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                      placeholder="Enter color"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={newVariant.quantity}
-                      onChange={(e) => setNewVariant({ ...newVariant, quantity: e.target.value })}
-                      placeholder="e.g., 1, 5, 10"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter quantity</p>
-                  </div>
-                </div>
-              ) : (
-                /* Other Categories: Option / Value */
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Option</label>
-                    <input
-                      type="text"
-                      value={newVariant.size}
-                      onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                      placeholder="e.g., 16L, 18L"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Value <span className="text-red-500">*</span></label>
+              {/* Shopify-style Options for ALL categories */}
+              <div className="space-y-6">
+                {shopifyOptions.map((opt, optIdx) => (
+                  <div key={opt.key} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Option name</label>
+                        <input
+                          type="text"
+                          value={opt.name}
+                          onChange={(e) => {
+                            const next = [...shopifyOptions];
+                            next[optIdx] = { ...opt, name: e.target.value };
+                            setShopifyOptions(next);
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="e.g., Size"
+                        />
+                      </div>
+                      {optIdx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setShopifyOptions(shopifyOptions.filter((_, i) => i !== optIdx))}
+                          className="text-sm text-red-600 hover:text-red-700"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Option values</label>
                     <div className="space-y-2">
-                      {(newVariant.values || ['']).map((value, index) => (
-                        <div key={index} className="flex items-center gap-2">
+                      {opt.values.map((value, valIdx) => (
+                        <div key={valIdx} className="flex items-center gap-2">
                           <input
                             type="text"
                             value={value}
                             onChange={(e) => {
-                              const next = [...(newVariant.values || [''])];
-                              next[index] = e.target.value;
-                              // Ensure there is always a trailing empty input (Shopify style)
-                              const trimmed = next.map((v) => v.trim());
-                              const hasTrailingEmpty = trimmed[trimmed.length - 1] === '';
-                              if (!hasTrailingEmpty) next.push('');
-                              setNewVariant({ ...newVariant, values: next });
+                              const next = [...shopifyOptions];
+                              const values = [...opt.values];
+                              values[valIdx] = e.target.value;
+                              const trimmed = values.map((v) => v.trim());
+                              if (trimmed[trimmed.length - 1] !== '') values.push('');
+                              next[optIdx] = { ...opt, values };
+                              setShopifyOptions(next);
                             }}
-                            placeholder={index === 0 ? 'e.g., 72' : 'Add another value'}
+                            placeholder={valIdx === 0 ? 'e.g., 10mm' : 'Add another value'}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
-                          {((newVariant.values || []).length > 1 || value.trim() !== '') && (
+                          {(opt.values.length > 1 || value.trim() !== '') && (
                             <button
                               type="button"
                               onClick={() => {
-                                const next = [...(newVariant.values || [''])];
-                                next.splice(index, 1);
-                                if (next.length === 0) next.push('');
-                                // Keep trailing empty
-                                const trimmed = next.map((v) => v.trim());
-                                if (trimmed[trimmed.length - 1] !== '') next.push('');
-                                setNewVariant({ ...newVariant, values: next });
+                                const next = [...shopifyOptions];
+                                const values = [...opt.values];
+                                values.splice(valIdx, 1);
+                                if (values.length === 0) values.push('');
+                                const trimmed = values.map((v) => v.trim());
+                                if (trimmed[trimmed.length - 1] !== '') values.push('');
+                                next[optIdx] = { ...opt, values };
+                                setShopifyOptions(next);
                               }}
                               className="px-2 py-2 text-gray-500 hover:text-gray-700"
                               aria-label="Remove value"
@@ -1133,10 +1208,27 @@ export default function AdminProductsPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Type a value and a new row will appear automatically</p>
                   </div>
-                </div>
-              )}
+                ))}
+
+                {shopifyOptions.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Find next available key
+                      const usedKeys = shopifyOptions.map(o => o.key);
+                      const availableKeys: Array<'size' | 'pack' | 'color' | 'quality' | 'quantity'> = ['size', 'pack', 'color', 'quality', 'quantity'];
+                      const nextKey = availableKeys.find(k => !usedKeys.includes(k));
+                      if (nextKey) {
+                        setShopifyOptions([...shopifyOptions, { key: nextKey, name: nextKey.charAt(0).toUpperCase() + nextKey.slice(1), values: [''] }]);
+                      }
+                    }}
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    + Add another option
+                  </button>
+                )}
+              </div>
 
               {form.category === 'elastic' || form.category === 'zipper' ? (
                 <>
@@ -1234,178 +1326,348 @@ export default function AdminProductsPage() {
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">
-                {variantPricing.length}
-              </span>
-              Variant{variantPricing.length !== 1 ? 's' : ''}
-            </h4>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">
+                  {variantPricing.length}
+                </span>
+                Variants
+              </h4>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-500 font-medium">Group by</label>
+                <select
+                  value={variantGroupBy}
+                  onChange={(e) => setVariantGroupBy(e.target.value as any)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                >
+                  {getVariantOptionDefs().map((d) => (
+                    <option key={d.key} value={d.key}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Shopify-like options box */}
+            <div className="border border-gray-200 rounded-lg p-3 mb-4 bg-white">
+              <div className="space-y-3">
+                {getVariantOptionDefs().map((d) => {
+                  const values = getDistinctOptionValues(d.key);
+                  if (values.length === 0) return null;
+                  return (
+                    <div key={d.key} className="flex items-start gap-3">
+                      <div className="w-28 text-sm font-medium text-gray-800 capitalize">{d.label}</div>
+                      <div className="flex flex-wrap gap-2">
+                        {values.map((v) => (
+                          <span key={v} className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded border border-gray-200">
+                            {v}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="text-xs text-gray-400 cursor-not-allowed flex items-center gap-2"
+                  disabled
+                  title="Add option will come next (UI only for now)"
+                >
+                  <span className="text-base leading-none">+</span> Add another option
+                </button>
+              </div>
+            </div>
+
             {variantPricing.length > 0 ? (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {variantPricing.map((variant, index) => (
-                  <div key={index} className="bg-gray-50 p-3 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 flex items-start space-x-4 flex-wrap gap-2">
-                        {/* Variant Image Preview */}
-                        {variant.image && (
-                          <div className="relative">
-                            <img
-                              src={variant.image}
-                              alt={`${variant.size} ${variant.color || ''} ${variant.pack}`}
-                              className="w-16 h-16 object-cover rounded border"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        )}
-                        
-                        <div className="flex flex-col space-y-2 flex-1">
-                          <div className="flex items-center space-x-2 flex-wrap gap-2">
-                            <span className="text-sm font-semibold text-gray-800">{variant.size}</span>
-                            {form.category === 'elastic' ? (
-                              <>
-                                {variant.quality && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    Quality: {variant.quality}
-                                  </span>
-                                )}
-                                {variant.color && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    Color: {variant.color}
-                                  </span>
-                                )}
-                                {variant.quantity && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    {variant.quantity}
-                                  </span>
-                                )}
-                              </>
-                            ) : form.category === 'zipper' ? (
-                              <>
-                                {variant.color && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    {variant.color}
-                                  </span>
-                                )}
-                                {(variant as any).quantity && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    Qty: {(variant as any).quantity}
-                                  </span>
-                                )}
-                              </>
-                            ) : (
-                              <>
-                                {variant.size && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    Option: {variant.size}
-                                  </span>
-                                )}
-                                {variant.pack && (
-                                  <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                    Value: {variant.pack}
-                                  </span>
-                                )}
-                              </>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                {/* Table header */}
+                <div className="grid grid-cols-12 gap-2 px-3 py-2 bg-gray-50 text-xs font-medium text-gray-600">
+                  <div className="col-span-5">Variant</div>
+                  <div className="col-span-3">Price</div>
+                  <div className="col-span-2">Available</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
+
+                {(() => {
+                  const groups = new Map<
+                    string,
+                    { label: string; items: Array<{ variant: any; index: number }> }
+                  >();
+                  variantPricing.forEach((variant, index) => {
+                    const raw = (variant as any)[variantGroupBy];
+                    const label = (typeof raw === 'string' ? raw.trim() : '') || '—';
+                    const key = `${variantGroupBy}:${label}`;
+                    const g = groups.get(key) || { label, items: [] as any[] };
+                    g.items.push({ variant, index });
+                    groups.set(key, g);
+                  });
+
+                  const sorted = Array.from(groups.values()).sort((a, b) => a.label.localeCompare(b.label));
+
+                  return (
+                    <div className="divide-y divide-gray-200">
+                      {sorted.map((g) => {
+                        const groupKey = `${variantGroupBy}:${g.label}`;
+                        const isExpanded = expandedVariantGroups[groupKey] ?? true;
+                        return (
+                          <div key={groupKey}>
+                            {/* Group row */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedVariantGroups((p) => ({ ...p, [groupKey]: !(p[groupKey] ?? true) }))
+                              }
+                              className="w-full grid grid-cols-12 gap-2 px-3 py-2 bg-white hover:bg-gray-50 text-left"
+                            >
+                              <div className="col-span-5 flex items-center gap-2">
+                                <span className="text-gray-500">{isExpanded ? '▾' : '▸'}</span>
+                                <span className="text-sm font-medium text-gray-900">{g.label}</span>
+                                <span className="text-xs text-gray-500">{g.items.length} variants</span>
+                              </div>
+                              <div className="col-span-3" />
+                              <div className="col-span-2" />
+                              <div className="col-span-2" />
+                            </button>
+
+                            {/* Children */}
+                            {isExpanded && (
+                              <div className="divide-y divide-gray-100">
+                                {g.items.map(({ variant, index }) => (
+                                  <div key={`${groupKey}:${index}`} className="grid grid-cols-12 gap-2 px-3 py-2 bg-white">
+                                    <div className="col-span-5 flex items-center gap-3">
+                                      {variant.image ? (
+                                        <img
+                                          src={variant.image}
+                                          alt={getVariantCompactLabel(variant)}
+                                          className="w-8 h-8 rounded border object-cover"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded border bg-gray-50" />
+                                      )}
+                                      <div className="min-w-0">
+                                        <div className="text-sm text-gray-900 truncate">
+                                          {getVariantCompactLabel(variant, variantGroupBy)}
+                                        </div>
+
+                                        {editingVariantIndex === index && editingVariantDraft && (
+                                          <div className="mt-2 bg-white border border-gray-200 rounded-md p-3">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                              {form.category === 'elastic' ? (
+                                                <>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Size</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.size || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), size: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Quality</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.quality || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), quality: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.color || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), color: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                  <div className="md:col-span-3">
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.quantity || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), quantity: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                </>
+                                              ) : form.category === 'zipper' ? (
+                                                <>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Size</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.size || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), size: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.color || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), color: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.quantity || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), quantity: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Option</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.size || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), size: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Value</label>
+                                                    <input
+                                                      type="text"
+                                                      value={editingVariantDraft.pack || ''}
+                                                      onChange={(e) => setEditingVariantDraft((p) => ({ ...(p || {}), pack: e.target.value }))}
+                                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                  </div>
+                                                </>
+                                              )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2 mt-3">
+                                              <button
+                                                type="button"
+                                                onClick={saveEditVariant}
+                                                className="text-xs font-medium px-3 py-1 rounded bg-primary-600 text-white hover:bg-primary-700"
+                                              >
+                                                Save
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={cancelEditVariant}
+                                                className="text-xs font-medium px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
+                                              >
+                                                Cancel
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-3">
+                                      <div className="flex items-center">
+                                        <span className="text-xs text-gray-500 mr-1">₹</span>
+                                        <input
+                                          type="number"
+                                          value={variant.price || 0}
+                                          onChange={(e) => {
+                                            const newVariants = [...variantPricing];
+                                            newVariants[index] = { ...variant, price: Number(e.target.value) };
+                                            setVariantPricing(newVariants);
+                                          }}
+                                          className="w-full max-w-[140px] px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                          min="0"
+                                          step="0.01"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                      <input
+                                        type="number"
+                                        value={variant.stockQty || 0}
+                                        onChange={(e) => {
+                                          const newVariants = [...variantPricing];
+                                          newVariants[index] = {
+                                            ...variant,
+                                            stockQty: Number(e.target.value),
+                                            inStock: Number(e.target.value) > 0,
+                                          };
+                                          setVariantPricing(newVariants);
+                                        }}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        min="0"
+                                      />
+                                    </div>
+
+                                    <div className="col-span-2 flex items-center justify-end">
+                                      <div className="flex items-center gap-4 text-xs font-medium">
+                                        <label className="text-gray-700 hover:text-gray-900 cursor-pointer">
+                                          {uploadingVariantImageIndex === index ? 'Uploading…' : 'Image'}
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            disabled={uploadingVariantImageIndex === index}
+                                            onChange={async (e) => {
+                                              const file = e.target.files?.[0];
+                                              if (!file) return;
+                                              await uploadVariantImageForIndex(index, file);
+                                              e.target.value = '';
+                                            }}
+                                          />
+                                        </label>
+
+                                        {editingVariantIndex !== index ? (
+                                          <button
+                                            type="button"
+                                            onClick={() => startEditVariant(index)}
+                                            className="text-primary-600 hover:text-primary-800"
+                                          >
+                                            Edit
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={cancelEditVariant}
+                                            className="text-primary-600 hover:text-primary-800"
+                                          >
+                                            Close
+                                          </button>
+                                        )}
+
+                                        <button
+                                          type="button"
+                                          onClick={() => removeVariantCombination(index)}
+                                          className="text-red-600 hover:text-red-800"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
-                          
-                          <div className="flex items-center space-x-4 flex-wrap gap-2">
-                            <div className="flex items-center space-x-2">
-                              <label className="text-xs text-gray-500 font-medium">Price:</label>
-                              <div className="flex items-center">
-                                <span className="text-xs text-gray-500 mr-1">₹</span>
-                                <input
-                                  type="number"
-                                  value={variant.price || 0}
-                                  onChange={(e) => {
-                                    const newVariants = [...variantPricing];
-                                    newVariants[index] = { ...variant, price: Number(e.target.value) };
-                                    setVariantPricing(newVariants);
-                                  }}
-                                  className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                  min="0"
-                                  step="0.01"
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              <label className="text-xs text-gray-500 font-medium">Stock:</label>
-                              <input
-                                type="number"
-                                value={variant.stockQty || 0}
-                                onChange={(e) => {
-                                  const newVariants = [...variantPricing];
-                                  newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
-                                  setVariantPricing(newVariants);
-                                }}
-                                className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                min="0"
-                              />
-                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                {variant.inStock ? 'In Stock' : 'Out of Stock'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Variant Image Upload */}
-                          <div className="flex items-center space-x-2">
-                            <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Variant Image:</label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                setIsUploadingVariantImage(true);
-                                try {
-                                  const formData = new FormData();
-                                  formData.append('image', file);
-                                  const res = await fetch('/api/admin/upload-image', {
-                                    method: 'POST',
-                                    body: formData,
-                                  });
-                                  const data = await res.json();
-                                  if (res.ok && data?.imageUrl) {
-                                    const newVariants = [...variantPricing];
-                                    newVariants[index] = { ...variant, image: data.imageUrl };
-                                    setVariantPricing(newVariants);
-                                    showSuccess('Variant image uploaded');
-                                  } else {
-                                    showError(data?.error || 'Failed to upload variant image');
-                                  }
-                                } catch (error) {
-                                  console.error('Variant image upload error:', error);
-                                  showError('Something went wrong while uploading the variant image');
-                                } finally {
-                                  setIsUploadingVariantImage(false);
-                                  e.target.value = '';
-                                }
-                              }}
-                              className="flex-1 text-xs text-gray-700"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <button
-                        type="button"
-                        onClick={() => removeVariantCombination(index)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1 hover:bg-red-50 rounded transition-colors whitespace-nowrap"
-                      >
-                        Remove
-                      </button>
+                        );
+                      })}
                     </div>
-                  </div>
-                ))}
+                  );
+                })()}
               </div>
             ) : (
               <div className="text-center py-6 text-gray-400 text-sm">
                 <p>No variants added yet. Add your first variant above.</p>
               </div>
             )}
-            </div>
+          </div>
           </>
           )}
           </div>
@@ -1993,410 +2255,459 @@ export default function AdminProductsPage() {
                   />
                 </div>
 
-                {/* Variant Pricing System for Edit */}
-                <div className="mt-4 space-y-4">
-                  <h4 className="font-semibold text-gray-700">Product Variants with Pricing</h4>
+                {/* Variant Pricing System for Edit - Shopify-like Split Layout */}
+                <div className="mt-4">
+                  <h4 className="font-semibold text-gray-700 mb-4">Product Variants</h4>
                   
-                  {/* Add New Variant Combination */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h5 className="font-medium text-gray-800 mb-3">Add Variant Combination</h5>
-                    <div className="space-y-3">
-                      {editForm.category === 'elastic' ? (
-                        /* Elastic Category: Size / Quality / Color / Quantity (meter rolls) */
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Size <span className="text-red-500">*</span></label>
-                            <input
-                              type="text"
-                              value={newVariant.size}
-                              onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                              placeholder="e.g., 10mm (16L), 12mm (20L)"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Sidebar - Variant List */}
+                    <div className="lg:col-span-1 border border-gray-200 rounded-lg bg-white">
+                      {/* Product Header */}
+                      <div className="p-4 border-b border-gray-200">
+                        <div className="flex items-center gap-3 mb-2">
+                          {editForm.image && (
+                            <img
+                              src={editForm.image}
+                              alt={editForm.name}
+                              className="w-10 h-10 rounded object-cover"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Enter custom size</p>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Quality <span className="text-red-500">*</span></label>
-                            <select
-                              value={newVariant.quality}
-                              onChange={(e) => setNewVariant({ ...newVariant, quality: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="">Select Quality</option>
-                              <option value="Woven">Woven</option>
-                              <option value="Knitted">Knitted</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Color <span className="text-red-500">*</span></label>
-                            <select
-                              value={newVariant.color}
-                              onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="">Select Color</option>
-                              <option value="Black">Black</option>
-                              <option value="White">White</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (meter roll) <span className="text-red-500">*</span></label>
-                            <select
-                              value={newVariant.quantity}
-                              onChange={(e) => setNewVariant({ ...newVariant, quantity: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="">Select Roll Size</option>
-                              <option value="25 mtr roll">25 mtr roll</option>
-                              <option value="30 mtr roll">30 mtr roll</option>
-                            </select>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-sm font-medium text-gray-900 truncate">{editForm.name}</h5>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                editForm.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {editForm.status === 'active' ? 'Active' : 'Draft'}
+                              </span>
+                              <span className="text-xs text-gray-500">{variantPricing.length} variant{variantPricing.length !== 1 ? 's' : ''}</span>
+                            </div>
                           </div>
                         </div>
-                      ) : (
-                        /* Other Categories: Size / Color / Pack */
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Option</label>
-                            <input
-                              type="text"
-                              value={newVariant.size}
-                              onChange={(e) => setNewVariant({ ...newVariant, size: e.target.value })}
-                              placeholder="e.g., 16L, 18L"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Value <span className="text-red-500">*</span></label>
-                            <input
-                              type="text"
-                              value={newVariant.pack}
-                              onChange={(e) => setNewVariant({ ...newVariant, pack: e.target.value })}
-                              placeholder="e.g., 72, 144"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Add one value (like Shopify)</p>
-                          </div>
+                      </div>
+
+                      {/* Search */}
+                      <div className="p-4 border-b border-gray-200">
+                        <div className="relative">
+                          <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                          <input
+                            type="text"
+                            value={variantSearchQuery}
+                            onChange={(e) => setVariantSearchQuery(e.target.value)}
+                            placeholder="Search variants"
+                            className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Option Filters */}
+                      {getVariantOptionDefs().length > 0 && (
+                        <div className="p-4 border-b border-gray-200 space-y-3">
+                          {getVariantOptionDefs().map((opt) => {
+                            const values = getDistinctOptionValues(opt.key);
+                            if (values.length === 0) return null;
+                            return (
+                              <div key={opt.key}>
+                                <label className="block text-xs font-medium text-gray-700 mb-1 capitalize">{opt.label}</label>
+                                <select
+                                  value={variantOptionFilters[opt.key] || ''}
+                                  onChange={(e) => setVariantOptionFilters({ ...variantOptionFilters, [opt.key]: e.target.value })}
+                                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                                >
+                                  <option value="">All {opt.label}</option>
+                                  {values.map((v) => (
+                                    <option key={v} value={v}>{v}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
-                      {/* Row 2: Price / Stock / Add button */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
-                          <input
-                            type="number"
-                            value={newVariant.price}
-                            onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0"
-                            min="0"
-                          />
+                      {/* Variant List */}
+                      <div className="p-2">
+                        <div className="text-xs font-medium text-gray-700 px-2 py-1 mb-2">
+                          {variantPricing.length} variant{variantPricing.length !== 1 ? 's' : ''}
                         </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-                          <input
-                            type="number"
-                            value={newVariant.stockQty}
-                            onChange={(e) => setNewVariant({ ...newVariant, stockQty: Number(e.target.value) })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0"
-                            min="0"
-                          />
-                        </div>
-                        
-                        <div className="flex items-end">
-                          <button
-                            type="button"
-                            onClick={addVariantCombination}
-                            className="w-full bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
-                          >
-                            Add Variant
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* Variant Image Upload */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Variant Image <span className="text-gray-400 text-xs">(Optional)</span>
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            setIsUploadingVariantImage(true);
-                            try {
-                              const formData = new FormData();
-                              formData.append('image', file);
-                              const res = await fetch('/api/admin/upload-image', {
-                                method: 'POST',
-                                body: formData,
+                        <div className="space-y-1 max-h-96 overflow-y-auto">
+                          {(() => {
+                            // Filter variants based on search and option filters
+                            let filtered = variantPricing;
+                            
+                            // Apply search filter
+                            if (variantSearchQuery.trim()) {
+                              const query = variantSearchQuery.toLowerCase();
+                              filtered = filtered.filter((v) => {
+                                const label = getVariantCompactLabel(v).toLowerCase();
+                                return label.includes(query);
                               });
-                              const data = await res.json();
-                              if (res.ok && data?.imageUrl) {
-                                setNewVariant((prev) => ({ ...prev, image: data.imageUrl }));
-                                showSuccess('Variant image uploaded');
-                              } else {
-                                showError(data?.error || 'Failed to upload variant image');
-                              }
-                            } catch (error) {
-                              console.error('Variant image upload error:', error);
-                              showError('Something went wrong while uploading the variant image');
-                            } finally {
-                              setIsUploadingVariantImage(false);
-                              e.target.value = '';
                             }
-                          }}
-                          className="w-full text-sm text-gray-700"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Leave empty to use product image</p>
-                        {isUploadingVariantImage && (
-                          <p className="text-xs text-primary-600 mt-1">Uploading variant image...</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Display Added Variants - Always Visible */}
-                  <div className="bg-white border-2 border-blue-200 rounded-lg p-4 mt-4">
-                    <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-bold">
-                        {variantPricing.length}
-                      </span>
-                      Added Variant{variantPricing.length !== 1 ? 's' : ''}
-                    </h5>
-                    {variantPricing.length > 0 ? (
-                      <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {variantPricing.map((variant, index) => (
-                          <div key={index} className="bg-gray-50 p-3 rounded-md border border-gray-200 hover:bg-gray-100 transition-colors">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1 flex items-start space-x-4 flex-wrap gap-2">
-                                {/* Variant Image Preview */}
-                                {variant.image && (
-                                  <div className="relative">
+                            
+                            // Apply option filters
+                            Object.entries(variantOptionFilters).forEach(([key, value]) => {
+                              if (value) {
+                                filtered = filtered.filter((v) => {
+                                  const variantValue = (v as any)[key];
+                                  return typeof variantValue === 'string' && variantValue.trim() === value;
+                                });
+                              }
+                            });
+                            
+                            return filtered.map((variant, index) => {
+                              const actualIndex = variantPricing.indexOf(variant);
+                              const isSelected = selectedVariantIndex === actualIndex;
+                              return (
+                                <button
+                                  key={actualIndex}
+                                  type="button"
+                                  onClick={() => setSelectedVariantIndex(actualIndex)}
+                                  className={`w-full flex items-center gap-2 px-2 py-2 rounded-md text-left transition-colors ${
+                                    isSelected 
+                                      ? 'bg-gray-100 border border-gray-300' 
+                                      : 'hover:bg-gray-50 border border-transparent'
+                                  }`}
+                                >
+                                  {variant.image ? (
                                     <img
                                       src={variant.image}
-                                      alt={`${variant.size} ${variant.color || ''} ${variant.pack}`}
-                                      className="w-16 h-16 object-cover rounded border"
+                                      alt={getVariantCompactLabel(variant)}
+                                      className="w-8 h-8 rounded object-cover"
                                       onError={(e) => {
                                         (e.target as HTMLImageElement).style.display = 'none';
                                       }}
                                     />
-                                  </div>
-                                )}
-                                
-                                <div className="flex flex-col space-y-2 flex-1">
-                                  {/* Editable Variant Fields */}
-                                  {editForm.category === 'elastic' ? (
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Size</label>
-                                        <input
-                                          type="text"
-                                          value={variant.size || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, size: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                          placeholder="Size"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Quality</label>
-                                        <select
-                                          value={variant.quality || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, quality: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        >
-                                          <option value="">Select</option>
-                                          <option value="Woven">Woven</option>
-                                          <option value="Knitted">Knitted</option>
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Color</label>
-                                        <select
-                                          value={variant.color || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, color: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        >
-                                          <option value="">Select</option>
-                                          <option value="Black">Black</option>
-                                          <option value="White">White</option>
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Roll</label>
-                                        <select
-                                          value={variant.quantity || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, quantity: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        >
-                                          <option value="">Select</option>
-                                          <option value="25 mtr roll">25 mtr roll</option>
-                                          <option value="30 mtr roll">30 mtr roll</option>
-                                        </select>
-                                      </div>
-                                    </div>
                                   ) : (
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Size</label>
-                                        <input
-                                          type="text"
-                                          value={variant.size || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, size: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                          placeholder="Size"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Color</label>
-                                        <input
-                                          type="text"
-                                          value={variant.color || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, color: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                          placeholder="Color"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-500 font-medium">Pack</label>
-                                        <input
-                                          type="text"
-                                          value={variant.pack || ''}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, pack: e.target.value };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                          placeholder="Pack"
-                                        />
-                                      </div>
+                                    <div className="w-8 h-8 rounded bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
                                     </div>
                                   )}
-                                  
-                                  <div className="flex items-center space-x-4 flex-wrap gap-2">
-                                    <div className="flex items-center space-x-2">
-                                      <label className="text-xs text-gray-500 font-medium">Price:</label>
-                                      <div className="flex items-center">
-                                        <span className="text-xs text-gray-500 mr-1">₹</span>
-                                        <input
-                                          type="number"
-                                          value={variant.price || 0}
-                                          onChange={(e) => {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, price: Number(e.target.value) };
-                                            setVariantPricing(newVariants);
-                                          }}
-                                          className="w-20 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                          min="0"
-                                          step="0.01"
-                                        />
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center space-x-2">
-                                      <label className="text-xs text-gray-500 font-medium">Stock:</label>
-                                      <input
-                                        type="number"
-                                        value={variant.stockQty || 0}
-                                        onChange={(e) => {
-                                          const newVariants = [...variantPricing];
-                                          newVariants[index] = { ...variant, stockQty: Number(e.target.value), inStock: Number(e.target.value) > 0 };
-                                          setVariantPricing(newVariants);
-                                        }}
-                                        className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        min="0"
+                                  <span className="text-sm text-gray-900 flex-1 truncate">
+                                    {getVariantCompactLabel(variant)}
+                                  </span>
+                                </button>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Panel - Variant Detail Editor */}
+                    <div className="lg:col-span-2 border border-gray-200 rounded-lg bg-white p-6">
+                      {selectedVariantIndex !== null && variantPricing[selectedVariantIndex] ? (
+                        (() => {
+                          const variant = variantPricing[selectedVariantIndex];
+                          const index = selectedVariantIndex;
+                          return (
+                            <>
+                              {/* Variant Image Upload */}
+                              <div className="mb-6">
+                                <div className="flex items-start gap-4">
+                                  <div className="relative">
+                                    {variant.image ? (
+                                      <img
+                                        src={variant.image}
+                                        alt={getVariantCompactLabel(variant)}
+                                        className="w-32 h-32 rounded-lg border-2 border-gray-200 object-cover"
                                       />
-                                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${variant.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                        {variant.inStock ? 'In Stock' : 'Out of Stock'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Variant Image Upload */}
-                                  <div className="flex items-center space-x-2">
-                                    <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Variant Image:</label>
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-                                        setIsUploadingVariantImage(true);
-                                        try {
-                                          const formData = new FormData();
-                                          formData.append('image', file);
-                                          const res = await fetch('/api/admin/upload-image', {
-                                            method: 'POST',
-                                            body: formData,
-                                          });
-                                          const data = await res.json();
-                                          if (res.ok && data?.imageUrl) {
-                                            const newVariants = [...variantPricing];
-                                            newVariants[index] = { ...variant, image: data.imageUrl };
-                                            setVariantPricing(newVariants);
-                                            showSuccess('Variant image uploaded');
-                                          } else {
-                                            showError(data?.error || 'Failed to upload variant image');
+                                    ) : (
+                                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                    <label className="absolute inset-0 cursor-pointer">
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                          const file = e.target.files?.[0];
+                                          if (!file) return;
+                                          setUploadingVariantImageIndex(index);
+                                          try {
+                                            const formData = new FormData();
+                                            formData.append('image', file);
+                                            const res = await fetch('/api/admin/upload-image', {
+                                              method: 'POST',
+                                              body: formData,
+                                            });
+                                            const data = await res.json();
+                                            if (res.ok && data?.imageUrl) {
+                                              const newVariants = [...variantPricing];
+                                              newVariants[index] = { ...variant, image: data.imageUrl };
+                                              setVariantPricing(newVariants);
+                                              showSuccess('Variant image uploaded');
+                                            } else {
+                                              showError(data?.error || 'Failed to upload variant image');
+                                            }
+                                          } catch (error) {
+                                            console.error('Variant image upload error:', error);
+                                            showError('Something went wrong while uploading the variant image');
+                                          } finally {
+                                            setUploadingVariantImageIndex(null);
+                                            e.target.value = '';
                                           }
-                                        } catch (error) {
-                                          console.error('Variant image upload error:', error);
-                                          showError('Something went wrong while uploading the variant image');
-                                        } finally {
-                                          setIsUploadingVariantImage(false);
-                                          e.target.value = '';
-                                        }
-                                      }}
-                                      className="flex-1 text-xs text-gray-700"
-                                    />
+                                        }}
+                                      />
+                                    </label>
+                                    {uploadingVariantImageIndex === index && (
+                                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                                        <div className="text-white text-xs">Uploading...</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h5 className="text-lg font-medium text-gray-900 mb-1">
+                                      {getVariantCompactLabel(variant)}
+                                    </h5>
+                                    <p className="text-sm text-gray-500">Click image to upload or change</p>
                                   </div>
                                 </div>
                               </div>
-                              
+
+                              {/* Variant Option Fields */}
+                              <div className="space-y-4 mb-6">
+                                {getVariantOptionDefs().map((opt) => {
+                                  const value = (variant as any)[opt.key] || '';
+                                  return (
+                                    <div key={opt.key}>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">{opt.label}</label>
+                                      <input
+                                        type="text"
+                                        value={value}
+                                        onChange={(e) => {
+                                          const newVariants = [...variantPricing];
+                                          newVariants[index] = { ...variant, [opt.key]: e.target.value };
+                                          setVariantPricing(newVariants);
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder={`Enter ${opt.label.toLowerCase()}`}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Price */}
+                              <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
+                                  <input
+                                    type="number"
+                                    value={variant.price || 0}
+                                    onChange={(e) => {
+                                      const newVariants = [...variantPricing];
+                                      newVariants[index] = { ...variant, price: Number(e.target.value) };
+                                      setVariantPricing(newVariants);
+                                    }}
+                                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="0.00"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Stock */}
+                              <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                                <input
+                                  type="number"
+                                  value={variant.stockQty || 0}
+                                  onChange={(e) => {
+                                    const newVariants = [...variantPricing];
+                                    newVariants[index] = {
+                                      ...variant,
+                                      stockQty: Number(e.target.value),
+                                      inStock: Number(e.target.value) > 0,
+                                    };
+                                    setVariantPricing(newVariants);
+                                  }}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="0"
+                                  min="0"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Status: <span className={variant.inStock ? 'text-green-600' : 'text-red-600'}>
+                                    {variant.inStock ? 'In Stock' : 'Out of Stock'}
+                                  </span>
+                                </p>
+                              </div>
+
+                              {/* Remove Button */}
+                              <div className="pt-4 border-t border-gray-200">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    removeVariantCombination(index);
+                                    if (selectedVariantIndex === index) {
+                                      setSelectedVariantIndex(variantPricing.length > 1 ? Math.max(0, index - 1) : null);
+                                    } else if (selectedVariantIndex !== null && selectedVariantIndex > index) {
+                                      setSelectedVariantIndex(selectedVariantIndex - 1);
+                                    }
+                                  }}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Remove variant
+                                </button>
+                              </div>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        <div className="text-center py-12">
+                          <svg className="mx-auto w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <p className="text-gray-500 text-sm">Select a variant from the list to edit</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Add New Variant Section - Shopify-style for all categories */}
+                  <div className="mt-6 border border-gray-200 rounded-lg bg-gray-50 p-4">
+                    <h5 className="font-medium text-gray-800 mb-4">Add New Variant</h5>
+                    
+                    {/* Shopify-style Options */}
+                    <div className="space-y-6 mb-6">
+                      {editShopifyOptions.map((opt, optIdx) => (
+                        <div key={opt.key} className="border border-gray-200 rounded-lg p-4 bg-white">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Option name</label>
+                              <input
+                                type="text"
+                                value={opt.name}
+                                onChange={(e) => {
+                                  const next = [...editShopifyOptions];
+                                  next[optIdx] = { ...opt, name: e.target.value };
+                                  setEditShopifyOptions(next);
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., Size"
+                              />
+                            </div>
+                            {optIdx > 0 && (
                               <button
                                 type="button"
-                                onClick={() => removeVariantCombination(index)}
-                                className="text-red-600 hover:text-red-800 text-sm font-medium px-3 py-1 hover:bg-red-50 rounded transition-colors whitespace-nowrap"
+                                onClick={() => setEditShopifyOptions(editShopifyOptions.filter((_, i) => i !== optIdx))}
+                                className="text-sm text-red-600 hover:text-red-700 mt-6"
                               >
-                                Remove
+                                Delete
                               </button>
-                            </div>
+                            )}
                           </div>
-                        ))}
+
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Option values</label>
+                          <div className="space-y-2">
+                            {opt.values.map((value, valIdx) => (
+                              <div key={valIdx} className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={value}
+                                  onChange={(e) => {
+                                    const next = [...editShopifyOptions];
+                                    const values = [...opt.values];
+                                    values[valIdx] = e.target.value;
+                                    const trimmed = values.map((v) => v.trim());
+                                    if (trimmed[trimmed.length - 1] !== '') values.push('');
+                                    next[optIdx] = { ...opt, values };
+                                    setEditShopifyOptions(next);
+                                  }}
+                                  placeholder={valIdx === 0 ? 'e.g., 10mm' : 'Add another value'}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                {(opt.values.length > 1 || value.trim() !== '') && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const next = [...editShopifyOptions];
+                                      const values = [...opt.values];
+                                      values.splice(valIdx, 1);
+                                      if (values.length === 0) values.push('');
+                                      const trimmed = values.map((v) => v.trim());
+                                      if (trimmed[trimmed.length - 1] !== '') values.push('');
+                                      next[optIdx] = { ...opt, values };
+                                      setEditShopifyOptions(next);
+                                    }}
+                                    className="px-2 py-2 text-gray-500 hover:text-gray-700"
+                                    aria-label="Remove value"
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {editShopifyOptions.length < 5 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Find next available key
+                            const usedKeys = editShopifyOptions.map(o => o.key);
+                            const availableKeys: Array<'size' | 'pack' | 'color' | 'quality' | 'quantity'> = ['size', 'pack', 'color', 'quality', 'quantity'];
+                            const nextKey = availableKeys.find(k => !usedKeys.includes(k));
+                            if (nextKey) {
+                              setEditShopifyOptions([...editShopifyOptions, { key: nextKey, name: nextKey.charAt(0).toUpperCase() + nextKey.slice(1), values: [''] }]);
+                            }
+                          }}
+                          className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          + Add another option
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Price and Stock */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newVariant.price}
+                          onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="0"
+                          min="0"
+                        />
                       </div>
-                    ) : (
-                      <div className="text-center py-6 text-gray-400 text-sm">
-                        <p>No variants added yet. Add your first variant above.</p>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                        <input
+                          type="number"
+                          value={newVariant.stockQty}
+                          onChange={(e) => setNewVariant({ ...newVariant, stockQty: Number(e.target.value) })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="0"
+                          min="0"
+                        />
                       </div>
-                    )}
+                    </div>
+
+                    {/* Add Variant Button */}
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={addVariantCombination}
+                        className="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
+                      >
+                        Add Variant
+                      </button>
+                    </div>
                   </div>
                 </div>
 

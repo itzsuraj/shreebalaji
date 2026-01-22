@@ -153,7 +153,7 @@ const ProductCard = memo(({ product, onQuickView }: {
             </div>
           )
         )}
-
+        
         {/* Rating */}
         <div className="flex items-center gap-1 mb-3">
           <div className="flex items-center">
@@ -498,17 +498,17 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
               {categories.map(category => {
                 const isSelected = selectedCategory.toLowerCase().trim() === category.toLowerCase().trim();
                 return (
-                  <button
-                    key={category}
-                    onClick={() => handleCategoryChange(category)}
-                    className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
+                <button
+                  key={category}
+                      onClick={() => handleCategoryChange(category)}
+                      className={`block w-full text-left px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
                       isSelected
                         ? 'bg-primary-500 text-white shadow-md transform scale-[1.02]'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </button>
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </button>
                 );
               })}
             </div>

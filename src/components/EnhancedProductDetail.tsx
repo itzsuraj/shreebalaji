@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { Star, Heart, Truck, Shield, RotateCcw, Package, Check } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { getProductImage } from '@/utils/imageUtils';
+import { getProductImage, normalizeImagePath } from '@/utils/imageUtils';
 
 interface ProductVariant {
   size?: string;
@@ -76,7 +76,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     return product.images && product.images.length > 0 ? product.images : [mainImage];
   }, [product.images, productImage]);
   const displayImages = useMemo(() => {
-    const variantImage = selectedVariant?.image?.trim();
+    const variantImage = normalizeImagePath(selectedVariant?.image);
     if (!variantImage) {
       return images;
     }
@@ -86,10 +86,11 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     const map = new Map<string, ProductVariant[]>();
     if (Array.isArray(product.variantPricing)) {
       product.variantPricing.forEach((v) => {
-        if (v.image) {
-          const list = map.get(v.image) || [];
+        const normalizedImage = normalizeImagePath(v.image);
+        if (normalizedImage) {
+          const list = map.get(normalizedImage) || [];
           list.push(v);
-          map.set(v.image, list);
+          map.set(normalizedImage, list);
         }
       });
     }
@@ -322,7 +323,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
       name: product.name,
       price: currentPrice,
       quantity,
-      image: selectedVariant?.image || getProductImage(product),
+      image: normalizeImagePath(selectedVariant?.image) || getProductImage(product),
       category: product.category
     });
     setAdded(true);

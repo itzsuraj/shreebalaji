@@ -66,7 +66,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       } catch (error) {
         // Silently handle errors in production
         if (process.env.NODE_ENV === 'development') {
-          console.error('Error fetching products:', error);
+        console.error('Error fetching products:', error);
         }
       } finally {
         setLoading(false);
@@ -81,10 +81,10 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
     const featured = products.slice(0, 8);
     return {
       featuredProducts: featured,
-      buttonProducts: products.filter(p => p.category === 'buttons').slice(0, 3),
-      zipperProducts: products.filter(p => p.category === 'zippers').slice(0, 3),
-      elasticProducts: products.filter(p => p.category === 'elastic').slice(0, 3),
-      cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
+    buttonProducts: products.filter(p => p.category === 'buttons').slice(0, 3),
+    zipperProducts: products.filter(p => p.category === 'zippers').slice(0, 3),
+    elasticProducts: products.filter(p => p.category === 'elastic').slice(0, 3),
+    cordProducts: products.filter(p => p.category === 'cords').slice(0, 3),
     };
   }, [products]);
 
@@ -240,18 +240,18 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
             
             {/* Right Image */}
             <div className="relative h-[400px] lg:h-[500px] rounded-lg overflow-hidden shadow-2xl">
-              <Image
-                src="/banner.png"
-                alt="Shree Balaji Enterprises Banner"
-                fill
+          <Image
+            src="/banner.png"
+            alt="Shree Balaji Enterprises Banner"
+            fill
                 className="object-cover"
-                priority
-                fetchPriority="high"
+            priority
+            fetchPriority="high"
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
                 quality={75}
                 loading="eager"
-              />
-            </div>
+          />
+        </div>
           </div>
         </div>
       </section>
@@ -444,9 +444,9 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                           </>
                         ) : (
                           <>
-                            <ShoppingCart className="h-4 w-4" />
-                            <span className="hidden sm:inline">Add to Cart</span>
-                            <span className="sm:hidden">Add</span>
+                        <ShoppingCart className="h-4 w-4" />
+                        <span className="hidden sm:inline">Add to Cart</span>
+                        <span className="sm:hidden">Add</span>
                           </>
                         )}
                       </button>
@@ -638,9 +638,9 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                             </>
                           ) : (
                             <>
-                              <ShoppingCart className="h-4 w-4" />
-                              <span className="hidden sm:inline">Add to Cart</span>
-                              <span className="sm:hidden">Add</span>
+                          <ShoppingCart className="h-4 w-4" />
+                          <span className="hidden sm:inline">Add to Cart</span>
+                          <span className="sm:hidden">Add</span>
                             </>
                           )}
                         </button>
@@ -770,9 +770,9 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                             </>
                           ) : (
                             <>
-                              <ShoppingCart className="h-4 w-4" />
-                              <span className="hidden sm:inline">Add to Cart</span>
-                              <span className="sm:hidden">Add</span>
+                          <ShoppingCart className="h-4 w-4" />
+                          <span className="hidden sm:inline">Add to Cart</span>
+                          <span className="sm:hidden">Add</span>
                             </>
                           )}
                         </button>
@@ -902,9 +902,9 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                             </>
                           ) : (
                             <>
-                              <ShoppingCart className="h-4 w-4" />
-                              <span className="hidden sm:inline">Add to Cart</span>
-                              <span className="sm:hidden">Add</span>
+                          <ShoppingCart className="h-4 w-4" />
+                          <span className="hidden sm:inline">Add to Cart</span>
+                          <span className="sm:hidden">Add</span>
                             </>
                           )}
                         </button>
@@ -1034,9 +1034,9 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                             </>
                           ) : (
                             <>
-                              <ShoppingCart className="h-4 w-4" />
-                              <span className="hidden sm:inline">Add to Cart</span>
-                              <span className="sm:hidden">Add</span>
+                          <ShoppingCart className="h-4 w-4" />
+                          <span className="hidden sm:inline">Add to Cart</span>
+                          <span className="sm:hidden">Add</span>
                             </>
                           )}
                         </button>

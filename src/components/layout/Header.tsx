@@ -388,8 +388,8 @@ export default function Header() {
                     <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                       {wishlistCount}
                     </span>
-                  )}
-                </Link>
+                )}
+              </Link>
                 {/* Cart Button */}
                 <button
                   onClick={toggleCartSidebar}
@@ -432,8 +432,8 @@ export default function Header() {
                     <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
                       {wishlistCount}
                     </span>
-                  )}
-                </Link>
+                )}
+              </Link>
                 <button
                   onClick={toggleCartSidebar}
                   className={`relative p-2 text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`}
@@ -460,7 +460,7 @@ export default function Header() {
               className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
               aria-label="Toggle menu"
             >
-              <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
