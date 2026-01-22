@@ -42,8 +42,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     revalidatePath('/products?category=zippers', 'page');
     revalidatePath('/products?category=elastic', 'page');
     revalidatePath('/products?category=cords', 'page');
-    // Also revalidate API routes that might be cached
-    revalidatePath('/api/products', 'route');
     
     return NextResponse.json({ product: updated });
   } catch (error) {
@@ -71,8 +69,6 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     revalidatePath('/products?category=zippers', 'page');
     revalidatePath('/products?category=elastic', 'page');
     revalidatePath('/products?category=cords', 'page');
-    // Also revalidate API routes that might be cached
-    revalidatePath('/api/products', 'route');
     
     return NextResponse.json({ ok: true, deletedId: id });
   } catch (error) {

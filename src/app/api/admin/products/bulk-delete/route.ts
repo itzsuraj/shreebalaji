@@ -27,8 +27,6 @@ export async function POST(req: NextRequest) {
     revalidatePath('/products?category=zippers', 'page');
     revalidatePath('/products?category=elastic', 'page');
     revalidatePath('/products?category=cords', 'page');
-    // Also revalidate API routes that might be cached
-    revalidatePath('/api/products', 'route');
     
     return NextResponse.json({ 
       ok: true, 
