@@ -51,17 +51,25 @@ async function getProducts() {
     
     // Fetch products directly from database with optimized query
     let products = await ProductModel.find({ status: 'active' })
-      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')
       .sort({ createdAt: -1 })
       .lean()
       .limit(100);
     
+    // Log for debugging
+    console.log(`[Products Page] Found ${products?.length || 0} active products`);
+    
     if (!products || products.length === 0) {
-      products = await ProductModel.find({})
-        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+      const allProducts = await ProductModel.find({})
+        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')
         .sort({ createdAt: -1 })
         .lean()
         .limit(100);
+      
+      console.log(`[Products Page] No active products found. Total products in DB: ${allProducts?.length || 0}`);
+      console.log(`[Products Page] Product statuses:`, allProducts?.map((p: any) => ({ name: p.name, status: p.status })));
+      
+      products = allProducts;
     }
     
     // Normalize products

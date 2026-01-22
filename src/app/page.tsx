@@ -15,18 +15,26 @@ async function getProductsSSR(): Promise<Product[]> {
     // Fetch active products, or all products if none are active
     // Select only needed fields for better performance
     let products = await ProductModel.find({ status: 'active' })
-      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+      .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')
       .sort({ createdAt: -1 })
       .lean()
       .limit(50); // Limit to 50 products for homepage
 
+    // Log for debugging
+    console.log(`[Home Page] Found ${products?.length || 0} active products`);
+
     // If no active products, fetch all products (for debugging/development)
     if (!products || products.length === 0) {
-      products = await ProductModel.find({})
-        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
+      const allProducts = await ProductModel.find({})
+        .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')
         .sort({ createdAt: -1 })
         .lean()
         .limit(50);
+      
+      console.log(`[Home Page] No active products found. Total products in DB: ${allProducts?.length || 0}`);
+      console.log(`[Home Page] Product statuses:`, allProducts?.map((p: any) => ({ name: p.name, status: p.status })));
+      
+      products = allProducts;
     }
 
     if (!products || !Array.isArray(products)) {
