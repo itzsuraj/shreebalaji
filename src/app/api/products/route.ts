@@ -9,15 +9,22 @@ export async function GET() {
   try {
     await connectToDatabase();
     
-    // Only return active products for storefront, or all products if none are active
+    // Return active products OR products without status (treat missing status as active for backward compatibility)
     // Limit fields to only what's needed for better performance
-    let products = await Product.find({ status: 'active' })
+    let products = await Product.find({
+      $or: [
+        { status: 'active' },
+        { status: { $exists: false } },
+        { status: null },
+        { status: '' }
+      ]
+    })
       .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
       .sort({ createdAt: -1 })
       .lean()
       .limit(100); // Limit to 100 products for performance
     
-    // If no active products, fetch all products (for debugging/development)
+    // If still no products, fetch all products (for debugging/development)
     if (!products || products.length === 0) {
       products = await Product.find({})
         .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')

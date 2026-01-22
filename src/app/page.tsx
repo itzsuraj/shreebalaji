@@ -12,18 +12,25 @@ async function getProductsSSR(): Promise<Product[]> {
   try {
     await connectToDatabase();
 
-    // Fetch active products, or all products if none are active
+    // Fetch active products OR products without status (treat missing status as active for backward compatibility)
     // Select only needed fields for better performance
-    let products = await ProductModel.find({ status: 'active' })
+    let products = await ProductModel.find({
+      $or: [
+        { status: 'active' },
+        { status: { $exists: false } },
+        { status: null },
+        { status: '' }
+      ]
+    })
       .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')
       .sort({ createdAt: -1 })
       .lean()
       .limit(50); // Limit to 50 products for homepage
 
     // Log for debugging
-    console.log(`[Home Page] Found ${products?.length || 0} active products`);
+    console.log(`[Home Page] Found ${products?.length || 0} active/missing-status products`);
 
-    // If no active products, fetch all products (for debugging/development)
+    // If still no products, fetch all products (for debugging/development)
     if (!products || products.length === 0) {
       const allProducts = await ProductModel.find({})
         .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')

@@ -49,15 +49,22 @@ async function getProducts() {
     
     await connectToDatabase();
     
-    // Fetch products directly from database with optimized query
-    let products = await ProductModel.find({ status: 'active' })
+    // Fetch active products OR products without status (treat missing status as active for backward compatibility)
+    let products = await ProductModel.find({
+      $or: [
+        { status: 'active' },
+        { status: { $exists: false } },
+        { status: null },
+        { status: '' }
+      ]
+    })
       .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt status')
       .sort({ createdAt: -1 })
       .lean()
       .limit(100);
     
     // Log for debugging
-    console.log(`[Products Page] Found ${products?.length || 0} active products`);
+    console.log(`[Products Page] Found ${products?.length || 0} active/missing-status products`);
     
     if (!products || products.length === 0) {
       const allProducts = await ProductModel.find({})
