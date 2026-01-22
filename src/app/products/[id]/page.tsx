@@ -13,9 +13,17 @@ async function getProduct(id: string) {
     await connectToDatabase();
     
     // Use lean() to get a plain JavaScript object instead of Mongoose document
-    // Only fetch active products for storefront
+    // Fetch active products OR products without status (treat missing status as active)
     // Select only needed fields for better performance
-    let product = await Product.findOne({ _id: id, status: 'active' })
+    let product = await Product.findOne({
+      _id: id,
+      $or: [
+        { status: 'active' },
+        { status: { $exists: false } },
+        { status: null },
+        { status: '' }
+      ]
+    })
       .select('_id name description price category image sizes colors packs variantPricing stockQty rating reviews createdAt updatedAt')
       .lean() as any;
 
@@ -57,18 +65,26 @@ async function getProduct(id: string) {
       colors: Array.isArray(product.colors) ? product.colors.map(String) : [],
       packs: Array.isArray(product.packs) ? product.packs.map(String) : [],
       variantPricing: Array.isArray(product.variantPricing) 
-        ? product.variantPricing.map((v: any) => ({
-            size: v.size ? String(v.size) : undefined,
-            color: v.color ? String(v.color) : undefined,
-            pack: v.pack ? String(v.pack) : undefined,
-            quality: v.quality ? String(v.quality) : undefined,
-            quantity: v.quantity ? String(v.quantity) : undefined,
-            price: Number(v.price || 0),
-            stockQty: Number(v.stockQty || 0),
-            inStock: Boolean(v.inStock),
-            sku: v.sku ? String(v.sku) : undefined,
-            image: v.image ? String(v.image) : undefined
-          }))
+        ? product.variantPricing.map((v: any) => {
+            // Normalize image path - ensure it starts with / if it's a relative path
+            let imagePath = v.image ? String(v.image) : undefined;
+            if (imagePath && !imagePath.startsWith('/') && !imagePath.startsWith('http') && !imagePath.startsWith('data:')) {
+              imagePath = `/${imagePath}`;
+            }
+            
+            return {
+              size: v.size ? String(v.size) : undefined,
+              color: v.color ? String(v.color) : undefined,
+              pack: v.pack ? String(v.pack) : undefined,
+              quality: v.quality ? String(v.quality) : undefined,
+              quantity: v.quantity ? String(v.quantity) : undefined,
+              price: Number(v.price || 0),
+              stockQty: Number(v.stockQty || 0),
+              inStock: Boolean(v.inStock),
+              sku: v.sku ? String(v.sku) : undefined,
+              image: imagePath
+            };
+          })
         : [],
       inStock: Boolean(calculatedInStock),
       stockQty: Number(product.stockQty || 0),
@@ -77,6 +93,19 @@ async function getProduct(id: string) {
       createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
       updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : new Date().toISOString()
     };
+    
+    // Log for debugging
+    console.log(`[Product Detail Page] Product: ${productData.name}`);
+    console.log(`[Product Detail Page] Variants: ${productData.variantPricing.length}`);
+    if (productData.variantPricing.length > 0) {
+      console.log(`[Product Detail Page] First variant:`, {
+        size: productData.variantPricing[0].size,
+        color: productData.variantPricing[0].color,
+        pack: productData.variantPricing[0].pack,
+        image: productData.variantPricing[0].image,
+        price: productData.variantPricing[0].price
+      });
+    }
     
     return productData;
   } catch (error) {
