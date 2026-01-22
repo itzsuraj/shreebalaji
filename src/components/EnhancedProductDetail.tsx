@@ -75,13 +75,37 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     const mainImage = productImage;
     return product.images && product.images.length > 0 ? product.images : [mainImage];
   }, [product.images, productImage]);
-  const displayImages = useMemo(() => {
-    const variantImage = normalizeImagePath(selectedVariant?.image);
-    if (!variantImage) {
-      return images;
+  
+  // Collect all variant images
+  const allVariantImages = useMemo(() => {
+    const variantImages = new Set<string>();
+    if (Array.isArray(product.variantPricing)) {
+      product.variantPricing.forEach((v) => {
+        const normalizedImage = normalizeImagePath(v.image);
+        if (normalizedImage) {
+          variantImages.add(normalizedImage);
+        }
+      });
     }
-    return [variantImage, ...images.filter((img) => img !== variantImage)];
-  }, [images, selectedVariant?.image]);
+    return Array.from(variantImages);
+  }, [product.variantPricing]);
+  
+  const displayImages = useMemo(() => {
+    // Start with all variant images (prioritize selected variant's image first)
+    const variantImage = normalizeImagePath(selectedVariant?.image);
+    const variantImagesList = variantImage 
+      ? [variantImage, ...allVariantImages.filter(img => img !== variantImage)]
+      : allVariantImages;
+    
+    // Add main product images that aren't already in variant images
+    const mainImages = images.filter(img => !allVariantImages.includes(img));
+    
+    // Combine: variant images first, then main images
+    const combined = [...variantImagesList, ...mainImages];
+    
+    // If no images at all, fallback to product image
+    return combined.length > 0 ? combined : [productImage];
+  }, [images, selectedVariant?.image, allVariantImages, productImage]);
   const variantImageMap = useMemo(() => {
     const map = new Map<string, ProductVariant[]>();
     if (Array.isArray(product.variantPricing)) {
