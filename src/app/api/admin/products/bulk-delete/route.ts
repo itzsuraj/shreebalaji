@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
 
@@ -13,6 +14,22 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await Product.deleteMany({ _id: { $in: ids } });
+    
+    // Aggressively revalidate all product-related pages after bulk deletion
+    revalidatePath('/products', 'page');
+    revalidatePath('/', 'page');
+    // Revalidate individual product pages for deleted products
+    ids.forEach(id => {
+      revalidatePath(`/products/${id}`, 'page');
+    });
+    // Revalidate category pages
+    revalidatePath('/products?category=buttons', 'page');
+    revalidatePath('/products?category=zippers', 'page');
+    revalidatePath('/products?category=elastic', 'page');
+    revalidatePath('/products?category=cords', 'page');
+    // Also revalidate API routes that might be cached
+    revalidatePath('/api/products', 'route');
+    
     return NextResponse.json({ 
       ok: true, 
       deletedCount: result.deletedCount 

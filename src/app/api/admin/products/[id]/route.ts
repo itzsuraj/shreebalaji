@@ -8,7 +8,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await connectToDatabase();
     const { id } = await params;
     const body = await req.json();
-    type VariantInput = { stockQty?: number; inStock?: boolean };
+    // Preserve all variant fields including image
+    type VariantInput = { 
+      stockQty?: number; 
+      inStock?: boolean; 
+      image?: string;
+      size?: string;
+      color?: string;
+      pack?: string;
+      quality?: string;
+      quantity?: string;
+      price?: number;
+      sku?: string;
+    };
     const doc = { ...body } as { stockQty?: number; inStock?: boolean; variantPricing?: VariantInput[] };
     const variantHasStock = Array.isArray(doc.variantPricing) && doc.variantPricing.some((v) => (v?.stockQty ?? 0) > 0 || v?.inStock === true);
     const productHasStock = (doc.stockQty ?? 0) > 0;
@@ -18,12 +30,20 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       // @ts-expect-error - status exists in schema
       doc.status = 'active';
     }
-    const updated = await Product.findByIdAndUpdate(id, doc, { new: true });
+    // Use $set to ensure all fields including variant images are preserved
+    const updated = await Product.findByIdAndUpdate(id, doc, { new: true, runValidators: true });
     
-    // Revalidate cache for immediate visibility
-    revalidatePath('/products');
-    revalidatePath('/');
-    revalidatePath(`/products/${id}`);
+    // Aggressively revalidate all product-related pages after update
+    revalidatePath('/products', 'page');
+    revalidatePath('/', 'page');
+    revalidatePath(`/products/${id}`, 'page');
+    // Revalidate category pages
+    revalidatePath('/products?category=buttons', 'page');
+    revalidatePath('/products?category=zippers', 'page');
+    revalidatePath('/products?category=elastic', 'page');
+    revalidatePath('/products?category=cords', 'page');
+    // Also revalidate API routes that might be cached
+    revalidatePath('/api/products', 'route');
     
     return NextResponse.json({ product: updated });
   } catch (error) {
@@ -33,16 +53,33 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  await connectToDatabase();
-  const { id } = await params;
-  await Product.findByIdAndDelete(id);
-  
-  // Revalidate cache after deletion
-  revalidatePath('/products');
-  revalidatePath('/');
-  revalidatePath(`/products/${id}`);
-  
-  return NextResponse.json({ ok: true });
+  try {
+    await connectToDatabase();
+    const { id } = await params;
+    const deleted = await Product.findByIdAndDelete(id);
+    
+    if (!deleted) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+    
+    // Aggressively revalidate all product-related pages after deletion
+    revalidatePath('/products', 'page');
+    revalidatePath('/', 'page');
+    revalidatePath(`/products/${id}`, 'page');
+    // Revalidate category pages
+    revalidatePath('/products?category=buttons', 'page');
+    revalidatePath('/products?category=zippers', 'page');
+    revalidatePath('/products?category=elastic', 'page');
+    revalidatePath('/products?category=cords', 'page');
+    // Also revalidate API routes that might be cached
+    revalidatePath('/api/products', 'route');
+    
+    return NextResponse.json({ ok: true, deletedId: id });
+  } catch (error) {
+    console.error('Delete product error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to delete product';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 

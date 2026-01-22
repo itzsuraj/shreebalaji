@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
 
-export const revalidate = 3600; // Revalidate every hour
+// Force dynamic to prevent stale cache - products change frequently
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -25,7 +26,7 @@ export async function GET() {
         .limit(100);
     }
     
-    const response = NextResponse.json({ 
+    return NextResponse.json({ 
       success: true, 
       products: products.map(product => {
         // Recalculate inStock based on actual stock
@@ -75,11 +76,9 @@ export async function GET() {
       })
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       },
     });
-    
-    return response;
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json({ 

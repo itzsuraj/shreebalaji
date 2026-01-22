@@ -472,6 +472,8 @@ export default function AdminProductsPage() {
     });
     
     if (res.ok) {
+      const data = await res.json();
+      showSuccess('Product updated successfully. Changes will be visible on the frontend shortly.');
       setEditingProduct(null);
       setEditForm({ 
         name: '', 
@@ -493,6 +495,9 @@ export default function AdminProductsPage() {
       setVariantSearchQuery('');
       setVariantOptionFilters({});
       load(); // This will recalculate inStock for all products
+    } else {
+      const errorData = await res.json();
+      showError(errorData?.error || 'Failed to update product');
     }
   };
 
@@ -811,9 +816,11 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (res.ok && data?.imageUrl) {
         const newVariants = [...variantPricing];
-        newVariants[index] = { ...newVariants[index], image: data.imageUrl };
+        // Ensure image path is normalized (starts with /)
+        const imageUrl = data.imageUrl.startsWith('/') ? data.imageUrl : `/${data.imageUrl}`;
+        newVariants[index] = { ...newVariants[index], image: imageUrl };
         setVariantPricing(newVariants);
-        showSuccess('Variant image uploaded');
+        showSuccess('Variant image uploaded. Don\'t forget to save the product to apply changes.');
       } else {
         showError(data?.error || 'Failed to upload variant image');
       }
@@ -2416,6 +2423,7 @@ export default function AdminProductsPage() {
                                         src={variant.image}
                                         alt={getVariantCompactLabel(variant)}
                                         className="w-32 h-32 rounded-lg border-2 border-gray-200 object-cover"
+                                        key={variant.image} // Force re-render when image changes
                                       />
                                     ) : (
                                       <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
@@ -2443,9 +2451,11 @@ export default function AdminProductsPage() {
                                             const data = await res.json();
                                             if (res.ok && data?.imageUrl) {
                                               const newVariants = [...variantPricing];
-                                              newVariants[index] = { ...variant, image: data.imageUrl };
+                                              // Ensure image path is normalized (starts with /)
+                                              const imageUrl = data.imageUrl.startsWith('/') ? data.imageUrl : `/${data.imageUrl}`;
+                                              newVariants[index] = { ...variant, image: imageUrl };
                                               setVariantPricing(newVariants);
-                                              showSuccess('Variant image uploaded');
+                                              showSuccess('Variant image uploaded. Don\'t forget to save the product to apply changes.');
                                             } else {
                                               showError(data?.error || 'Failed to upload variant image');
                                             }
