@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
+import { normalizeImagePath } from '@/utils/imageUtils';
 
 export async function GET(
   request: Request,
@@ -47,7 +48,18 @@ export async function GET(
         sizes: product.sizes || [],
         colors: product.colors || [],
         packs: product.packs || [],
-        variantPricing: product.variantPricing || [],
+        variantPricing: (product.variantPricing || []).map((v: any) => ({
+          size: v.size || undefined,
+          color: v.color || undefined,
+          pack: v.pack || undefined,
+          quality: v.quality || undefined,
+          quantity: v.quantity || undefined,
+          price: v.price || 0,
+          stockQty: v.stockQty || 0,
+          inStock: v.inStock || false,
+          sku: v.sku || undefined,
+          image: v.image ? normalizeImagePath(v.image) || v.image : undefined,
+        })),
         inStock: calculatedInStock,
         stockQty: product.stockQty || 0,
         rating: product.rating || 4.5,

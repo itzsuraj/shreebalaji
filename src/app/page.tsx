@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import HomeClient from './HomeClient';
 import { connectToDatabase } from '@/lib/db';
 import ProductModel from '@/models/Product';
+import { normalizeImagePath } from '@/utils/imageUtils';
 
 import type { Product } from '@/types/product';
 
@@ -89,7 +90,7 @@ async function getProductsSSR(): Promise<Product[]> {
               stockQty: Number(v.stockQty || 0),
               inStock: Boolean(v.inStock),
               sku: v.sku ? String(v.sku) : undefined,
-              image: v.image ? String(v.image) : undefined,
+              image: v.image ? (normalizeImagePath(String(v.image)) || String(v.image)) : undefined,
             }))
           : [],
         // Stock

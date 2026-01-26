@@ -114,7 +114,10 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // Keep console.error and console.warn in production for debugging
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
   generateEtags: true,
 };

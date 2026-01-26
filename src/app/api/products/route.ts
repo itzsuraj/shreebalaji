@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
+import { normalizeImagePath } from '@/utils/imageUtils';
 
 // Force dynamic to prevent stale cache - products change frequently
 export const dynamic = 'force-dynamic';
@@ -71,7 +72,7 @@ export async function GET() {
             stockQty: v.stockQty || 0,
             inStock: v.inStock || false,
             sku: v.sku || undefined,
-            image: v.image || undefined,
+            image: v.image ? normalizeImagePath(v.image) || v.image : undefined,
           })),
           inStock: calculatedInStock,
           stockQty: product.stockQty || 0,
