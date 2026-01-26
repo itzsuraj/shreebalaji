@@ -6,20 +6,22 @@ import { rateLimiters } from '@/lib/rateLimit';
 import { validateCSRFRequest } from '@/lib/csrf';
 import { sanitizeObject, sanitizeText, sanitizeHTML } from '@/lib/sanitize';
 
-export async function GET(request: NextRequest) {
+export async function GET(request?: NextRequest) {
   try {
-    // Rate limiting (optional for GET, but good practice)
-    try {
-      const rateLimitResult = rateLimiters.adminAPI(request);
-      if (!rateLimitResult.allowed) {
-        return NextResponse.json(
-          { error: 'Too many requests. Please try again later.' },
-          { status: 429 }
-        );
+    // Rate limiting (optional for GET, skip if request not provided)
+    if (request) {
+      try {
+        const rateLimitResult = rateLimiters.adminAPI(request);
+        if (!rateLimitResult.allowed) {
+          return NextResponse.json(
+            { error: 'Too many requests. Please try again later.' },
+            { status: 429 }
+          );
+        }
+      } catch (rateLimitError) {
+        // If rate limiting fails, log but continue (don't block the request)
+        console.warn('[Admin Products API] Rate limiting check failed:', rateLimitError);
       }
-    } catch (rateLimitError) {
-      // If rate limiting fails, log but continue (don't block the request)
-      console.warn('[Admin Products API] Rate limiting check failed:', rateLimitError);
     }
 
     // Connect to database
@@ -50,57 +52,72 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
     
+    // Handle case where products is null or undefined
+    if (!products) {
+      console.warn('[Admin Products API] Products query returned null/undefined');
+      return NextResponse.json({ products: [] });
+    }
+    
     // Log for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Admin Products API] Found ${products?.length || 0} products in database`);
+      console.log(`[Admin Products API] Found ${products.length || 0} products in database`);
     }
     
     // Ensure all products have required fields and proper serialization
-    const serializedProducts = (products || []).map((p: any) => {
-      try {
-        return {
-          _id: String(p._id),
-          name: p.name || 'Unnamed Product',
-          category: p.category || 'uncategorized',
-          price: p.price || 0,
-          description: p.description || '',
-          image: p.image || '',
-          inStock: p.inStock ?? true,
-          status: p.status || 'active', // Default to active if missing
-          stockQty: p.stockQty || 0,
-          sizes: p.sizes || [],
-          colors: p.colors || [],
-          packs: p.packs || [],
-          variantPricing: p.variantPricing || [],
-          createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
-          updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : new Date().toISOString(),
-        };
-      } catch (serializeError) {
-        console.error('[Admin Products API] Error serializing product:', p._id, serializeError);
-        // Return a minimal valid product object
-        return {
-          _id: String(p._id),
-          name: p.name || 'Unnamed Product',
-          category: p.category || 'uncategorized',
-          price: 0,
-          description: '',
-          image: '',
-          inStock: false,
-          status: 'active',
-          stockQty: 0,
-          sizes: [],
-          colors: [],
-          packs: [],
-          variantPricing: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      }
-    });
+    let serializedProducts;
+    try {
+      serializedProducts = products.map((p: any) => {
+        try {
+          return {
+            _id: String(p._id),
+            name: p.name || 'Unnamed Product',
+            category: p.category || 'uncategorized',
+            price: p.price || 0,
+            description: p.description || '',
+            image: p.image || '',
+            inStock: p.inStock ?? true,
+            status: p.status || 'active', // Default to active if missing
+            stockQty: p.stockQty || 0,
+            sizes: p.sizes || [],
+            colors: p.colors || [],
+            packs: p.packs || [],
+            variantPricing: p.variantPricing || [],
+            createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : new Date().toISOString(),
+          };
+        } catch (serializeError) {
+          console.error('[Admin Products API] Error serializing product:', p?._id, serializeError);
+          // Return a minimal valid product object
+          return {
+            _id: p?._id ? String(p._id) : 'unknown',
+            name: p?.name || 'Unnamed Product',
+            category: p?.category || 'uncategorized',
+            price: 0,
+            description: '',
+            image: '',
+            inStock: false,
+            status: 'active',
+            stockQty: 0,
+            sizes: [],
+            colors: [],
+            packs: [],
+            variantPricing: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+        }
+      });
+    } catch (mapError) {
+      console.error('[Admin Products API] Error mapping products:', mapError);
+      // Return empty array if mapping fails
+      serializedProducts = [];
+    }
     
-    console.log(`[Admin Products API] Serialized ${serializedProducts.length} products`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Admin Products API] Serialized ${serializedProducts.length} products`);
+    }
     
-    return NextResponse.json({ products: serializedProducts });
+    return NextResponse.json({ products: serializedProducts || [] });
   } catch (error) {
     console.error('[Admin Products API] Error fetching products:', error);
     const errorMessage = process.env.NODE_ENV === 'production'

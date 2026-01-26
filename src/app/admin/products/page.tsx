@@ -195,22 +195,44 @@ export default function AdminProductsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/products');
+      const res = await fetch('/api/admin/products', {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
       if (!res.ok) {
-        console.error('[Admin Products] API error:', res.status, res.statusText);
-        showError(`Failed to load products: ${res.status} ${res.statusText}`);
+        const errorText = await res.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || `HTTP ${res.status}` };
+        }
+        
+        console.error('[Admin Products] API error:', res.status, res.statusText, errorData);
+        showError(errorData.error || `Failed to load products: ${res.status} ${res.statusText}`);
         setProducts([]);
         setLoading(false);
         return;
       }
-      const data = await res.json();
-      console.log('[Admin Products] API response:', data);
-      console.log('[Admin Products] Loaded products:', data.products?.length || 0);
-      console.log('[Admin Products] Products data:', data.products);
       
-      if (!data.products || !Array.isArray(data.products)) {
-        console.error('[Admin Products] Invalid products data:', data);
-        showError('Invalid response from server');
+      const data = await res.json();
+      console.log('[Admin Products] API response received, products count:', data.products?.length || 0);
+      
+      if (!data || !data.products) {
+        console.error('[Admin Products] Invalid response structure:', data);
+        showError('Invalid response from server: missing products array');
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+      
+      if (!Array.isArray(data.products)) {
+        console.error('[Admin Products] Products is not an array:', typeof data.products, data.products);
+        showError('Invalid response from server: products is not an array');
         setProducts([]);
         setLoading(false);
         return;
