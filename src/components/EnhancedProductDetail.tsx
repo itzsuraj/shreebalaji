@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Truck, Shield, RotateCcw, Package, Check } from 'lucide-react';
+import { Star, Heart, Truck, Shield, RotateCcw, Package, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage, normalizeImagePath } from '@/utils/imageUtils';
 
@@ -526,16 +526,18 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                   <button
                     onClick={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
                     disabled={currentImageIndex === 0}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 disabled:opacity-50 transition-all"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all z-10"
+                    aria-label="Previous image"
                   >
-                    ←
+                    <ChevronLeft className="h-6 w-6 text-gray-800" />
                   </button>
                   <button
                     onClick={() => setCurrentImageIndex(Math.min(displayImages.length - 1, currentImageIndex + 1))}
                     disabled={currentImageIndex === displayImages.length - 1}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 disabled:opacity-50 transition-all"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all z-10"
+                    aria-label="Next image"
                   >
-                    →
+                    <ChevronRight className="h-6 w-6 text-gray-800" />
                   </button>
                 </>
               )}
