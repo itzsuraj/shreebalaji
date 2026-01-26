@@ -8,7 +8,7 @@ import { sanitizeObject, sanitizeText, sanitizeHTML } from '@/lib/sanitize';
 
 export async function GET(request?: NextRequest) {
   try {
-    // Rate limiting (optional for GET, skip if request not provided)
+    // Rate limiting (optional for GET, skip if request not provided or if rate limiter fails)
     if (request) {
       try {
         const rateLimitResult = rateLimiters.adminAPI(request);
@@ -20,7 +20,8 @@ export async function GET(request?: NextRequest) {
         }
       } catch (rateLimitError) {
         // If rate limiting fails, log but continue (don't block the request)
-        console.warn('[Admin Products API] Rate limiting check failed:', rateLimitError);
+        // This ensures the API works even if rate limiting has issues
+        console.warn('[Admin Products API] Rate limiting check failed, continuing without rate limit:', rateLimitError);
       }
     }
 
