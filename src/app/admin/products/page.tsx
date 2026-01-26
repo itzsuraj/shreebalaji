@@ -1378,15 +1378,89 @@ export default function AdminProductsPage() {
                   </div>
                 </>
               ) : (
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={addVariantCombination}
-                    className="bg-primary-500 text-white px-6 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
-                  >
-                    Add Variant
-                  </button>
-                </div>
+                <>
+                  {/* Row: Price / Stock / Add button for buttons and other categories */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                      <input
+                        type="number"
+                        value={newVariant.price || form.price || 0}
+                        onChange={(e) => setNewVariant({ ...newVariant, price: Number(e.target.value) })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={form.price > 0 ? String(form.price) : "0"}
+                        min="0"
+                      />
+                      {form.price > 0 && newVariant.price === 0 && (
+                        <p className="text-xs text-gray-500 mt-1">Using base price: ₹{form.price}</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                      <input
+                        type="number"
+                        value={newVariant.stockQty}
+                        onChange={(e) => setNewVariant({ ...newVariant, stockQty: Number(e.target.value) })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                    
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={addVariantCombination}
+                        className="w-full bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
+                      >
+                        Add Variant
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Variant Image Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Variant Image <span className="text-gray-400 text-xs">(Optional)</span>
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setIsUploadingVariantImage(true);
+                        try {
+                          const formData = new FormData();
+                          formData.append('image', file);
+                          const res = await fetch('/api/admin/upload-image', {
+                            method: 'POST',
+                            body: formData,
+                          });
+                          const data = await res.json();
+                          if (res.ok && data?.imageUrl) {
+                            setNewVariant((prev) => ({ ...prev, image: data.imageUrl }));
+                            showSuccess('Variant image uploaded');
+                          } else {
+                            showError(data?.error || 'Failed to upload variant image');
+                          }
+                        } catch (error) {
+                          console.error('Variant image upload error:', error);
+                          showError('Something went wrong while uploading the variant image');
+                        } finally {
+                          setIsUploadingVariantImage(false);
+                          e.target.value = '';
+                        }
+                      }}
+                      className="w-full text-sm text-gray-700"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Leave empty to use product image</p>
+                    {isUploadingVariantImage && (
+                      <p className="text-xs text-primary-600 mt-1">Uploading variant image...</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
