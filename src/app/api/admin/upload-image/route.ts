@@ -34,12 +34,13 @@ export async function POST(request: NextRequest) {
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
     if (blobToken) {
       try {
-        console.log('Uploading to Vercel Blob Storage...');
+        console.log('Uploading to Vercel Blob Storage...', { filename, size: buffer.length, type: file.type });
         const blob = await put(`uploads/${filename}`, buffer, {
           access: 'public',
           contentType: file.type,
         });
         
+        console.log('Upload successful to Blob Storage:', blob.url);
         return NextResponse.json({ 
           success: true, 
           imageUrl: blob.url,
@@ -48,8 +49,15 @@ export async function POST(request: NextRequest) {
         });
       } catch (blobError) {
         console.error('Vercel Blob upload failed:', blobError);
-        // Fall through to try disk storage
+        // Return error instead of falling through, so user knows what went wrong
+        return NextResponse.json({
+          error: 'Failed to upload to Vercel Blob Storage',
+          details: blobError instanceof Error ? blobError.message : 'Unknown blob storage error',
+          suggestion: 'Please check that BLOB_READ_WRITE_TOKEN is correctly set in Vercel environment variables'
+        }, { status: 500 });
       }
+    } else {
+      console.warn('BLOB_READ_WRITE_TOKEN not found. Will attempt disk storage.');
     }
 
     // Fallback to disk storage (for local development)
@@ -78,11 +86,17 @@ export async function POST(request: NextRequest) {
       const errorCode = (writeError as NodeJS.ErrnoException)?.code;
       if (errorCode === 'EROFS' || errorCode === 'EACCES') {
         console.error('Filesystem is read-only. Vercel Blob Storage is required for production.');
+        const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
         return NextResponse.json({
-          error: 'Server storage is read-only. Please configure Vercel Blob Storage.',
-          details: 'The server filesystem is read-only. Please set BLOB_READ_WRITE_TOKEN environment variable in Vercel dashboard.',
+          error: 'Server storage is read-only. Vercel Blob Storage is required.',
+          details: hasBlobToken 
+            ? 'Blob token is set but upload failed. Please check Vercel Blob Storage configuration.'
+            : 'BLOB_READ_WRITE_TOKEN environment variable is not set. Please configure it in Vercel dashboard.',
           code: errorCode,
-          setupInstructions: 'Go to Vercel Dashboard > Your Project > Storage > Create Blob Store, then add BLOB_READ_WRITE_TOKEN to environment variables.'
+          blobTokenConfigured: hasBlobToken,
+          setupInstructions: hasBlobToken
+            ? 'Blob token exists but upload failed. Check Vercel logs for details.'
+            : 'Go to Vercel Dashboard > Your Project > Settings > Environment Variables > Add BLOB_READ_WRITE_TOKEN (it should be auto-generated when you create a Blob store).'
         }, { status: 500 });
       }
       throw writeError;
