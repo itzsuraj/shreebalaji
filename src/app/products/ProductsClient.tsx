@@ -5,10 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
-import { Star, ArrowLeft, Search, X, Eye, Heart, Filter, SlidersHorizontal } from 'lucide-react';
+import { Star, ArrowLeft, Search, X, Heart, Filter, SlidersHorizontal } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { getProductImage, getProductDisplayImage } from '@/utils/imageUtils';
-import QuickViewModal from '@/components/ui/QuickViewModal';
 
 interface ProductsClientProps {
   products: Product[];
@@ -17,9 +16,8 @@ interface ProductsClientProps {
 }
 
 // Enhanced ProductCard with modern UI/UX
-const ProductCard = memo(({ product, onQuickView }: {
+const ProductCard = memo(({ product }: {
   product: Product;
-  onQuickView: (product: Product) => void;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -86,22 +84,6 @@ const ProductCard = memo(({ product, onQuickView }: {
         >
           <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
-
-        {/* Quick View Overlay */}
-        <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center transition-all duration-300 ${
-          isHovered ? 'opacity-100' : 'opacity-0'
-        }`}>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onQuickView(product);
-            }}
-            className="px-4 py-2 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg"
-          >
-            <Eye className="h-4 w-4" />
-            Quick View
-          </button>
-        </div>
       </div>
 
       {/* Product Info */}
@@ -222,8 +204,6 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(12);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -372,17 +352,6 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, sortBy]);
-
-  const handleQuickView = useCallback((product: Product) => {
-    setQuickViewProduct(product);
-    setIsQuickViewOpen(true);
-  }, []);
-
-  const handleQuickViewAddToCart = useCallback((product: Product) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
-    setAddedId(product.id);
-    setTimeout(() => setAddedId(null), 2000);
-  }, [addItem]);
 
   const updateURL = useCallback((category: string, search?: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -648,9 +617,8 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 sm:gap-6">
                   {paginatedProducts.map(product => (
                     <ProductCard
-                key={product.id}
+                      key={product.id}
                       product={product}
-                      onQuickView={handleQuickView}
                     />
                   ))}
                   </div>
@@ -704,18 +672,6 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
           </main>
         </div>
       </div>
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        isOpen={isQuickViewOpen}
-        onClose={() => {
-          setIsQuickViewOpen(false);
-          setQuickViewProduct(null);
-        }}
-        onAddToCart={handleQuickViewAddToCart}
-        addedToCart={quickViewProduct ? addedId === quickViewProduct.id : false}
-      />
     </div>
   );
 } 
