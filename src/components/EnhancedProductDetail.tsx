@@ -124,11 +124,12 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
         : allVariantImages.filter(img => img !== normalizedProductImage && !!img);
       
       // Remove duplicates and filter out any invalid images or product image
+      // Note: data URLs are allowed but will be handled with regular img tags
       const unique = Array.from(new Set(variantImagesList)).filter(img => {
         // Ensure image path is valid and not the product main image
-        return img && 
-               img !== normalizedProductImage &&
-               (img.startsWith('/') || img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:'));
+        if (!img || img === normalizedProductImage) return false;
+        // Allow data URLs but prefer regular paths
+        return img.startsWith('/') || img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:');
       });
       
       // Return only variant images - no fallback to productImage
@@ -452,31 +453,66 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           {/* Main Image with Bestseller Badge */}
           <div className="relative">
             <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
-              <Image
-                src={imageError ? getProductImage({ category: product.category, image: undefined }) : (displayImages[currentImageIndex] || productImage)}
-                alt={product.name}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 768px) 100vw, 50vw"
-                onError={(e) => {
-                  console.error('Main image failed to load:', displayImages[currentImageIndex] || productImage);
-                  if (!imageError) {
-                    setImageError(true);
-                    // Try to move to next image if available
-                    if (displayImages.length > 1 && currentImageIndex < displayImages.length - 1) {
-                      setCurrentImageIndex(currentImageIndex + 1);
-                      setImageError(false); // Reset error to try next image
-                    }
-                  }
-                }}
-                onLoad={() => {
-                  // Reset error state if image loads successfully
-                  if (imageError) {
-                    setImageError(false);
-                  }
-                }}
-              />
+              {(() => {
+                const imageSrc = imageError ? getProductImage({ category: product.category, image: undefined }) : (displayImages[currentImageIndex] || productImage);
+                const isDataUrl = imageSrc?.startsWith('data:');
+                
+                // Use regular img tag for data URLs (Next.js Image doesn't handle them well)
+                if (isDataUrl) {
+                  return (
+                    <img
+                      src={imageSrc}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Main image failed to load:', imageSrc);
+                        if (!imageError) {
+                          setImageError(true);
+                          // Try to move to next image if available
+                          if (displayImages.length > 1 && currentImageIndex < displayImages.length - 1) {
+                            setCurrentImageIndex(currentImageIndex + 1);
+                            setImageError(false);
+                          }
+                        }
+                      }}
+                      onLoad={() => {
+                        if (imageError) {
+                          setImageError(false);
+                        }
+                      }}
+                    />
+                  );
+                }
+                
+                // Use Next.js Image for regular URLs
+                return (
+                  <Image
+                    src={imageSrc}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    onError={(e) => {
+                      console.error('Main image failed to load:', imageSrc);
+                      if (!imageError) {
+                        setImageError(true);
+                        // Try to move to next image if available
+                        if (displayImages.length > 1 && currentImageIndex < displayImages.length - 1) {
+                          setCurrentImageIndex(currentImageIndex + 1);
+                          setImageError(false); // Reset error to try next image
+                        }
+                      }
+                    }}
+                    onLoad={() => {
+                      // Reset error state if image loads successfully
+                      if (imageError) {
+                        setImageError(false);
+                      }
+                    }}
+                  />
+                );
+              })()}
               {/* Bestseller Badge */}
               <div className="absolute top-4 left-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
                 <Star className="h-4 w-4 mr-1 fill-current" />
@@ -546,18 +582,42 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                       currentImageIndex === index ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <Image
-                      src={hasError ? fallbackImage : image}
-                      alt={`${product.name} ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                      onError={() => {
-                        if (!thumbnailErrors.has(index)) {
-                          setThumbnailErrors(prev => new Set(prev).add(index));
-                        }
-                      }}
-                    />
+                    {(() => {
+                      const imageSrc = hasError ? fallbackImage : image;
+                      const isDataUrl = imageSrc?.startsWith('data:');
+                      
+                      // Use regular img tag for data URLs
+                      if (isDataUrl) {
+                        return (
+                          <img
+                            src={imageSrc}
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={() => {
+                              if (!thumbnailErrors.has(index)) {
+                                setThumbnailErrors(prev => new Set(prev).add(index));
+                              }
+                            }}
+                          />
+                        );
+                      }
+                      
+                      // Use Next.js Image for regular URLs
+                      return (
+                        <Image
+                          src={imageSrc}
+                          alt={`${product.name} ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                          onError={() => {
+                            if (!thumbnailErrors.has(index)) {
+                              setThumbnailErrors(prev => new Set(prev).add(index));
+                            }
+                          }}
+                        />
+                      );
+                    })()}
                   </button>
                 );
               })}

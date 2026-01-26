@@ -2477,7 +2477,8 @@ export default function AdminProductsPage() {
                                           alt={getVariantCompactLabel(variant)}
                                           className="w-32 h-32 rounded-lg border-2 border-gray-200 object-cover"
                                           key={imagePath} // Force re-render when image changes
-                                          onError={() => {
+                                          onError={(e) => {
+                                            console.error('Variant image failed to load:', imagePath);
                                             if (!variantImageErrors.has(index)) {
                                               setVariantImageErrors(prev => new Set(prev).add(index));
                                             }

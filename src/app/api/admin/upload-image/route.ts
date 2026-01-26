@@ -53,14 +53,12 @@ export async function POST(request: NextRequest) {
     } catch (writeError) {
       const errorCode = (writeError as NodeJS.ErrnoException)?.code;
       if (errorCode === 'EROFS' || errorCode === 'EACCES') {
-        console.warn('Filesystem is read-only, falling back to inline image storage');
-        const base64Image = `data:${file.type};base64,${buffer.toString('base64')}`;
+        console.error('Filesystem is read-only. Cannot save image to disk.');
         return NextResponse.json({
-          success: true,
-          imageUrl: base64Image,
-          message: 'Image stored inline because server storage is read-only',
-          storage: 'inline'
-        });
+          error: 'Server storage is read-only. Please configure writable storage or use cloud storage.',
+          details: 'The server filesystem is read-only. Image uploads require writable storage. Please contact the administrator.',
+          code: errorCode
+        }, { status: 500 });
       }
       throw writeError;
     }
