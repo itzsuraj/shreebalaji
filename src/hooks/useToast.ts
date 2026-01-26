@@ -28,14 +28,20 @@ export function useToast() {
     setToast(prev => ({ ...prev, isVisible: false }));
   }, []);
 
+  // Memoize wrapper functions to prevent unnecessary re-renders
+  const showSuccess = useCallback((message: string) => showToast(message, 'success'), [showToast]);
+  const showError = useCallback((message: string) => showToast(message, 'error'), [showToast]);
+  const showWarning = useCallback((message: string) => showToast(message, 'warning'), [showToast]);
+  const showInfo = useCallback((message: string) => showToast(message, 'info'), [showToast]);
+
   return {
     toast,
     showToast,
     hideToast,
-    showSuccess: (message: string) => showToast(message, 'success'),
-    showError: (message: string) => showToast(message, 'error'),
-    showWarning: (message: string) => showToast(message, 'warning'),
-    showInfo: (message: string) => showToast(message, 'info'),
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo,
   };
 }
 

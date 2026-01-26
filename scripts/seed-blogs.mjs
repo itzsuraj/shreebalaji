@@ -1,6 +1,31 @@
 import mongoose from 'mongoose';
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/balajisphere';
+// Load environment variables from .env.local
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Try to load .env.local
+let mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  try {
+    const envFile = readFileSync(join(__dirname, '../.env.local'), 'utf-8');
+    const mongoMatch = envFile.match(/^MONGODB_URI=(.+)$/m);
+    if (mongoMatch) {
+      mongoUri = mongoMatch[1].trim().replace(/^["']|["']$/g, ''); // Remove quotes if present
+    }
+  } catch (e) {
+    console.error('Could not read .env.local, using default');
+  }
+}
+
+if (!mongoUri) {
+  mongoUri = 'mongodb://127.0.0.1:27017/balajisphere';
+  console.warn('Warning: Using default local MongoDB URI. Set MONGODB_URI environment variable or ensure .env.local exists.');
+}
 
 // Define Blog Schema inline
 const BlogSchema = new mongoose.Schema({
