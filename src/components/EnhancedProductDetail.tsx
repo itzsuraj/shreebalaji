@@ -276,11 +276,6 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     return stock || 0;
   }, [selectedVariant, product.stockQty, product.inStock]);
 
-  // Calculate deterministic cart count based on product ID to avoid hydration mismatch
-  const cartCount = useMemo(() => {
-    const hash = product._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return (hash % 15) + 5; // Returns a value between 5-19 based on product ID
-  }, [product._id]);
 
   // Initialize default selected variant (first available) on load
   useEffect(() => {
@@ -627,14 +622,17 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
 
         {/* Product Information - Etsy Style */}
         <div className="space-y-6">
-          {/* Popularity Indicator */}
-          <div className="text-sm text-gray-600">
-            In {cartCount}+ carts
-          </div>
-
           {/* Product Title and key details */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+              {/* Stock Badge */}
+              {currentStock > 0 && (
+                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                  {currentStock} available
+                </span>
+              )}
+            </div>
 
             {/* Key attributes just below title */}
             {(() => {

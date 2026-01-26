@@ -107,9 +107,27 @@ const ProductCard = memo(({ product, onQuickView }: {
       {/* Product Info */}
       <div className="p-5">
         <Link href={`/products/${product.id}`} prefetch={true}>
-          <h3 className="text-lg font-bold mb-2 text-gray-900 leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors">
-            {product.name}
-          </h3>
+          <div className="flex items-start gap-2 mb-2 flex-wrap">
+            <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors flex-1 min-w-0">
+              {product.name}
+            </h3>
+            {/* Stock Badge */}
+            {(() => {
+              // Calculate stock: use first variant stockQty if available, otherwise product stockQty
+              const stockQty = product.variantPricing && product.variantPricing.length > 0 
+                ? (product.variantPricing[0].stockQty ?? product.stockQty ?? 0)
+                : (product.stockQty ?? 0);
+              
+              if (stockQty > 0) {
+                return (
+                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full whitespace-nowrap">
+                    {stockQty} available
+                  </span>
+                );
+              }
+              return null;
+            })()}
+          </div>
         </Link>
         
         {/* Key attributes (show first variant summary or base fields) */}
