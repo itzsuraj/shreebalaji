@@ -872,7 +872,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           <div className="mt-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-              <div className="inline-flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+              <div className="inline-flex items-center border-2 border-gray-300 rounded-lg overflow-hidden mb-4">
                 <button
                   type="button"
                   onClick={() => handleQuantityChange(-1)}

@@ -1092,7 +1092,7 @@ export default function AdminProductsPage() {
           {/* Left Column - Main Content (2/3 width) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Title */}
-            <div>
+            <div className="mb-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
               <input
                 type="text"
