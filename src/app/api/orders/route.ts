@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 import { calculateTotals } from '@/lib/config';
+import { rateLimiters } from '@/lib/rateLimit';
 
 interface OrderItemPayload {
   productId: string;
