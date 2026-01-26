@@ -486,6 +486,12 @@ export default function AdminProductsPage() {
     const basePrice =
       variantPricing.length > 0 ? Number(variantPricing[0].price || 0) : Number(editForm.price);
 
+    // Ensure all variant images are included in the payload
+    const variantPricingWithImages = variantPricing.map(v => ({
+      ...v,
+      image: v.image || undefined, // Include image field even if empty
+    }));
+
     const payload = {
       name: editForm.name,
       description: editForm.description,
@@ -494,10 +500,17 @@ export default function AdminProductsPage() {
       category: editForm.category,
       image: editForm.image?.trim() || '',
        stockQty: Number(editForm.stockQty || 0),
-      variantPricing: variantPricing.length > 0 ? variantPricing : undefined,
+      variantPricing: variantPricing.length > 0 ? variantPricingWithImages : undefined,
       status: editForm.status || 'active',
       inStock: editForm.inStock,
     };
+    
+    console.log('Updating product with payload:', {
+      productId: editingProduct._id,
+      variantCount: variantPricing.length,
+      variantsWithImages: variantPricingWithImages.filter(v => v.image).length,
+      variantPricing: variantPricingWithImages,
+    });
     
     const res = await fetch(`/api/admin/products/${editingProduct._id}`, { 
       method: 'PUT', 
@@ -507,6 +520,7 @@ export default function AdminProductsPage() {
     
     if (res.ok) {
       const data = await res.json();
+      console.log('Product update response:', data);
       showSuccess('Product updated successfully. Changes will be visible on the frontend shortly.');
       setEditingProduct(null);
       setEditForm({ 
@@ -2487,27 +2501,53 @@ export default function AdminProductsPage() {
                                         </div>
                                       );
                                     })()}
-                                    <label className="absolute inset-0 cursor-pointer">
+                                    <label 
+                                      className="absolute inset-0 cursor-pointer z-10"
+                                      title="Click to upload or change image"
+                                    >
                                       <input
                                         type="file"
                                         accept="image/*"
                                         className="hidden"
+                                        id={`variant-image-${index}`}
                                         onChange={async (e) => {
                                           const file = e.target.files?.[0];
-                                          if (!file) return;
+                                          if (!file) {
+                                            console.warn('No file selected');
+                                            return;
+                                          }
+                                          
+                                          // Validate file
+                                          if (!file.type.startsWith('image/')) {
+                                            showError('Please select an image file');
+                                            e.target.value = '';
+                                            return;
+                                          }
+                                          
+                                          if (file.size > 5 * 1024 * 1024) {
+                                            showError('Image size must be less than 5MB');
+                                            e.target.value = '';
+                                            return;
+                                          }
+                                          
                                           setUploadingVariantImageIndex(index);
                                           try {
+                                            console.log('Uploading variant image:', { index, fileName: file.name, fileSize: file.size, fileType: file.type });
                                             const formData = new FormData();
                                             formData.append('image', file);
                                             const res = await fetch('/api/admin/upload-image', {
                                               method: 'POST',
                                               body: formData,
                                             });
+                                            
                                             const data = await res.json();
+                                            console.log('Upload response:', { status: res.status, data });
+                                            
                                             if (res.ok && data?.imageUrl) {
                                               const newVariants = [...variantPricing];
                                               // Ensure image path is normalized (starts with /)
                                               const imageUrl = data.imageUrl.startsWith('/') ? data.imageUrl : `/${data.imageUrl}`;
+                                              console.log('Setting variant image:', { index, imageUrl, variant: newVariants[index] });
                                               newVariants[index] = { ...variant, image: imageUrl };
                                               setVariantPricing(newVariants);
                                               // Clear error state for this variant when new image is uploaded
@@ -2516,13 +2556,14 @@ export default function AdminProductsPage() {
                                                 newSet.delete(index);
                                                 return newSet;
                                               });
-                                              showSuccess('Variant image uploaded. Don\'t forget to save the product to apply changes.');
+                                              showSuccess('Variant image uploaded successfully! Don\'t forget to save the product to apply changes.');
                                             } else {
-                                              showError(data?.error || 'Failed to upload variant image');
+                                              console.error('Upload failed:', data);
+                                              showError(data?.error || data?.details || 'Failed to upload variant image');
                                             }
                                           } catch (error) {
                                             console.error('Variant image upload error:', error);
-                                            showError('Something went wrong while uploading the variant image');
+                                            showError(`Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`);
                                           } finally {
                                             setUploadingVariantImageIndex(null);
                                             e.target.value = '';
@@ -2531,8 +2572,11 @@ export default function AdminProductsPage() {
                                       />
                                     </label>
                                     {uploadingVariantImageIndex === index && (
-                                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
-                                        <div className="text-white text-xs">Uploading...</div>
+                                      <div className="absolute inset-0 bg-black bg-opacity-70 rounded-lg flex items-center justify-center z-20">
+                                        <div className="text-white text-sm font-medium">
+                                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto mb-2"></div>
+                                          Uploading...
+                                        </div>
                                       </div>
                                     )}
                                   </div>
