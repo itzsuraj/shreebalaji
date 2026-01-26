@@ -636,7 +636,8 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
 
             {/* Key attributes just below title */}
             {(() => {
-              const variant = Array.isArray(product.variantPricing) && product.variantPricing.length > 0 ? product.variantPricing[0] : null;
+              // Use selectedVariant if available, otherwise fall back to first variant
+              const variant = selectedVariant || (Array.isArray(product.variantPricing) && product.variantPricing.length > 0 ? product.variantPricing[0] : null);
               
               // Debug: Log variant data (remove in production)
               if (process.env.NODE_ENV === 'development' && variant) {
@@ -647,7 +648,8 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                   color: variant.color,
                   quality: (variant as any).quality,
                   quantity: (variant as any).quantity,
-                  pack: variant.pack
+                  pack: variant.pack,
+                  isSelected: !!selectedVariant
                 });
               }
               
@@ -680,7 +682,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                     );
                   }
                 } else {
-                  // For other categories
+                  // For other categories (buttons, zippers, cords)
                   const hasValidSize = isValidValue(variant.size);
                   const hasValidColor = isValidValue(variant.color);
                   const hasValidPack = isValidValue(variant.pack);
