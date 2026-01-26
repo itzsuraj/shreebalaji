@@ -893,11 +893,6 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
                   +
                 </button>
               </div>
-              {currentStock > 0 && (
-                <p className="text-sm text-gray-500 mt-2">
-                  {currentStock} available
-                </p>
-              )}
             </div>
 
             {/* Add to Cart Button - Etsy Style */}

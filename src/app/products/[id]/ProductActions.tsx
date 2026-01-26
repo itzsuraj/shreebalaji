@@ -156,11 +156,6 @@ export default function ProductActions({ productName, productId, price, image, c
           <span className="px-4 select-none">{qty}</span>
           <button type="button" className="px-3 py-1" onClick={() => setQty(q => availableStock !== undefined ? Math.min(availableStock, q + 1) : q + 1)}>+</button>
         </div>
-        {availableStock !== undefined && (
-          <span className={`text-xs ${availableStock <= 5 ? 'text-red-600' : 'text-gray-500'}`}>
-            {availableStock <= 5 ? `Only ${availableStock} left` : `${availableStock} in stock`}
-          </span>
-        )}
       </div>
       <div className="flex gap-3">
         <button 
