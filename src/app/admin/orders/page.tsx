@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import DeleteModal from '@/components/ui/DeleteModal';
 import ShopifyOrderDetail from '@/components/admin/ShopifyOrderDetail';
+import { useToast } from '@/hooks/useToast';
 // import OrderManagementDashboard from '@/components/admin/OrderManagementDashboard';
 
 interface AdminOrderItem {
@@ -108,6 +109,8 @@ export default function AdminOrdersPage() {
     totalRevenue: 0
   });
 
+  const { showError, showSuccess } = useToast();
+
   const load = useCallback(async () => {
     setLoading(true);
     const res = await fetch('/api/admin/orders');
@@ -132,12 +135,22 @@ export default function AdminOrdersPage() {
   useEffect(() => { load(); }, [load]);
 
   const updateStatus = async (id: string, status: string) => {
-    const res = await fetch(`/api/admin/orders/${id}`, { 
-      method: 'PUT', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ status }) 
-    });
-    if (res.ok) load();
+    try {
+      const { apiClient } = await import('@/lib/apiClient');
+      const res = await apiClient.put(`/api/admin/orders/${id}`, { status }, { showRateLimitError: true });
+      if (res.ok) {
+        showSuccess('Order status updated successfully');
+        load();
+      } else if (res.status === 403) {
+        showError('Invalid CSRF token. Please refresh the page.');
+      } else {
+        const data = await res.json();
+        showError(data.error || 'Failed to update order status');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      showError('Failed to update order status');
+    }
   };
 
   const handleDeleteClick = (id: string) => {
@@ -162,23 +175,36 @@ export default function AdminOrdersPage() {
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     try {
+      const { apiClient } = await import('@/lib/apiClient');
+      
       if (deleteModal.isBulk && selectedOrders.length > 0) {
-        const res = await fetch('/api/admin/orders/bulk-delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: selectedOrders })
-        });
+        const res = await apiClient.post('/api/admin/orders/bulk-delete', { ids: selectedOrders }, { showRateLimitError: true });
         if (res.ok) {
+          showSuccess(`Successfully deleted ${selectedOrders.length} order(s)`);
           setSelectedOrders([]);
           load();
+        } else if (res.status === 403) {
+          showError('Invalid CSRF token. Please refresh the page.');
+        } else {
+          const data = await res.json();
+          showError(data.error || 'Failed to delete orders');
         }
       } else if (deleteModal.orderId) {
-        const res = await fetch(`/api/admin/orders/${deleteModal.orderId}`, { method: 'DELETE' });
-    if (res.ok) load();
+        const res = await apiClient.delete(`/api/admin/orders/${deleteModal.orderId}`, { showRateLimitError: true });
+        if (res.ok) {
+          showSuccess('Order deleted successfully');
+          load();
+        } else if (res.status === 403) {
+          showError('Invalid CSRF token. Please refresh the page.');
+        } else {
+          const data = await res.json();
+          showError(data.error || 'Failed to delete order');
+        }
       }
       setDeleteModal({ isOpen: false, orderId: null, isBulk: false, count: 0 });
     } catch (error) {
       console.error('Delete error:', error);
+      showError('Failed to delete order(s)');
     } finally {
       setIsDeleting(false);
     }

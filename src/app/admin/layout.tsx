@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import AdminSidebar from '@/components/layout/AdminSidebar';
+import RateLimitNotification from '@/components/RateLimitNotification';
 import Head from 'next/head';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <meta name="googlebot" content="noindex, nofollow" />
         <title>Admin Panel - Shree Balaji Enterprises</title>
       </Head>
+      <RateLimitNotification />
       <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
