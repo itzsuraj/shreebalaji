@@ -64,7 +64,23 @@ export async function GET(request?: NextRequest) {
     }
     
     // Ensure all products have required fields and proper serialization
-    let serializedProducts;
+    let serializedProducts: Array<{
+      _id: string;
+      name: string;
+      category: string;
+      price: number;
+      description: string;
+      image: string;
+      inStock: boolean;
+      status: string;
+      stockQty: number;
+      sizes: string[];
+      colors: string[];
+      packs: string[];
+      variantPricing: any[];
+      createdAt: string;
+      updatedAt: string;
+    }> = [];
     try {
       serializedProducts = products.map((p: any) => {
         try {
