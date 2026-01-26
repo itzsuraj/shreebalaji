@@ -230,14 +230,6 @@ export default function AdminBlogsPage() {
       showError('Image size must be less than 5MB');
       return;
     }
-      showError('Please select an image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      showError('Image size must be less than 5MB');
-      return;
-    }
 
     setIsUploadingImage(true);
     try {
