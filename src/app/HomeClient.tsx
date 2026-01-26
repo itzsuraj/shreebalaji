@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Star, ShoppingCart, Eye, Heart, Check } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { getProductImage } from "@/utils/imageUtils";
+import { getProductImage, normalizeImagePath } from "@/utils/imageUtils";
 import type { Product } from "@/types/product";
 import { useMemo, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
@@ -34,6 +34,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       quality?: string;
       quantity?: string;
       price: number;
+      image?: string;
     }>;
     inStock: boolean;
     rating: number;
@@ -42,6 +43,22 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   const [loading, setLoading] = useState(initialProducts.length === 0);
   const [toast, setToast] = useState({ isVisible: false, message: '' });
   const [addedId, setAddedId] = useState<string | null>(null);
+
+  // Helper function to get product image - prioritize first variant image if available
+  const getProductDisplayImage = (product: typeof products[0]) => {
+    // If product has variants with images, use the first variant's image
+    if (product.variantPricing && product.variantPricing.length > 0) {
+      const firstVariant = product.variantPricing[0];
+      if (firstVariant.image) {
+        const normalizedImage = normalizeImagePath(firstVariant.image);
+        if (normalizedImage) {
+          return normalizedImage;
+        }
+      }
+    }
+    // Otherwise, use the main product image
+    return getProductImage(product);
+  };
 
   // Fetch products from database
   useEffect(() => {
@@ -99,14 +116,14 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   }, [featuredProducts, router]);
 
   const handleAddToCart = (product: typeof products[0]) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
     setToast({ isVisible: true, message: `${product.name} added to cart!` });
     setAddedId(product.id);
     setTimeout(() => setAddedId(null), 1500);
   };
 
   const handleBuyNow = (product: typeof products[0]) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
     router.push('/checkout');
   };
 
@@ -115,7 +132,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
       productId: product.id,
       name: product.name,
       price: product.price,
-      image: getProductImage(product),
+      image: getProductDisplayImage(product),
       category: product.category,
     });
     setToast({
@@ -327,7 +344,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                 <Link href={`/products/${product.id}`} prefetch={true}>
                   <div className="relative h-48">
                     <Image
-                      src={getProductImage(product)}
+                      src={getProductDisplayImage(product)}
                       alt={product.name}
                       fill
                       className="object-cover"
@@ -543,7 +560,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                   <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
-                        src={getProductImage(product)}
+                        src={getProductDisplayImage(product)}
                         alt={product.name}
                         fill
                         className="object-cover"
@@ -675,7 +692,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                   <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
-                        src={getProductImage(product)}
+                        src={getProductDisplayImage(product)}
                         alt={product.name}
                         fill
                         className="object-cover"
@@ -807,7 +824,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                   <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
-                        src={getProductImage(product)}
+                        src={getProductDisplayImage(product)}
                         alt={product.name}
                         fill
                         className="object-cover"
@@ -939,7 +956,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                   <Link href={`/products/${product.id}`} prefetch={true}>
                     <div className="relative h-40">
                       <Image
-                        src={getProductImage(product)}
+                        src={getProductDisplayImage(product)}
                         alt={product.name}
                         fill
                         className="object-cover"

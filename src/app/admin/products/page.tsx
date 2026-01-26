@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { generateVariantSKU } from '@/utils/skuGenerator';
+import { normalizeImagePath } from '@/utils/imageUtils';
 import Head from 'next/head';
 import DeleteModal from '@/components/ui/DeleteModal';
 import Toast from '@/components/ui/Toast';
@@ -117,6 +118,7 @@ export default function AdminProductsPage() {
   const [variantGroupBy, setVariantGroupBy] = useState<'size' | 'color' | 'pack' | 'quality' | 'quantity'>('size');
   const [expandedVariantGroups, setExpandedVariantGroups] = useState<Record<string, boolean>>({});
   const [uploadingVariantImageIndex, setUploadingVariantImageIndex] = useState<number | null>(null);
+  const [variantImageErrors, setVariantImageErrors] = useState<Set<number>>(new Set());
   
   // Edit mode variant selection and filtering
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number | null>(null);
@@ -474,6 +476,8 @@ export default function AdminProductsPage() {
     setSelectedVariantIndex(product.variantPricing && product.variantPricing.length > 0 ? 0 : null);
     setVariantSearchQuery('');
     setVariantOptionFilters({});
+    // Reset image errors when loading a new product
+    setVariantImageErrors(new Set());
   };
 
   const updateProduct = async () => {
@@ -1473,18 +1477,21 @@ export default function AdminProductsPage() {
                                 {g.items.map(({ variant, index }) => (
                                   <div key={`${groupKey}:${index}`} className="grid grid-cols-12 gap-2 px-3 py-2 bg-white">
                                     <div className="col-span-5 flex items-center gap-3">
-                                      {variant.image ? (
-                                        <img
-                                          src={variant.image}
-                                          alt={getVariantCompactLabel(variant)}
-                                          className="w-8 h-8 rounded border object-cover"
-                                          onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                          }}
-                                        />
-                                      ) : (
-                                        <div className="w-8 h-8 rounded border bg-gray-50" />
-                                      )}
+                                      {(() => {
+                                        const imagePath = variant.image ? normalizeImagePath(variant.image) : null;
+                                        return imagePath ? (
+                                          <img
+                                            src={imagePath}
+                                            alt={getVariantCompactLabel(variant)}
+                                            className="w-8 h-8 rounded border object-cover"
+                                            onError={(e) => {
+                                              (e.target as HTMLImageElement).style.display = 'none';
+                                            }}
+                                          />
+                                        ) : (
+                                          <div className="w-8 h-8 rounded border bg-gray-50" />
+                                        );
+                                      })()}
                                       <div className="min-w-0">
                                         <div className="text-sm text-gray-900 truncate">
                                           {getVariantCompactLabel(variant, variantGroupBy)}
@@ -2409,22 +2416,19 @@ export default function AdminProductsPage() {
                                       : 'hover:bg-gray-50 border border-transparent'
                                   }`}
                                 >
-                                  {variant.image ? (
-                                    <img
-                                      src={variant.image}
-                                      alt={getVariantCompactLabel(variant)}
-                                      className="w-8 h-8 rounded object-cover"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-8 h-8 rounded bg-gray-100 border border-gray-200 flex items-center justify-center">
-                                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                      </svg>
-                                    </div>
-                                  )}
+                                  {(() => {
+                                    const imagePath = variant.image ? normalizeImagePath(variant.image) : null;
+                                    return imagePath ? (
+                                      <img
+                                        src={imagePath}
+                                        alt={getVariantCompactLabel(variant)}
+                                        className="w-8 h-8 rounded object-cover"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                      />
+                                    ) : null;
+                                  })()}
                                   <span className="text-sm text-gray-900 flex-1 truncate">
                                     {getVariantCompactLabel(variant)}
                                   </span>
@@ -2448,20 +2452,41 @@ export default function AdminProductsPage() {
                               <div className="mb-6">
                                 <div className="flex items-start gap-4">
                                   <div className="relative">
-                                    {variant.image ? (
-                                      <img
-                                        src={variant.image}
-                                        alt={getVariantCompactLabel(variant)}
-                                        className="w-32 h-32 rounded-lg border-2 border-gray-200 object-cover"
-                                        key={variant.image} // Force re-render when image changes
-                                      />
-                                    ) : (
-                                      <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                      </div>
-                                    )}
+                                    {(() => {
+                                      const hasError = variantImageErrors.has(index);
+                                      const imagePath = variant.image ? normalizeImagePath(variant.image) : null;
+                                      const shouldShowImage = imagePath && !hasError;
+                                      
+                                      return shouldShowImage ? (
+                                        <img
+                                          src={imagePath}
+                                          alt={getVariantCompactLabel(variant)}
+                                          className="w-32 h-32 rounded-lg border-2 border-gray-200 object-cover"
+                                          key={imagePath} // Force re-render when image changes
+                                          onError={() => {
+                                            if (!variantImageErrors.has(index)) {
+                                              setVariantImageErrors(prev => new Set(prev).add(index));
+                                            }
+                                          }}
+                                          onLoad={() => {
+                                            // Remove from error set if image loads successfully
+                                            if (variantImageErrors.has(index)) {
+                                              setVariantImageErrors(prev => {
+                                                const newSet = new Set(prev);
+                                                newSet.delete(index);
+                                                return newSet;
+                                              });
+                                            }
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                          </svg>
+                                        </div>
+                                      );
+                                    })()}
                                     <label className="absolute inset-0 cursor-pointer">
                                       <input
                                         type="file"
@@ -2485,6 +2510,12 @@ export default function AdminProductsPage() {
                                               const imageUrl = data.imageUrl.startsWith('/') ? data.imageUrl : `/${data.imageUrl}`;
                                               newVariants[index] = { ...variant, image: imageUrl };
                                               setVariantPricing(newVariants);
+                                              // Clear error state for this variant when new image is uploaded
+                                              setVariantImageErrors(prev => {
+                                                const newSet = new Set(prev);
+                                                newSet.delete(index);
+                                                return newSet;
+                                              });
                                               showSuccess('Variant image uploaded. Don\'t forget to save the product to apply changes.');
                                             } else {
                                               showError(data?.error || 'Failed to upload variant image');

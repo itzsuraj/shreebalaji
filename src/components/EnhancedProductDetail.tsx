@@ -73,38 +73,86 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const productImage = useMemo(() => getProductImage(product), [product.image, product.category]);
   const images = useMemo(() => {
     const mainImage = productImage;
-    return product.images && product.images.length > 0 ? product.images : [mainImage];
+    if (product.images && product.images.length > 0) {
+      // Normalize all image paths
+      return product.images
+        .map(img => normalizeImagePath(img) || img)
+        .filter((img): img is string => !!img);
+    }
+    return [mainImage];
   }, [product.images, productImage]);
   
-  // Collect all variant images
+  // Collect all variant images - ensure no duplicates and exclude product main image
   const allVariantImages = useMemo(() => {
     const variantImages = new Set<string>();
+    const normalizedProductImage = normalizeImagePath(product.image);
+    
     if (Array.isArray(product.variantPricing)) {
       product.variantPricing.forEach((v) => {
         const normalizedImage = normalizeImagePath(v.image);
-        if (normalizedImage) {
+        // Only add if image path is valid and not the same as product main image
+        if (normalizedImage && 
+            normalizedImage !== normalizedProductImage &&
+            (normalizedImage.startsWith('/') || 
+             normalizedImage.startsWith('http') || 
+             normalizedImage.startsWith('data:') || 
+             normalizedImage.startsWith('blob:'))
+        ) {
           variantImages.add(normalizedImage);
         }
       });
     }
     return Array.from(variantImages);
-  }, [product.variantPricing]);
+  }, [product.variantPricing, product.image]);
   
   const displayImages = useMemo(() => {
-    // Start with all variant images (prioritize selected variant's image first)
-    const variantImage = normalizeImagePath(selectedVariant?.image);
-    const variantImagesList = variantImage 
-      ? [variantImage, ...allVariantImages.filter(img => img !== variantImage)]
-      : allVariantImages;
+    // If we have variant images, ONLY show variant images (don't include main product images)
+    if (allVariantImages.length > 0) {
+      // Exclude product main image from consideration
+      const normalizedProductImage = normalizeImagePath(product.image);
+      
+      // Start with all variant images (prioritize selected variant's image first)
+      const variantImage = normalizeImagePath(selectedVariant?.image);
+      // Only prioritize variant image if it's valid, exists in allVariantImages, and is not the product image
+      const isValidVariantImage = variantImage && 
+        variantImage !== normalizedProductImage &&
+        (variantImage.startsWith('/') || variantImage.startsWith('http') || variantImage.startsWith('data:') || variantImage.startsWith('blob:')) &&
+        allVariantImages.includes(variantImage);
+      
+      const variantImagesList = isValidVariantImage
+        ? [variantImage, ...allVariantImages.filter(img => img !== variantImage && img !== normalizedProductImage)]
+        : allVariantImages.filter(img => img !== normalizedProductImage && !!img);
+      
+      // Remove duplicates and filter out any invalid images or product image
+      const unique = Array.from(new Set(variantImagesList)).filter(img => {
+        // Ensure image path is valid and not the product main image
+        return img && 
+               img !== normalizedProductImage &&
+               (img.startsWith('/') || img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:'));
+      });
+      
+      // Return only variant images - no fallback to productImage
+      return unique;
+    }
     
-    // Add main product images that aren't already in variant images
-    const mainImages = images.filter(img => !allVariantImages.includes(img));
+    // If no variant images, use main product images
+    const mainImages = images
+      .map(img => normalizeImagePath(img) || img)
+      .filter((img): img is string => {
+        // Filter out invalid paths
+        if (!img) return false;
+        // Ensure path is valid (starts with / or http)
+        return img.startsWith('/') || img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:');
+      });
     
-    // Combine: variant images first, then main images
-    const combined = [...variantImagesList, ...mainImages];
+    // Remove duplicates and filter out any invalid images
+    const unique = Array.from(new Set(mainImages)).filter(img => {
+      // Ensure image path is valid
+      return img && (img.startsWith('/') || img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:'));
+    });
     
     // If no images at all, fallback to product image
-    return combined.length > 0 ? combined : [productImage];
+    return unique.length > 0 ? unique : [productImage];
   }, [images, selectedVariant?.image, allVariantImages, productImage]);
   const variantImageMap = useMemo(() => {
     const map = new Map<string, ProductVariant[]>();
@@ -201,6 +249,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     return [];
   }, [hasVariants, product.variantPricing?.length, product.category]);
   const [imageError, setImageError] = useState(false);
+  const [thumbnailErrors, setThumbnailErrors] = useState<Set<number>>(new Set());
 
   // Calculate current price and stock
   const currentPrice = useMemo(
@@ -260,16 +309,28 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   // Update selected variant when options change
   useEffect(() => {
     if (hasVariants && variantPricingRef.current) {
+      // Find the variant that matches ALL selected options
       const variant = variantPricingRef.current.find(v => {
-        const matchesSize = !selectedSize || v.size === selectedSize;
-        const matchesColor = !selectedColor || v.color === selectedColor;
-        const matchesPack = !selectedPack || v.pack === selectedPack;
+        // For size, color, pack - must match if selected, or variant doesn't have that field
+        const matchesSize = !selectedSize || (v.size === selectedSize || !v.size);
+        const matchesColor = !selectedColor || (v.color === selectedColor || !v.color);
+        const matchesPack = !selectedPack || (v.pack === selectedPack || !v.pack);
+        // For quantity (zipper category), must match exactly if selected
         const matchesQuantity = product.category !== 'zipper' || !selectedQuantity || (v as any).quantity === selectedQuantity;
         return matchesSize && matchesColor && matchesPack && matchesQuantity;
       });
+      
       // Only update if variant actually changed to prevent infinite loops
       setSelectedVariant(prev => {
-        if (!variant) return null;
+        if (!variant) {
+          // If no variant found, try to find the first variant that matches at least one selected option
+          const fallbackVariant = variantPricingRef.current?.find(v => {
+            return (selectedSize && v.size === selectedSize) ||
+                   (selectedColor && v.color === selectedColor) ||
+                   (selectedPack && v.pack === selectedPack);
+          });
+          return fallbackVariant || prev;
+        }
         const prevKey = prev ? `${prev.size}-${prev.color}-${prev.pack}-${product.category === 'zipper' ? (prev as any).quantity : ''}` : '';
         const newKey = `${variant.size}-${variant.color}-${variant.pack}-${product.category === 'zipper' ? (variant as any).quantity : ''}`;
         return prevKey === newKey ? prev : variant;
@@ -286,10 +347,25 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   }, [availablePacks, selectedPack]);
 
   useEffect(() => {
-    if (!selectedVariant?.image) return;
+    // When variant changes, reset to first image and clear errors
     setImageError(false);
     setCurrentImageIndex(0);
-  }, [selectedVariant?.image]);
+    setThumbnailErrors(new Set());
+  }, [selectedVariant]);
+
+  // Reset image error when switching to a different image
+  useEffect(() => {
+    setImageError(false);
+  }, [currentImageIndex]);
+
+  // Reset thumbnail errors when displayImages change
+  useEffect(() => {
+    setThumbnailErrors(new Set());
+    // Ensure currentImageIndex is within bounds
+    if (currentImageIndex >= displayImages.length && displayImages.length > 0) {
+      setCurrentImageIndex(0);
+    }
+  }, [displayImages.length, currentImageIndex]);
   const applyVariantSelections = useCallback((variant: ProductVariant) => {
     if (variant.size) setSelectedSize(variant.size);
     if (variant.color) setSelectedColor(variant.color);
@@ -300,41 +376,21 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     setSelectedVariant(variant);
   }, [product.category]);
 
+  // Update image index when variant changes to show variant's image first
   useEffect(() => {
-    const image = displayImages[currentImageIndex];
-    if (!image) return;
-    const variants = variantImageMap.get(image);
-    if (!variants || variants.length === 0) return;
-
-    const matchesSelection = (v: ProductVariant) => {
-      const matchesSize = !selectedSize || v.size === selectedSize;
-      const matchesColor = !selectedColor || v.color === selectedColor;
-      const matchesPack = !selectedPack || v.pack === selectedPack;
-      const matchesQuantity =
-        product.category !== 'zipper' || !selectedQuantity || (v as any).quantity === selectedQuantity;
-      return matchesSize && matchesColor && matchesPack && matchesQuantity;
-    };
-
-    const exactMatch = variants.find(matchesSelection);
-    if (exactMatch) {
-      applyVariantSelections(exactMatch);
-      return;
+    if (!selectedVariant) return;
+    
+    const variantImage = normalizeImagePath(selectedVariant.image);
+    if (variantImage && displayImages.length > 0) {
+      const imageIndex = displayImages.findIndex(img => img === variantImage);
+      if (imageIndex >= 0 && imageIndex !== currentImageIndex) {
+        setCurrentImageIndex(imageIndex);
+      } else if (imageIndex < 0 && currentImageIndex > 0) {
+        // If variant image not found in displayImages, reset to first image
+        setCurrentImageIndex(0);
+      }
     }
-
-    if (variants.length === 1) {
-      applyVariantSelections(variants[0]);
-    }
-  }, [
-    currentImageIndex,
-    displayImages,
-    variantImageMap,
-    applyVariantSelections,
-    selectedSize,
-    selectedColor,
-    selectedPack,
-    selectedQuantity,
-    product.category,
-  ]);
+  }, [selectedVariant, displayImages, currentImageIndex]);
 
   const handleAddToCart = useCallback(() => {
     if (hasVariants && !selectedVariant) {
@@ -397,15 +453,27 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           <div className="relative">
             <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
               <Image
-                src={imageError ? getProductImage({ category: product.category, image: undefined }) : displayImages[currentImageIndex] || productImage}
+                src={imageError ? getProductImage({ category: product.category, image: undefined }) : (displayImages[currentImageIndex] || productImage)}
                 alt={product.name}
                 fill
                 className="object-cover"
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
-                onError={() => {
+                onError={(e) => {
+                  console.error('Main image failed to load:', displayImages[currentImageIndex] || productImage);
                   if (!imageError) {
                     setImageError(true);
+                    // Try to move to next image if available
+                    if (displayImages.length > 1 && currentImageIndex < displayImages.length - 1) {
+                      setCurrentImageIndex(currentImageIndex + 1);
+                      setImageError(false); // Reset error to try next image
+                    }
+                  }
+                }}
+                onLoad={() => {
+                  // Reset error state if image loads successfully
+                  if (imageError) {
+                    setImageError(false);
                   }
                 }}
               />
@@ -446,23 +514,53 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
           {/* Thumbnail Images - Vertical Stack */}
           {displayImages.length > 1 && (
             <div className="flex space-x-2">
-              {displayImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-16 h-16 relative rounded-lg overflow-hidden border-2 transition-all ${
-                    currentImageIndex === index ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Image
-                    src={image}
-                    alt={`${product.name} ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                </button>
-              ))}
+              {displayImages.map((image, index) => {
+                const hasError = thumbnailErrors.has(index);
+                const fallbackImage = getProductImage({ category: product.category, image: undefined });
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setCurrentImageIndex(index);
+                      // If this image belongs to a variant, switch to that variant
+                      const image = displayImages[index];
+                      if (image) {
+                        const variants = variantImageMap.get(image);
+                        if (variants && variants.length > 0) {
+                          // Prefer exact match with current selections, otherwise use first variant
+                          const exactMatch = variants.find(v => 
+                            (!selectedSize || v.size === selectedSize) &&
+                            (!selectedColor || v.color === selectedColor) &&
+                            (!selectedPack || v.pack === selectedPack)
+                          );
+                          if (exactMatch) {
+                            applyVariantSelections(exactMatch);
+                          } else if (variants.length === 1) {
+                            applyVariantSelections(variants[0]);
+                          }
+                        }
+                      }
+                    }}
+                    className={`w-16 h-16 relative rounded-lg overflow-hidden border-2 transition-all ${
+                      currentImageIndex === index ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <Image
+                      src={hasError ? fallbackImage : image}
+                      alt={`${product.name} ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                      onError={() => {
+                        if (!thumbnailErrors.has(index)) {
+                          setThumbnailErrors(prev => new Set(prev).add(index));
+                        }
+                      }}
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
