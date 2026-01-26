@@ -202,11 +202,6 @@ export default function AdminBlogsPage() {
         method: 'DELETE',
         headers: await getHeaders(),
       });
-    
-    try {
-      const res = await fetch(`/api/admin/blogs/${deleteModal.blogId}`, {
-        method: 'DELETE'
-      });
 
       if (!res.ok) {
         showError('Failed to delete blog post');
