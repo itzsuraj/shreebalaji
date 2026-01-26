@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
     }
 
     await connectToDatabase();
-    const body = await req.json();
+    let body = await req.json();
     
     // Sanitize text fields to prevent XSS
     if (sanitizeObject && sanitizeText && sanitizeHTML) {
