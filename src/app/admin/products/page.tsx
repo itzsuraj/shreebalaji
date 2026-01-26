@@ -119,6 +119,7 @@ export default function AdminProductsPage() {
   const [expandedVariantGroups, setExpandedVariantGroups] = useState<Record<string, boolean>>({});
   const [uploadingVariantImageIndex, setUploadingVariantImageIndex] = useState<number | null>(null);
   const [variantImageErrors, setVariantImageErrors] = useState<Set<number>>(new Set());
+  const [variantImageVersions, setVariantImageVersions] = useState<Record<number, number>>({});
   
   // Edit mode variant selection and filtering
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number | null>(null);
@@ -478,6 +479,16 @@ export default function AdminProductsPage() {
     setVariantOptionFilters({});
     // Reset image errors when loading a new product
     setVariantImageErrors(new Set());
+    // Initialize image versions for existing variants to ensure proper cache-busting
+    const initialVersions: Record<number, number> = {};
+    if (product.variantPricing) {
+      product.variantPricing.forEach((variant, index) => {
+        if (variant.image) {
+          initialVersions[index] = Date.now();
+        }
+      });
+    }
+    setVariantImageVersions(initialVersions);
   };
 
   const updateProduct = async () => {
@@ -2471,12 +2482,18 @@ export default function AdminProductsPage() {
                                       const imagePath = variant.image ? normalizeImagePath(variant.image) : null;
                                       const shouldShowImage = imagePath && !hasError;
                                       
+                                      // Get image version for cache-busting
+                                      const imageVersion = variantImageVersions[index] || 0;
+                                      const imageUrlWithCacheBust = imagePath 
+                                        ? `${imagePath}${imagePath.includes('?') ? '&' : '?'}_v=${imageVersion}` 
+                                        : null;
+                                      
                                       return shouldShowImage ? (
                                         <img
-                                          src={imagePath}
+                                          src={imageUrlWithCacheBust || imagePath || ''}
                                           alt={getVariantCompactLabel(variant)}
                                           className="w-32 h-32 rounded-lg border-2 border-gray-200 object-cover"
-                                          key={imagePath} // Force re-render when image changes
+                                          key={`variant-img-${index}-${variant.image}-${imageVersion}`} // Force re-render when image URL or version changes
                                           onError={(e) => {
                                             console.error('Variant image failed to load:', imagePath);
                                             if (!variantImageErrors.has(index)) {
@@ -2548,15 +2565,25 @@ export default function AdminProductsPage() {
                                               const newVariants = [...variantPricing];
                                               // Ensure image path is normalized (starts with /)
                                               const imageUrl = data.imageUrl.startsWith('/') ? data.imageUrl : `/${data.imageUrl}`;
-                                              console.log('Setting variant image:', { index, imageUrl, variant: newVariants[index] });
+                                              console.log('Setting variant image:', { index, imageUrl, oldImage: variant.image, variant: newVariants[index] });
+                                              
+                                              // Update the variant with new image URL
                                               newVariants[index] = { ...variant, image: imageUrl };
                                               setVariantPricing(newVariants);
+                                              
                                               // Clear error state for this variant when new image is uploaded
                                               setVariantImageErrors(prev => {
                                                 const newSet = new Set(prev);
                                                 newSet.delete(index);
                                                 return newSet;
                                               });
+                                              
+                                              // Update image version to force re-render and cache-bust
+                                              setVariantImageVersions(prev => ({
+                                                ...prev,
+                                                [index]: Date.now()
+                                              }));
+                                              
                                               showSuccess('Variant image uploaded successfully! Don\'t forget to save the product to apply changes.');
                                             } else {
                                               console.error('Upload failed:', data);
