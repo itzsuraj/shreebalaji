@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
+import { sanitizeHTML } from '@/lib/sanitize';
 import { connectToDatabase } from '@/lib/db';
 import Blog from '@/models/Blog';
 import { normalizeImagePath } from '@/utils/imageUtils';
@@ -193,7 +194,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {/* Content */}
           <div 
             className="prose prose-lg max-w-none mb-8"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(blog.content) }}
           />
 
           {/* Share Section */}

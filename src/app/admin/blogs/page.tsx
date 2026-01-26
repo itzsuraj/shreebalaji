@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/useToast';
+import { useCSRF } from '@/hooks/useCSRF';
 import DeleteModal from '@/components/ui/DeleteModal';
+import { sanitizeHTML, sanitizeText } from '@/lib/sanitize';
 
 interface BlogPost {
   _id: string;
@@ -39,6 +41,7 @@ export default function AdminBlogsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   
   const { showError, showSuccess, showWarning } = useToast();
+  const { getHeaders } = useCSRF();
   
   const [form, setForm] = useState({
     title: '',
@@ -159,10 +162,21 @@ export default function AdminBlogsPage() {
       
       const method = editingBlog ? 'PUT' : 'POST';
       
+      // Sanitize form data before sending
+      const sanitizedForm = {
+        ...form,
+        title: sanitizeText(form.title),
+        excerpt: sanitizeText(form.excerpt),
+        content: sanitizeHTML(form.content),
+        seoTitle: form.seoTitle ? sanitizeText(form.seoTitle) : '',
+        seoDescription: form.seoDescription ? sanitizeText(form.seoDescription) : '',
+        seoKeywords: form.seoKeywords ? sanitizeText(form.seoKeywords) : '',
+      };
+      
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        headers: await getHeaders(),
+        body: JSON.stringify(sanitizedForm)
       });
 
       if (!res.ok) {
@@ -182,6 +196,12 @@ export default function AdminBlogsPage() {
 
   const handleDelete = async () => {
     if (!deleteModal.blogId) return;
+    
+    try {
+      const res = await fetch(`/api/admin/blogs/${deleteModal.blogId}`, {
+        method: 'DELETE',
+        headers: await getHeaders(),
+      });
     
     try {
       const res = await fetch(`/api/admin/blogs/${deleteModal.blogId}`, {
@@ -215,13 +235,25 @@ export default function AdminBlogsPage() {
       showError('Image size must be less than 5MB');
       return;
     }
+      showError('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showError('Image size must be less than 5MB');
+      return;
+    }
 
     setIsUploadingImage(true);
     try {
       const formData = new FormData();
       formData.append('image', file);
+      const headers = await getHeaders();
       const res = await fetch('/api/admin/upload-image', {
         method: 'POST',
+        headers: {
+          'X-CSRF-Token': headers['X-CSRF-Token'] as string,
+        },
         body: formData
       });
       const data = await res.json();
