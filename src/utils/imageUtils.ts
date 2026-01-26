@@ -84,4 +84,27 @@ export const normalizeImagePath = (imagePath?: string): string | undefined => {
   }
   
   return normalized;
+};
+
+// Get product display image - prioritizes first variant image if available
+export const getProductDisplayImage = (product: { 
+  image?: string; 
+  category: string;
+  variantPricing?: Array<{
+    image?: string;
+    [key: string]: any;
+  }>;
+}) => {
+  // If product has variants with images, use the first variant's image
+  if (product.variantPricing && product.variantPricing.length > 0) {
+    const firstVariant = product.variantPricing[0];
+    if (firstVariant?.image) {
+      const normalizedImage = normalizeImagePath(firstVariant.image);
+      if (normalizedImage) {
+        return normalizedImage;
+      }
+    }
+  }
+  // Otherwise, use the main product image
+  return getProductImage(product);
 }; 

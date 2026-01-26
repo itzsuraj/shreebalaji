@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Star, ShoppingCart, Eye, Heart, Check } from "lucide-react";
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { getProductImage, normalizeImagePath } from "@/utils/imageUtils";
+import { getProductImage, normalizeImagePath, getProductDisplayImage } from "@/utils/imageUtils";
 import type { Product } from "@/types/product";
 import { useMemo, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
@@ -44,21 +44,7 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   const [toast, setToast] = useState({ isVisible: false, message: '' });
   const [addedId, setAddedId] = useState<string | null>(null);
 
-  // Helper function to get product image - prioritize first variant image if available
-  const getProductDisplayImage = (product: typeof products[0]) => {
-    // If product has variants with images, use the first variant's image
-    if (product.variantPricing && product.variantPricing.length > 0) {
-      const firstVariant = product.variantPricing[0];
-      if (firstVariant.image) {
-        const normalizedImage = normalizeImagePath(firstVariant.image);
-        if (normalizedImage) {
-          return normalizedImage;
-        }
-      }
-    }
-    // Otherwise, use the main product image
-    return getProductImage(product);
-  };
+  // Using shared getProductDisplayImage utility from imageUtils
 
   // Fetch products from database
   useEffect(() => {

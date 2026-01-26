@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Product } from '@/types/product';
 import { Star, ArrowLeft, Search, X, Eye, Heart, Filter, SlidersHorizontal } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { getProductImage } from '@/utils/imageUtils';
+import { getProductImage, getProductDisplayImage } from '@/utils/imageUtils';
 import QuickViewModal from '@/components/ui/QuickViewModal';
 
 interface ProductsClientProps {
@@ -24,7 +24,7 @@ const ProductCard = memo(({ product, onQuickView }: {
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imageSrc, setImageSrc] = useState(getProductImage(product));
+  const [imageSrc, setImageSrc] = useState(getProductDisplayImage(product));
 
   return (
     <div 
@@ -361,7 +361,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   }, []);
 
   const handleQuickViewAddToCart = useCallback((product: Product) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductImage(product), category: product.category });
+    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
     setAddedId(product.id);
     setTimeout(() => setAddedId(null), 2000);
   }, [addItem]);
