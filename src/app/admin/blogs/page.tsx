@@ -247,7 +247,7 @@ export default function AdminBlogsPage() {
       const res = await fetch('/api/admin/upload-image', {
         method: 'POST',
         headers: {
-          'X-CSRF-Token': headers['X-CSRF-Token'] as string,
+          'X-CSRF-Token': headers['X-CSRF-Token'],
         },
         body: formData
       });

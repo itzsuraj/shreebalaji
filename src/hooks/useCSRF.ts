@@ -68,7 +68,7 @@ export function useCSRF() {
     }
   }, []);
 
-  const getHeaders = useCallback(async (): Promise<HeadersInit> => {
+  const getHeaders = useCallback(async (): Promise<Record<string, string>> => {
     const currentToken = token || await fetchCSRFToken();
     return {
       'Content-Type': 'application/json',
