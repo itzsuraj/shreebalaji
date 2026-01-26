@@ -6,7 +6,7 @@ import { rateLimiters } from '@/lib/rateLimit';
 import { validateCSRFRequest } from '@/lib/csrf';
 import { sanitizeObject, sanitizeText, sanitizeHTML } from '@/lib/sanitize';
 
-export async function GET(request?: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // Rate limiting (optional for GET, skip if request not provided or if rate limiter fails)
     if (request) {
