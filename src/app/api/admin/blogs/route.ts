@@ -16,10 +16,12 @@ export async function GET(request: NextRequest) {
     if (status) query.status = status;
     if (category) query.category = category;
     if (search) {
+      // Sanitize regex to prevent ReDoS attacks
+      const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { excerpt: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
+        { title: { $regex: sanitizedSearch, $options: 'i' } },
+        { excerpt: { $regex: sanitizedSearch, $options: 'i' } },
+        { content: { $regex: sanitizedSearch, $options: 'i' } }
       ];
     }
     
@@ -86,8 +88,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    // Don't expose internal error details in production
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'Failed to create blog post'
+      : `Failed to create blog post: ${error.message}`;
     return NextResponse.json(
-      { error: 'Failed to create blog post', details: error.message },
+      { error: errorMessage },
       { status: 500 }
     );
   }

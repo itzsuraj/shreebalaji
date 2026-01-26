@@ -8,6 +8,13 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const adminToken = request.cookies.get('admin_token')?.value;
+    const expectedToken = process.env.ADMIN_TOKEN;
+    if (!adminToken || !expectedToken || adminToken !== expectedToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.formData();
     const file: File | null = data.get('image') as unknown as File;
 
@@ -118,9 +125,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error uploading image:', error);
+    // Don't expose internal error details in production
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'Failed to upload image'
+      : `Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`;
     return NextResponse.json({ 
-      error: 'Failed to upload image',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: errorMessage
     }, { status: 500 });
   }
 }
