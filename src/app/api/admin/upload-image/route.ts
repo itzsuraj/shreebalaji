@@ -30,11 +30,17 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const filename = `${timestamp}-${file.name}`;
 
-    // Try Vercel Blob Storage first (for production/cloud deployments)
+    // Check if we're on Vercel (production)
+    const isVercel = !!process.env.VERCEL;
     const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-    if (blobToken) {
+    const isLocal = !isVercel && process.env.NODE_ENV !== 'production';
+    
+    // Only use Blob Storage on Vercel (production)
+    // In local development, always use disk storage to avoid errors
+    if (isVercel && blobToken) {
       try {
         console.log('Uploading to Vercel Blob Storage...', { filename, size: buffer.length, type: file.type });
+        // @vercel/blob automatically uses BLOB_READ_WRITE_TOKEN from env
         const blob = await put(`uploads/${filename}`, buffer, {
           access: 'public',
           contentType: file.type,
@@ -48,16 +54,24 @@ export async function POST(request: NextRequest) {
           storage: 'blob'
         });
       } catch (blobError) {
-        console.error('Vercel Blob upload failed:', blobError);
-        // Return error instead of falling through, so user knows what went wrong
+        console.error('Vercel Blob upload failed:', {
+          error: blobError,
+          message: blobError instanceof Error ? blobError.message : 'Unknown error',
+          name: blobError instanceof Error ? blobError.name : 'Unknown'
+        });
+        
+        // On Vercel, if blob fails, return error (disk will fail anyway)
         return NextResponse.json({
           error: 'Failed to upload to Vercel Blob Storage',
           details: blobError instanceof Error ? blobError.message : 'Unknown blob storage error',
-          suggestion: 'Please check that BLOB_READ_WRITE_TOKEN is correctly set in Vercel environment variables'
+          suggestion: 'Please check Vercel logs and ensure BLOB_READ_WRITE_TOKEN is set correctly'
         }, { status: 500 });
       }
-    } else {
-      console.warn('BLOB_READ_WRITE_TOKEN not found. Will attempt disk storage.');
+    }
+    
+    // Use disk storage for local development
+    if (isLocal) {
+      console.log('Using local disk storage for development...');
     }
 
     // Fallback to disk storage (for local development)
