@@ -219,12 +219,33 @@ export default function AdminProductsPage() {
         return;
       }
       
-      const data = await res.json();
-      console.log('[Admin Products] API response received, products count:', data.products?.length || 0);
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        console.error('[Admin Products] Failed to parse JSON response:', jsonError);
+        const text = await res.text();
+        console.error('[Admin Products] Response text:', text.substring(0, 500));
+        showError('Invalid response from server: not valid JSON');
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
       
-      if (!data || !data.products) {
-        console.error('[Admin Products] Invalid response structure:', data);
-        showError('Invalid response from server: missing products array');
+      console.log('[Admin Products] API response received, products count:', data?.products?.length || 0);
+      console.log('[Admin Products] Full response keys:', Object.keys(data || {}));
+      
+      if (!data) {
+        console.error('[Admin Products] Response is null or undefined');
+        showError('Invalid response from server: empty response');
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+      
+      if (!data.products) {
+        console.error('[Admin Products] Missing products in response:', data);
+        showError(data.error || 'Invalid response from server: missing products array');
         setProducts([]);
         setLoading(false);
         return;
@@ -238,15 +259,19 @@ export default function AdminProductsPage() {
         return;
       }
       
+      console.log('[Admin Products] Products array length:', data.products.length);
+      
       // Recalculate inStock for all products based on actual stock
-      const productsWithCorrectStock = (data.products || []).map((product: AdminProductRow) => ({
+      const productsWithCorrectStock = data.products.map((product: AdminProductRow) => ({
         ...product,
         inStock: calculateInStock(product),
         status: (product.status as 'active' | 'draft') || 'active',
       }));
       
       console.log('[Admin Products] Processed products:', productsWithCorrectStock.length);
-      console.log('[Admin Products] First product:', productsWithCorrectStock[0]);
+      if (productsWithCorrectStock.length > 0) {
+        console.log('[Admin Products] First product:', productsWithCorrectStock[0]);
+      }
       
       setProducts(productsWithCorrectStock);
     } catch (error) {
@@ -2047,8 +2072,13 @@ export default function AdminProductsPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-500 mb-4">No products found</div>
+          <div className="text-gray-500 mb-4 text-lg font-semibold">No products found</div>
           <div className="text-sm text-gray-600 mb-4">
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                Debug: Check browser console and network tab for API errors
+              </div>
+            )}
             You can either create a new product above or seed the database with static products.
           </div>
           <a 
