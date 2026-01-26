@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { connectToDatabase } from '@/lib/db'
 import Product from '@/models/Product'
+import Blog from '@/models/Blog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.balajisphere.com'
@@ -92,27 +93,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
-  // Blog posts
-  const blogPosts = [
-    {
-      url: `${baseUrl}/blog/choosing-right-buttons`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/blog/elastic-selection`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/blog/quality-standards`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
-      priority: 0.6,
-    }
-  ]
+  // Dynamic blog posts from DB
+  const dbBlogs = await Blog.find({ status: 'published' }, { slug: 1, publishedAt: 1, updatedAt: 1 }).lean();
+  
+  const blogPosts = (dbBlogs || []).map((blog: any) => ({
+    url: `${baseUrl}/blog/${blog.slug || ''}`,
+    lastModified: blog.updatedAt 
+      ? new Date(blog.updatedAt as string | Date)
+      : blog.publishedAt 
+        ? new Date(blog.publishedAt as string | Date)
+        : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  })).filter((post: any) => post.url.includes('/blog/') && !post.url.endsWith('/blog/'));
 
   return [...staticPages, ...productPages, ...blogPosts]
 } 

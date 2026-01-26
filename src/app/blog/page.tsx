@@ -1,6 +1,10 @@
 import { Metadata } from 'next';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { connectToDatabase } from '@/lib/db';
+import Blog from '@/models/Blog';
+import { normalizeImagePath } from '@/utils/imageUtils';
 
 export const metadata: Metadata = {
   title: "Blog - Garment Accessories Industry Insights | Shree Balaji Enterprises",
@@ -17,46 +21,31 @@ export const metadata: Metadata = {
   },
 };
 
-const blogPosts = [
-  {
-    id: 'choosing-right-buttons',
-    title: 'How to Choose the Right Buttons for Your Garment',
-    excerpt: 'Learn the essential factors to consider when selecting buttons for different types of garments and fabrics.',
-    category: 'Buttons',
-    readTime: '5 min read',
-    date: '2024-01-15',
-    image: '/blog/buttons-guide.jpg'
-  },
-  {
-    id: 'zipper-installation',
-    title: 'Professional Zipper Installation Techniques',
-    excerpt: 'Master the art of installing zippers correctly for a professional finish on your garments.',
-    category: 'Zippers',
-    readTime: '7 min read',
-    date: '2024-01-10',
-    image: '/blog/zipper-installation.jpg'
-  },
-  {
-    id: 'elastic-selection',
-    title: 'Selecting the Perfect Elastic for Waistbands',
-    excerpt: 'A comprehensive guide to choosing the right elastic type and width for different waistband applications.',
-    category: 'Elastic',
-    readTime: '6 min read',
-    date: '2024-01-05',
-    image: '/blog/elastic-guide.jpg'
-  },
-  {
-    id: 'quality-standards',
-    title: 'Quality Standards in Garment Accessories Manufacturing',
-    excerpt: 'Understanding the importance of quality standards and how they impact your final product.',
-    category: 'Industry',
-    readTime: '8 min read',
-    date: '2024-01-01',
-    image: '/blog/quality-standards.jpg'
+async function getBlogPosts() {
+  try {
+    await connectToDatabase();
+    const blogs = await Blog.find({ status: 'published' })
+      .sort({ publishedAt: -1 })
+      .limit(50)
+      .lean();
+    return blogs.map(blog => ({
+      _id: String(blog._id),
+      slug: blog.slug,
+      title: blog.title,
+      excerpt: blog.excerpt,
+      category: blog.category,
+      readTime: blog.readTime,
+      publishedAt: blog.publishedAt ? new Date(blog.publishedAt).toISOString() : blog.createdAt ? new Date(blog.createdAt).toISOString() : new Date().toISOString(),
+      featuredImage: blog.featuredImage || '/banner.png'
+    }));
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
   }
-];
+}
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const blogPosts = await getBlogPosts();
   return (
     <div className="container mx-auto px-4 py-8">
       <Link 
@@ -75,46 +64,70 @@ export default function BlogPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {blogPosts.map((post) => (
-          <article key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-48 bg-gray-200 relative">
-              <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                <span className="text-sm">Image Placeholder</span>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-center text-sm text-gray-500 mb-2">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                  {post.category}
-                </span>
-                <span className="mx-2">•</span>
-                <div className="flex items-center">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {new Date(post.date).toLocaleDateString()}
+      {blogPosts.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 mb-4">No blog posts available yet.</p>
+          <p className="text-sm text-gray-500">Check back soon for industry insights and tips!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {blogPosts.map((post) => {
+            const imagePath = normalizeImagePath(post.featuredImage) || '/banner.png';
+            return (
+              <article key={post._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <Link href={`/blog/${post.slug}`}>
+                  <div className="h-48 bg-gray-200 relative overflow-hidden">
+                    {imagePath ? (
+                      <Image
+                        src={imagePath}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                        <span className="text-sm">No Image</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+                <div className="p-6">
+                  <div className="flex items-center text-sm text-gray-500 mb-2 flex-wrap gap-2">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                      {post.category}
+                    </span>
+                    <span className="mx-1">•</span>
+                    <div className="flex items-center">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {new Date(post.publishedAt).toLocaleDateString()}
+                    </div>
+                    <span className="mx-1">•</span>
+                    <div className="flex items-center">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {post.readTime}
+                    </div>
+                  </div>
+                  <Link href={`/blog/${post.slug}`}>
+                    <h2 className="text-xl font-semibold mb-3 text-gray-900 hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </h2>
+                  </Link>
+                  <p className="text-gray-600 mb-4 line-clamp-3">
+                    {post.excerpt}
+                  </p>
+                  <Link 
+                    href={`/blog/${post.slug}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Read More →
+                  </Link>
                 </div>
-                <span className="mx-2">•</span>
-                <div className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {post.readTime}
-                </div>
-              </div>
-              <h2 className="text-xl font-semibold mb-3 text-gray-900">
-                {post.title}
-              </h2>
-              <p className="text-gray-600 mb-4 line-clamp-3">
-                {post.excerpt}
-              </p>
-              <Link 
-                href={`/blog/${post.id}`}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Read More →
-              </Link>
-            </div>
-          </article>
-        ))}
-      </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
 
       <div className="text-center mt-12">
         <p className="text-gray-600 mb-4">
