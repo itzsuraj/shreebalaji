@@ -3,16 +3,37 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { put } from '@vercel/blob';
+import { rateLimiters } from '@/lib/rateLimit';
+import { validateCSRFRequest } from '@/lib/csrf';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 10 uploads per minute
+    const rateLimitResult = rateLimiters.fileUpload(request);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many upload requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+          }
+        }
+      );
+    }
+
     // Verify admin authentication
     const adminToken = request.cookies.get('admin_token')?.value;
     const expectedToken = process.env.ADMIN_TOKEN;
     if (!adminToken || !expectedToken || adminToken !== expectedToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF protection
+    if (!validateCSRFRequest(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 
     const data = await request.formData();

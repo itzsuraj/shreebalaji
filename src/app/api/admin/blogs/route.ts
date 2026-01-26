@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Blog from '@/models/Blog';
+import { rateLimiters } from '@/lib/rateLimit';
+import { validateCSRFRequest } from '@/lib/csrf';
+import { sanitizeObject } from '@/lib/sanitize';
 
 // GET - List all blog posts
 export async function GET(request: NextRequest) {
@@ -42,16 +45,41 @@ export async function GET(request: NextRequest) {
 // POST - Create new blog post
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimitResult = rateLimiters.adminAPI(request);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': '100',
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          }
+        }
+      );
+    }
+
+    // Authentication
     const adminToken = request.cookies.get('admin_token')?.value;
     const expectedToken = process.env.ADMIN_TOKEN;
     if (!adminToken || !expectedToken || adminToken !== expectedToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // CSRF protection
+    if (!validateCSRFRequest(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+    }
     
     await connectToDatabase();
     const body = await request.json();
     
-    const { title, slug, excerpt, content, category, featuredImage, author, readTime, status, seoTitle, seoDescription, seoKeywords, relatedProducts, tags } = body;
+    // Sanitize HTML content to prevent XSS
+    const sanitizedBody = sanitizeObject(body, ['content', 'excerpt', 'title', 'seoTitle', 'seoDescription', 'seoKeywords']);
+    
+    const { title, slug, excerpt, content, category, featuredImage, author, readTime, status, seoTitle, seoDescription, seoKeywords, relatedProducts, tags } = sanitizedBody;
     
     // If publishing, set publishedAt
     const publishedAt = status === 'published' ? new Date() : null;

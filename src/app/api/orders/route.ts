@@ -29,6 +29,23 @@ interface CustomerPayload {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting: 5 orders per minute per IP
+    const rateLimitResult = rateLimiters.orderCreation(req);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many order requests. Please try again later.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+          }
+        }
+      );
+    }
+
     await connectToDatabase();
     const body = await req.json();
 

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Blog from '@/models/Blog';
 import mongoose from 'mongoose';
+import { rateLimiters } from '@/lib/rateLimit';
+import { validateCSRFRequest } from '@/lib/csrf';
+import { sanitizeObject } from '@/lib/sanitize';
 
 // GET - Get single blog post
 export async function GET(
@@ -39,10 +42,25 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const rateLimitResult = rateLimiters.adminAPI(request);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    // Authentication
     const adminToken = request.cookies.get('admin_token')?.value;
     const expectedToken = process.env.ADMIN_TOKEN;
     if (!adminToken || !expectedToken || adminToken !== expectedToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF protection
+    if (!validateCSRFRequest(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
     
     await connectToDatabase();
@@ -54,7 +72,10 @@ export async function PUT(
     }
     
     const body = await request.json();
-    const { title, slug, excerpt, content, category, featuredImage, author, readTime, status, seoTitle, seoDescription, seoKeywords, relatedProducts, tags } = body;
+    
+    // Sanitize HTML content to prevent XSS
+    const sanitizedBody = sanitizeObject(body, ['content', 'excerpt', 'title', 'seoTitle', 'seoDescription', 'seoKeywords']);
+    const { title, slug, excerpt, content, category, featuredImage, author, readTime, status, seoTitle, seoDescription, seoKeywords, relatedProducts, tags } = sanitizedBody;
     
     const updateData: any = {
       title,
@@ -103,8 +124,11 @@ export async function PUT(
         { status: 400 }
       );
     }
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? 'Failed to update blog post'
+      : `Failed to update blog post: ${error.message}`;
     return NextResponse.json(
-      { error: 'Failed to update blog post', details: error.message },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -116,10 +140,25 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limiting
+    const rateLimitResult = rateLimiters.adminAPI(request);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    // Authentication
     const adminToken = request.cookies.get('admin_token')?.value;
     const expectedToken = process.env.ADMIN_TOKEN;
     if (!adminToken || !expectedToken || adminToken !== expectedToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF protection
+    if (!validateCSRFRequest(request)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
     
     await connectToDatabase();

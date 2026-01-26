@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
+import { rateLimiters } from '@/lib/rateLimit';
+import { validateCSRFRequest } from '@/lib/csrf';
+import { sanitizeObject, sanitizeText, sanitizeHTML } from '@/lib/sanitize';
 
 export async function GET() {
   try {
@@ -50,11 +53,41 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimitResult = rateLimiters.adminAPI(req);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    // Authentication
+    const adminToken = req.cookies.get('admin_token')?.value;
+    const expectedToken = process.env.ADMIN_TOKEN;
+    if (!adminToken || !expectedToken || adminToken !== expectedToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF protection
+    if (!validateCSRFRequest(req)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+    }
+
     await connectToDatabase();
     const body = await req.json();
+    
+    // Sanitize text fields to prevent XSS
+    const sanitizedBody = sanitizeObject(body, ['name', 'description']);
+    if (sanitizedBody.name) {
+      sanitizedBody.name = sanitizeText(sanitizedBody.name);
+    }
+    if (sanitizedBody.description) {
+      sanitizedBody.description = sanitizeHTML(sanitizedBody.description);
+    }
     // Derive inStock from stock fields
     type VariantInput = { stockQty?: number; inStock?: boolean };
-    const doc = { ...body } as { stockQty?: number; inStock?: boolean; variantPricing?: VariantInput[] };
+    const doc = { ...sanitizedBody } as { stockQty?: number; inStock?: boolean; variantPricing?: VariantInput[] };
     const variantHasStock = Array.isArray(doc.variantPricing) && doc.variantPricing.some((v) => (v?.stockQty ?? 0) > 0 || v?.inStock === true);
     const productHasStock = (doc.stockQty ?? 0) > 0;
     doc.inStock = Boolean(productHasStock || variantHasStock);
