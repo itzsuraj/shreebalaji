@@ -59,18 +59,31 @@ export const normalizeImagePath = (imagePath?: string): string | undefined => {
   let normalized = imagePath.trim();
   if (!normalized || normalized.includes('icon.svg')) return undefined;
   
-  const canonicalHosts = [
-    'https://www.balajisphere.com',
-    'http://www.balajisphere.com',
-    'https://balajisphere.com',
-    'http://balajisphere.com',
-  ];
-  
-  for (const host of canonicalHosts) {
-    if (normalized.startsWith(host)) {
-      normalized = normalized.slice(host.length);
-      break;
+  // Preserve blob storage URLs and other external URLs
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    // Check if it's a blob storage URL - preserve it as-is
+    if (normalized.includes('blob.vercel-storage.com')) {
+      return normalized;
     }
+    // For other external URLs, check if it's our domain
+    const canonicalHosts = [
+      'https://www.balajisphere.com',
+      'http://www.balajisphere.com',
+      'https://balajisphere.com',
+      'http://balajisphere.com',
+    ];
+    
+    for (const host of canonicalHosts) {
+      if (normalized.startsWith(host)) {
+        normalized = normalized.slice(host.length);
+        break;
+      }
+    }
+  }
+  
+  // Preserve data URLs and blob URLs
+  if (normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return normalized;
   }
   
   const isAbsolutePath =

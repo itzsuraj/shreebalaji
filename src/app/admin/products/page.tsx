@@ -2484,8 +2484,12 @@ export default function AdminProductsPage() {
                                       
                                       // Get image version for cache-busting
                                       const imageVersion = variantImageVersions[index] || 0;
+                                      // For blob storage URLs and other full URLs, use proper query parameter syntax
+                                      // For relative paths, also use query parameter
                                       const imageUrlWithCacheBust = imagePath 
-                                        ? `${imagePath}${imagePath.includes('?') ? '&' : '?'}_v=${imageVersion}` 
+                                        ? imagePath.includes('?') 
+                                          ? `${imagePath}&_v=${imageVersion}`
+                                          : `${imagePath}?_v=${imageVersion}`
                                         : null;
                                       
                                       return shouldShowImage ? (
@@ -2563,9 +2567,16 @@ export default function AdminProductsPage() {
                                             
                                             if (res.ok && data?.imageUrl) {
                                               const newVariants = [...variantPricing];
-                                              // Ensure image path is normalized (starts with /)
-                                              const imageUrl = data.imageUrl.startsWith('/') ? data.imageUrl : `/${data.imageUrl}`;
-                                              console.log('Setting variant image:', { index, imageUrl, oldImage: variant.image, variant: newVariants[index] });
+                                              // Preserve full URLs (blob storage URLs) or normalize relative paths
+                                              // Blob storage URLs are full URLs like https://xyz.public.blob.vercel-storage.com/...
+                                              // Local paths are relative like /uploads/file.jpg
+                                              let imageUrl = data.imageUrl;
+                                              if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                                                // If it's neither a full URL nor starts with /, prepend /
+                                                imageUrl = `/${imageUrl}`;
+                                              }
+                                              // Don't modify blob storage URLs - they're already correct
+                                              console.log('Setting variant image:', { index, imageUrl, oldImage: variant.image, storage: data.storage, variant: newVariants[index] });
                                               
                                               // Update the variant with new image URL
                                               newVariants[index] = { ...variant, image: imageUrl };
