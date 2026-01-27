@@ -1,12 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+
+// Use standard imports - if they fail, Next.js will handle it at build time
 import { connectToDatabase } from '@/lib/db';
 import Product from '@/models/Product';
 
 export async function GET(request: NextRequest) {
+  // Ensure we always return JSON, never HTML
   try {
-    // Skip rate limiting for GET requests to avoid production issues
-    // This can be re-enabled later if needed
+    // Validate critical imports
+    if (!connectToDatabase) {
+      console.error('[Admin Products API] connectToDatabase not available');
+      return NextResponse.json({ 
+        error: 'Server configuration error: database module not loaded',
+        products: [] 
+      }, { status: 500 });
+    }
+
+    if (!Product) {
+      console.error('[Admin Products API] Product model not available');
+      return NextResponse.json({ 
+        error: 'Server configuration error: Product model not loaded',
+        products: [] 
+      }, { status: 500 });
+    }
 
     // Connect to database
     try {
