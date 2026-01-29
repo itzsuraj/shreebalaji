@@ -2,20 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShoppingCart, Eye, Heart, Check } from "lucide-react";
-import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
+import { Star, Eye, FileText } from "lucide-react";
+// B2B Mode - Cart and Wishlist disabled
+// import { useCart } from '@/context/CartContext';
+// import { useWishlist } from '@/context/WishlistContext';
 import { getProductImage, normalizeImagePath, getProductDisplayImage } from "@/utils/imageUtils";
 import type { Product } from "@/types/product";
 import { useMemo, useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import Toast from '@/components/ui/Toast';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
+import RequestQuoteModal from '@/components/ui/RequestQuoteModal';
 
 export default function HomeClient({ initialProducts = [] as Product[] }: { initialProducts?: Product[] }) {
-  const { addItem } = useCart();
-  const { toggleItem: toggleWishlist, isInWishlist } = useWishlist();
+  // B2B Mode - Cart and Wishlist disabled
+  // const { addItem } = useCart();
+  // const { toggleItem: toggleWishlist, isInWishlist } = useWishlist();
   const router = useRouter();
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
   const [products, setProducts] = useState<Array<{
     _id: string;
     id: string;
@@ -42,7 +47,8 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
   }>>([]);
   const [loading, setLoading] = useState(initialProducts.length === 0);
   const [toast, setToast] = useState({ isVisible: false, message: '' });
-  const [addedId, setAddedId] = useState<string | null>(null);
+  // B2B Mode - removed addedId state (no cart)
+  // const [addedId, setAddedId] = useState<string | null>(null);
 
   // Using shared getProductDisplayImage utility from imageUtils
 
@@ -101,33 +107,39 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
     }
   }, [featuredProducts, router]);
 
-  const handleAddToCart = (product: typeof products[0]) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
-    setToast({ isVisible: true, message: `${product.name} added to cart!` });
-    setAddedId(product.id);
-    setTimeout(() => setAddedId(null), 1500);
+  const handleRequestQuote = (product: typeof products[0]) => {
+    setSelectedProduct(product);
+    setShowQuoteModal(true);
   };
 
-  const handleBuyNow = (product: typeof products[0]) => {
-    addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
-    router.push('/checkout');
-  };
+  // B2B Mode - Cart and Wishlist disabled
+  // const handleAddToCart = (product: typeof products[0]) => {
+  //   addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
+  //   setToast({ isVisible: true, message: `${product.name} added to cart!` });
+  //   setAddedId(product.id);
+  //   setTimeout(() => setAddedId(null), 1500);
+  // };
 
-  const handleToggleWishlist = (product: typeof products[0]) => {
-    toggleWishlist({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: getProductDisplayImage(product),
-      category: product.category,
-    });
-    setToast({
-      isVisible: true,
-      message: isInWishlist(product.id)
-        ? `${product.name} removed from wishlist`
-        : `${product.name} added to wishlist!`,
-    });
-  };
+  // const handleBuyNow = (product: typeof products[0]) => {
+  //   addItem({ productId: product.id, name: product.name, price: product.price, quantity: 1, image: getProductDisplayImage(product), category: product.category });
+  //   router.push('/checkout');
+  // };
+
+  // const handleToggleWishlist = (product: typeof products[0]) => {
+  //   toggleWishlist({
+  //     productId: product.id,
+  //     name: product.name,
+  //     price: product.price,
+  //     image: getProductDisplayImage(product),
+  //     category: product.category,
+  //   });
+  //   setToast({
+  //     isVisible: true,
+  //     message: isInWishlist(product.id)
+  //       ? `${product.name} removed from wishlist`
+  //       : `${product.name} added to wishlist!`,
+  //   });
+  // };
 
   // Show loading state - but don't block if we have initial products
   if (loading && initialProducts.length === 0) {
@@ -340,81 +352,20 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       placeholder="blur"
                       blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     />
-                    {/* Wishlist Button */}
-                    <div className="absolute top-2 right-2">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleToggleWishlist(product);
-                        }}
-                        className={`p-2 rounded-full shadow-md transition-colors ${
-                          isInWishlist(product.id)
-                            ? 'bg-red-500 text-white'
-                            : 'bg-white text-gray-700 hover:bg-red-50'
-                        }`}
-                        title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                      >
-                        <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-                      </button>
-                    </div>
+                    {/* B2B Mode - Wishlist disabled */}
                   </div>
                   <div className="p-4">
                     <h3 className="text-lg font-semibold mb-1">
                       {product.name}
                     </h3>
                     {/* Show key attributes below title */}
-                    {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-                      <div className="mb-2 text-xs text-gray-600 space-y-1">
-                        {product.category === 'elastic' ? (
-                          <>
-                            <div className="flex flex-wrap gap-x-3 gap-y-0">
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <span><strong>Size:</strong> {product.variantPricing[0].size}</span>
-                              )}
-                              {product.variantPricing[0].quality && (product.variantPricing[0] as any).quality !== '0' && (
-                                <span><strong>Quality:</strong> {product.variantPricing[0].quality}</span>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap gap-x-3 gap-y-0">
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <span><strong>Color:</strong> {product.variantPricing[0].color}</span>
-                              )}
-                              {product.variantPricing[0].quantity && (product.variantPricing[0] as any).quantity !== '0' && (
-                                <span><strong>Roll:</strong> {product.variantPricing[0].quantity}</span>
-                              )}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                              <div><strong>Size:</strong> {product.variantPricing[0].size}</div>
-                            )}
-                            {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                              <div><strong>Color:</strong> {product.variantPricing[0].color}</div>
-                            )}
-                            {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                              <div><strong>Pack:</strong> {product.variantPricing[0].pack}</div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    ) : (
-                      // Fallback for single (non-variant) products using base fields
-                      !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
-                        <div className="mb-2 text-xs text-gray-600 space-y-1">
-                          {product.sizes?.[0] && product.sizes[0] !== '0' && <div><strong>Size:</strong> {product.sizes[0]}</div>}
-                          {product.colors?.[0] && product.colors[0] !== '0' && <div><strong>Color:</strong> {product.colors[0]}</div>}
-                          {product.packs?.[0] && product.packs[0] !== '0' && <div><strong>Pack:</strong> {product.packs[0]}</div>}
-                        </div>
-                      )
-                    )}
+                    {/* B2B Mode - Size/Pack/Price removed from cards */}
                     <div className="flex items-center mb-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
                       <span className="ml-1 text-sm text-gray-600">
                         {product.rating} ({product.reviews} reviews)
                       </span>
                     </div>
-                    <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
                   </div>
                 </Link>
                 <div className="px-4 pb-4">
@@ -430,37 +381,15 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                       </Link>
                     </div>
                   ) : (
-                    // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
-                    <div className="grid grid-cols-2 gap-2">
-                      <button 
-                        onClick={() => handleAddToCart(product)}
-                        className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
-                          addedId === product.id
-                            ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                            : 'bg-primary-500 hover:bg-primary-600'
-                        }`}
-                      >
-                        {addedId === product.id ? (
-                          <>
-                            <Check className="h-4 w-4" />
-                            <span>Added</span>
-                          </>
-                        ) : (
-                          <>
-                        <ShoppingCart className="h-4 w-4" />
-                        <span className="hidden sm:inline">Add to Cart</span>
-                        <span className="sm:hidden">Add</span>
-                          </>
-                        )}
-                      </button>
-                      <button 
-                        onClick={() => handleBuyNow(product)}
-                        className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
-                      >
-                        <span className="hidden sm:inline">Buy Now</span>
-                        <span className="sm:hidden">Buy</span>
-                      </button>
-                    </div>
+                    // B2B Mode - Request Quote button
+                    <button 
+                      onClick={() => handleRequestQuote(product)}
+                      className="w-full bg-blue-600 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span className="hidden sm:inline">Request Quote</span>
+                      <span className="sm:hidden">Quote</span>
+                    </button>
                   )}
                 </div>
               </div>
@@ -556,59 +485,14 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
-                      {/* Show key attributes below title */}
-                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-                        <div className="mb-2 text-xs text-gray-600 space-y-1">
-                          {product.category === 'elastic' ? (
-                            <>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                  <span>Size: {product.variantPricing[0].size}</span>
-                                )}
-                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                  <span>Quality: {product.variantPricing[0].quality}</span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                  <span>Color: {product.variantPricing[0].color}</span>
-                                )}
-                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                  <span>Roll: {product.variantPricing[0].quantity}</span>
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                                <div>Pack: {product.variantPricing[0].pack}</div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      ) : (
-                        // Fallback for single (non-variant) products using base fields
-                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
-                          <div className="mb-2 text-xs text-gray-600 space-y-1">
-                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
-                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
-                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
-                          </div>
-                        )
-                      )}
+                      {/* B2B Mode - Size/Pack info removed from cards */}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
                           {product.rating} ({product.reviews} reviews)
                         </span>
                       </div>
-                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                      {/* B2B Mode - Price removed */}
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
@@ -624,37 +508,15 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
-                      <div className="grid grid-cols-2 gap-2">
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
-                            addedId === product.id
-                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                              : 'bg-primary-500 hover:bg-primary-600'
-                          }`}
-                        >
-                          {addedId === product.id ? (
-                            <>
-                              <Check className="h-4 w-4" />
-                              <span>Added</span>
-                            </>
-                          ) : (
-                            <>
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
-                            </>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleBuyNow(product)}
-                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
-                        >
-                          <span className="hidden sm:inline">Buy Now</span>
-                          <span className="sm:hidden">Buy</span>
-                        </button>
-                      </div>
+                      // B2B Mode - Request Quote button
+                      <button 
+                        onClick={() => handleRequestQuote(product)}
+                        className="w-full bg-blue-600 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span className="hidden sm:inline">Request Quote</span>
+                        <span className="sm:hidden">Quote</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -688,59 +550,14 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
-                      {/* Show key attributes below title */}
-                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-                        <div className="mb-2 text-xs text-gray-600 space-y-1">
-                          {product.category === 'elastic' ? (
-                            <>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                  <span>Size: {product.variantPricing[0].size}</span>
-                                )}
-                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                  <span>Quality: {product.variantPricing[0].quality}</span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                  <span>Color: {product.variantPricing[0].color}</span>
-                                )}
-                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                  <span>Roll: {product.variantPricing[0].quantity}</span>
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                                <div>Pack: {product.variantPricing[0].pack}</div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      ) : (
-                        // Fallback for single (non-variant) products using base fields
-                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
-                          <div className="mb-2 text-xs text-gray-600 space-y-1">
-                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
-                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
-                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
-                          </div>
-                        )
-                      )}
+                      {/* B2B Mode - Size/Pack info removed from cards */}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
                           {product.rating} ({product.reviews} reviews)
                         </span>
                       </div>
-                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                      {/* B2B Mode - Price removed */}
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
@@ -756,37 +573,15 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
-                      <div className="grid grid-cols-2 gap-2">
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
-                            addedId === product.id
-                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                              : 'bg-primary-500 hover:bg-primary-600'
-                          }`}
-                        >
-                          {addedId === product.id ? (
-                            <>
-                              <Check className="h-4 w-4" />
-                              <span>Added</span>
-                            </>
-                          ) : (
-                            <>
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
-                            </>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleBuyNow(product)}
-                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
-                        >
-                          <span className="hidden sm:inline">Buy Now</span>
-                          <span className="sm:hidden">Buy</span>
-                        </button>
-                      </div>
+                      // B2B Mode - Request Quote button
+                      <button 
+                        onClick={() => handleRequestQuote(product)}
+                        className="w-full bg-blue-600 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span className="hidden sm:inline">Request Quote</span>
+                        <span className="sm:hidden">Quote</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -820,59 +615,14 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
-                      {/* Show key attributes below title */}
-                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-                        <div className="mb-2 text-xs text-gray-600 space-y-1">
-                          {product.category === 'elastic' ? (
-                            <>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                  <span>Size: {product.variantPricing[0].size}</span>
-                                )}
-                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                  <span>Quality: {product.variantPricing[0].quality}</span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                  <span>Color: {product.variantPricing[0].color}</span>
-                                )}
-                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                  <span>Roll: {product.variantPricing[0].quantity}</span>
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                                <div>Pack: {product.variantPricing[0].pack}</div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      ) : (
-                        // Fallback for single (non-variant) products using base fields
-                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
-                          <div className="mb-2 text-xs text-gray-600 space-y-1">
-                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
-                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
-                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
-                          </div>
-                        )
-                      )}
+                      {/* B2B Mode - Size/Pack info removed from cards */}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
                           {product.rating} ({product.reviews} reviews)
                         </span>
                       </div>
-                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                      {/* B2B Mode - Price removed */}
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
@@ -888,37 +638,15 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
-                      <div className="grid grid-cols-2 gap-2">
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
-                            addedId === product.id
-                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                              : 'bg-primary-500 hover:bg-primary-600'
-                          }`}
-                        >
-                          {addedId === product.id ? (
-                            <>
-                              <Check className="h-4 w-4" />
-                              <span>Added</span>
-                            </>
-                          ) : (
-                            <>
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
-                            </>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleBuyNow(product)}
-                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
-                        >
-                          <span className="hidden sm:inline">Buy Now</span>
-                          <span className="sm:hidden">Buy</span>
-                        </button>
-                      </div>
+                      // B2B Mode - Request Quote button
+                      <button 
+                        onClick={() => handleRequestQuote(product)}
+                        className="w-full bg-blue-600 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span className="hidden sm:inline">Request Quote</span>
+                        <span className="sm:hidden">Quote</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -952,59 +680,14 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                     </div>
                     <div className="p-4">
                       <h4 className="font-semibold mb-2 text-gray-900">{product.name}</h4>
-                      {/* Show key attributes below title */}
-                      {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-                        <div className="mb-2 text-xs text-gray-600 space-y-1">
-                          {product.category === 'elastic' ? (
-                            <>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                  <span>Size: {product.variantPricing[0].size}</span>
-                                )}
-                                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                                  <span>Quality: {product.variantPricing[0].quality}</span>
-                                )}
-                              </div>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0">
-                                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                  <span>Color: {product.variantPricing[0].color}</span>
-                                )}
-                                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                                  <span>Roll: {product.variantPricing[0].quantity}</span>
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                                <div>Size: {product.variantPricing[0].size}</div>
-                              )}
-                              {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                                <div>Color: {product.variantPricing[0].color}</div>
-                              )}
-                              {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                                <div>Pack: {product.variantPricing[0].pack}</div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      ) : (
-                        // Fallback for single (non-variant) products using base fields
-                        !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
-                          <div className="mb-2 text-xs text-gray-600 space-y-1">
-                            {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
-                            {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
-                            {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
-                          </div>
-                        )
-                      )}
+                      {/* B2B Mode - Size/Pack info removed from cards */}
                       <div className="flex items-center mb-2">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-gray-600">
                           {product.rating} ({product.reviews} reviews)
                         </span>
                       </div>
-                      <p className="text-gray-600">₹{product.price.toLocaleString()}</p>
+                      {/* B2B Mode - Price removed */}
                     </div>
                   </Link>
                   <div className="px-4 pb-4">
@@ -1020,37 +703,15 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
                         </Link>
                       </div>
                     ) : (
-                      // Product has no variants or only one variant (single product) - show Add to Cart and Buy Now
-                      <div className="grid grid-cols-2 gap-2">
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          className={`text-white py-2.5 px-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg ${
-                            addedId === product.id
-                              ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                              : 'bg-primary-500 hover:bg-primary-600'
-                          }`}
-                        >
-                          {addedId === product.id ? (
-                            <>
-                              <Check className="h-4 w-4" />
-                              <span>Added</span>
-                            </>
-                          ) : (
-                            <>
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
-                          <span className="sm:hidden">Add</span>
-                            </>
-                          )}
-                        </button>
-                        <button 
-                          onClick={() => handleBuyNow(product)}
-                          className="bg-accent-500 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-accent-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
-                        >
-                          <span className="hidden sm:inline">Buy Now</span>
-                          <span className="sm:hidden">Buy</span>
-                        </button>
-                      </div>
+                      // B2B Mode - Request Quote button
+                      <button 
+                        onClick={() => handleRequestQuote(product)}
+                        className="w-full bg-blue-600 text-white py-2.5 px-2 rounded-lg text-sm hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-1 font-semibold shadow-md hover:shadow-lg"
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span className="hidden sm:inline">Request Quote</span>
+                        <span className="sm:hidden">Quote</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -1225,6 +886,23 @@ export default function HomeClient({ initialProducts = [] as Product[] }: { init
         isVisible={toast.isVisible}
         onClose={() => setToast({ isVisible: false, message: '' })}
       />
+      
+      {/* Request Quote Modal */}
+      {selectedProduct && (
+        <RequestQuoteModal
+          isOpen={showQuoteModal}
+          onClose={() => {
+            setShowQuoteModal(false);
+            setSelectedProduct(null);
+          }}
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            price: selectedProduct.price,
+            category: selectedProduct.category,
+          }}
+        />
+      )}
     </div>
   );
 } 

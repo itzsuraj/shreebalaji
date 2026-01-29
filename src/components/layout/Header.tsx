@@ -5,8 +5,9 @@ import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Search, Heart } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useCart } from '@/context/CartContext';
-import { useWishlist } from '@/context/WishlistContext';
+// B2B Mode - Cart and Wishlist disabled
+// import { useCart } from '@/context/CartContext';
+// import { useWishlist } from '@/context/WishlistContext';
 import { getEmailLink } from '@/utils/emailProtection';
 import dynamic from 'next/dynamic';
 
@@ -15,10 +16,11 @@ const Sidebar = dynamic(() => import('./Sidebar'), {
   loading: () => null,
 });
 
-const CartSidebar = dynamic(() => import('./CartSidebar'), {
-  ssr: false,
-  loading: () => null,
-});
+// B2B Mode - Cart Sidebar disabled
+// const CartSidebar = dynamic(() => import('./CartSidebar'), {
+//   ssr: false,
+//   loading: () => null,
+// });
 
 const WhatsAppIcon = () => (
   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -163,14 +165,16 @@ const getSearchSuggestions = (query: string): string[] => {
 };
 
 export default function Header() {
-  const { count } = useCart();
-  const { count: wishlistCount } = useWishlist();
+  // B2B Mode - Cart and Wishlist disabled
+  // const { count } = useCart();
+  // const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
   const router = useRouter();
   const [bumpCart, setBumpCart] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
+  // B2B Mode - Cart disabled
+  // const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -192,16 +196,16 @@ export default function Header() {
     window.open(`https://wa.me/919372268410?text=${message}`, '_blank');
   };
 
-  // Listen for cart add events to animate cart icon
-  useEffect(() => {
-    const onCartAdd = () => {
-      setBumpCart(true);
-      const t = setTimeout(() => setBumpCart(false), 600);
-      return () => clearTimeout(t);
-    };
-    window.addEventListener('cart:add', onCartAdd as unknown as EventListener);
-    return () => window.removeEventListener('cart:add', onCartAdd as unknown as EventListener);
-  }, []);
+  // B2B Mode - Cart disabled
+  // useEffect(() => {
+  //   const onCartAdd = () => {
+  //     setBumpCart(true);
+  //     const t = setTimeout(() => setBumpCart(false), 600);
+  //     return () => clearTimeout(t);
+  //   };
+  //   window.addEventListener('cart:add', onCartAdd as unknown as EventListener);
+  //   return () => window.removeEventListener('cart:add', onCartAdd as unknown as EventListener);
+  // }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -219,13 +223,14 @@ export default function Header() {
     setIsSidebarOpen(false);
   };
 
-  const toggleCartSidebar = () => {
-    setIsCartSidebarOpen(!isCartSidebarOpen);
-  };
+  // B2B Mode - Cart disabled
+  // const toggleCartSidebar = () => {
+  //   setIsCartSidebarOpen(!isCartSidebarOpen);
+  // };
 
-  const closeCartSidebar = () => {
-    setIsCartSidebarOpen(false);
-  };
+  // const closeCartSidebar = () => {
+  //   setIsCartSidebarOpen(false);
+  // };
 
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
@@ -311,9 +316,6 @@ export default function Header() {
               <Link href="/account" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Account
               </Link>
-              <Link href="/track-order" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Track Order
-              </Link>
               <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Support
               </Link>
@@ -355,9 +357,6 @@ export default function Header() {
             <Link href="/products" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               Products
             </Link>
-            <Link href="/track-order" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
-              Track Order
-            </Link>
             <Link href="/about" prefetch={true} className="text-gray-700 hover:text-blue-600 transition-colors">
               About
             </Link>
@@ -379,32 +378,7 @@ export default function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            {!(pathname?.startsWith('/admin')) && (
-              <>
-                {/* Wishlist Button */}
-                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors" title="Wishlist">
-                  <Heart className="h-5 w-5" />
-                  {mounted && wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {wishlistCount}
-                    </span>
-                )}
-              </Link>
-                {/* Cart Button */}
-                <button
-                  onClick={toggleCartSidebar}
-                  className={`relative p-2 text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`}
-                  title="Cart"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
-                  {mounted && count > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {count}
-                    </span>
-                  )}
-                </button>
-              </>
-            )}
+            {/* B2B Mode - Cart and Wishlist hidden */}
             
             <button
               onClick={handleWhatsAppClick}
@@ -424,30 +398,7 @@ export default function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            {!(pathname?.startsWith('/admin')) && (
-              <>
-                <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors" title="Wishlist">
-                  <Heart className="h-5 w-5" />
-                  {mounted && wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                      {wishlistCount}
-                    </span>
-                )}
-              </Link>
-                <button
-                  onClick={toggleCartSidebar}
-                  className={`relative p-2 text-gray-700 hover:text-blue-600 transition-colors ${bumpCart ? 'animate-bounce' : ''}`}
-                  title="Cart"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6-8M7 13l-2 9h14m-7-9v9"/></svg>
-                  {mounted && count > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                      {count}
-                    </span>
-                  )}
-                </button>
-              </>
-            )}
+            {/* B2B Mode - Cart and Wishlist hidden */}
             <button
               onClick={handleWhatsAppClick}
               className="p-2 text-green-600 hover:text-green-700 transition-colors"
@@ -568,13 +519,6 @@ export default function Header() {
                 Products
               </Link>
               <Link 
-                href="/track-order" 
-                className="block text-gray-700 hover:text-blue-600 transition-colors py-2 text-lg"
-                onClick={closeMenu}
-              >
-                Track Order
-              </Link>
-              <Link 
                 href="/about" 
                 className="block text-gray-700 hover:text-blue-600 transition-colors py-2 text-lg"
                 onClick={closeMenu}
@@ -625,8 +569,8 @@ export default function Header() {
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
       
-      {/* Cart Sidebar */}
-      <CartSidebar isOpen={isCartSidebarOpen} onClose={closeCartSidebar} />
+      {/* B2B Mode - Cart Sidebar disabled */}
+      {/* <CartSidebar isOpen={isCartSidebarOpen} onClose={closeCartSidebar} /> */}
     </header>
   );
 } 

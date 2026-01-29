@@ -1,10 +1,8 @@
 'use client';
 
-import { ShoppingCart, Check } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
+import { FileText } from 'lucide-react';
 import { useState } from 'react';
-import Toast from '@/components/ui/Toast';
+import RequestQuoteModal from '@/components/ui/RequestQuoteModal';
 
 interface ProductActionsProps {
   productName: string;
@@ -27,9 +25,7 @@ interface ProductActionsProps {
 }
 
 export default function ProductActions({ productName, productId, price, image, category, sizes = [], colors = [], packs = [], variantPricing = [] }: ProductActionsProps) {
-  const { addItem } = useCart();
-  const router = useRouter();
-  const [added, setAdded] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || '');
   const [selectedColor, setSelectedColor] = useState<string>(colors[0] || '');
   const [selectedPack, setSelectedPack] = useState<string>(packs[0] || '');
@@ -61,31 +57,13 @@ export default function ProductActions({ productName, productId, price, image, c
   const isVariantInStock = selectedVariant ? (selectedVariant.inStock ?? (Number(availableStock) > 0)) : false;
   const isActionDisabled = variantPricing.length > 0 && (!selectedVariant || !isVariantInStock || (availableStock !== undefined && qty > availableStock));
 
-  const handleAddToCart = () => {
-    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack, sku: selectedVariant?.sku });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
-  };
-
-  const handleBuyNow = () => {
-    addItem({ productId, name: productName, price: currentPrice, quantity: qty, image, category, size: selectedSize, color: selectedColor, pack: selectedPack, sku: selectedVariant?.sku });
-    router.push('/checkout');
+  const handleRequestQuote = () => {
+    setShowQuoteModal(true);
   };
 
   return (
     <div className="flex flex-col space-y-3 relative">
-      {/* Dynamic Price Display */}
-      {variantPricing.length > 0 && (
-        <div className="bg-primary-50 p-3 rounded-lg">
-          <div className="text-sm text-gray-600 mb-1">Selected Variant Price:</div>
-          <div className="text-2xl font-bold text-primary-600">₹{currentPrice.toLocaleString()}</div>
-          {currentPrice !== price && (
-            <div className="text-sm text-gray-500">
-              Base price: ₹{price.toLocaleString()}
-            </div>
-          )}
-        </div>
-      )}
+      {/* B2B Mode - Price removed, customers must request quote */}
       {sizes.length > 0 && (
         <div>
           <span className="block text-sm font-medium mb-1">Size</span>
@@ -159,32 +137,28 @@ export default function ProductActions({ productName, productId, price, image, c
       </div>
       <div className="flex gap-3">
         <button 
-          onClick={handleAddToCart}
-          aria-live="polite"
+          onClick={handleRequestQuote}
           disabled={isActionDisabled}
-          className={`flex-1 ${added ? 'bg-green-700 ring-2 ring-green-200 scale-[1.02] animate-pulse' : 'bg-green-600'} text-white py-3 rounded-lg hover:bg-green-700 transition-all flex items-center justify-center ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 font-semibold ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {added ? (
-            <>
-              <Check className="h-5 w-5 mr-2" />
-              Added
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Add to Cart
-            </>
-          )}
-        </button>
-        <button
-          onClick={handleBuyNow}
-          disabled={isActionDisabled}
-          className={`flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all ${isActionDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          Buy Now
+          <FileText className="h-5 w-5" />
+          Request Quote
         </button>
       </div>
-      <Toast message={`${productName} added to cart`} isVisible={added} onClose={() => setAdded(false)} />
+      <RequestQuoteModal
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        product={{
+          id: productId,
+          name: productName,
+          price: currentPrice,
+          category,
+          size: selectedSize || undefined,
+          color: selectedColor || undefined,
+          pack: selectedPack || undefined,
+          quantity: qty,
+        }}
+      />
     </div>
   );
 } 

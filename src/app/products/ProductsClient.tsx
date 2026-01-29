@@ -93,66 +93,11 @@ const ProductCard = memo(({ product }: {
             <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-primary-600 transition-colors flex-1 min-w-0">
               {product.name}
             </h3>
-            {/* Stock Badge */}
-            {(() => {
-              // Calculate stock: use first variant stockQty if available, otherwise product stockQty
-              const stockQty = product.variantPricing && product.variantPricing.length > 0 
-                ? (product.variantPricing[0].stockQty ?? product.stockQty ?? 0)
-                : (product.stockQty ?? 0);
-              
-              if (stockQty > 0) {
-                return (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full whitespace-nowrap">
-                    {stockQty} available
-                  </span>
-                );
-              }
-              return null;
-            })()}
+            {/* B2B Mode - Stock quantity removed */}
           </div>
         </Link>
         
-        {/* Key attributes (show first variant summary or base fields) */}
-        {product.variantPricing && product.variantPricing.length > 0 && product.variantPricing[0] ? (
-          <div className="mb-3 text-xs text-gray-600 space-y-1">
-            {product.category === 'elastic' ? (
-              <>
-                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                  <div>Size: {product.variantPricing[0].size}</div>
-                )}
-                {product.variantPricing[0].quality && product.variantPricing[0].quality !== '0' && (
-                  <div>Quality: {product.variantPricing[0].quality}</div>
-                )}
-                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                  <div>Color: {product.variantPricing[0].color}</div>
-                )}
-                {product.variantPricing[0].quantity && product.variantPricing[0].quantity !== '0' && (
-                  <div>Roll: {product.variantPricing[0].quantity}</div>
-                )}
-              </>
-            ) : (
-              <>
-                {product.variantPricing[0].size && product.variantPricing[0].size !== '0' && (
-                  <div>Size: {product.variantPricing[0].size}</div>
-                )}
-                {product.variantPricing[0].color && product.variantPricing[0].color !== '0' && (
-                  <div>Color: {product.variantPricing[0].color}</div>
-                )}
-                {product.variantPricing[0].pack && product.variantPricing[0].pack !== '0' && (
-                  <div>Pack: {product.variantPricing[0].pack}</div>
-                )}
-              </>
-            )}
-          </div>
-        ) : (
-          !!(product.sizes?.length || product.colors?.length || product.packs?.length) && (
-            <div className="mb-3 text-xs text-gray-600 space-y-1">
-              {product.sizes?.[0] && product.sizes[0] !== '0' && <div>Size: {product.sizes[0]}</div>}
-              {product.colors?.[0] && product.colors[0] !== '0' && <div>Color: {product.colors[0]}</div>}
-              {product.packs?.[0] && product.packs[0] !== '0' && <div>Pack: {product.packs[0]}</div>}
-            </div>
-          )
-        )}
+        {/* B2B Mode - Size/Pack info removed from cards */}
         
         {/* Rating */}
         <div className="flex items-center gap-1 mb-3">
@@ -173,12 +118,7 @@ const ProductCard = memo(({ product }: {
           </span>
         </div>
 
-        {/* Price */}
-        <div className="mb-4">
-          <span className="text-2xl font-bold text-primary-600">
-            ₹{product.price.toLocaleString()}
-          </span>
-        </div>
+        {/* B2B Mode - Price removed */}
 
         <Link 
           href={`/products/${product.id}`}
@@ -199,12 +139,10 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   const { addItem } = useCart();
   const [addedId, setAddedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
-  const [sortBy, setSortBy] = useState<string>('featured');
   const [searchTerm, setSearchTerm] = useState<string>(searchQuery);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(12);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [showFilters, setShowFilters] = useState(false);
 
   // Memoize categories to avoid recalculation
@@ -305,14 +243,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
       .map(item => item.product);
   }, []);
 
-  // Calculate price range from products
-  const productPriceRange = useMemo(() => {
-    if (products.length === 0) return [0, 10000];
-    const prices = products.map(p => p.price);
-    return [Math.min(...prices), Math.max(...prices)];
-  }, [products]);
-
-  // Memoize filtered products to avoid recalculation on every render
+  // Memoize filtered products (B2B: no price range or sort)
   const filteredProducts = useMemo(() => {
     return smartSearch(searchTerm, products)
       .filter(product => {
@@ -321,23 +252,9 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
             product.category.toLowerCase().trim() !== selectedCategory.toLowerCase().trim()) {
           return false;
         }
-        // Price range filter
-        if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
         return true;
-      })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.price - b.price;
-        case 'price-high':
-          return b.price - a.price;
-        case 'rating':
-          return b.rating - a.rating;
-        default:
-          return 0;
-      }
-    });
-  }, [smartSearch, searchTerm, products, selectedCategory, sortBy, priceRange]);
+      });
+  }, [smartSearch, searchTerm, products, selectedCategory]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -351,7 +268,7 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, sortBy]);
+  }, [searchTerm, selectedCategory]);
 
   const updateURL = useCallback((category: string, search?: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -390,13 +307,6 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
     setSearchTerm('');
     updateURL(selectedCategory, '');
   }, [updateURL, selectedCategory]);
-
-  // Initialize price range
-  useEffect(() => {
-    if (productPriceRange[1] > 0) {
-      setPriceRange([productPriceRange[0], productPriceRange[1]]);
-    }
-  }, [productPriceRange]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -501,69 +411,18 @@ function ProductsClient({ products, searchQuery = '', initialCategory = '' }: Pr
             </div>
           </div>
 
-              {/* Price Range Filter */}
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <SlidersHorizontal className="h-5 w-5 text-primary-600" />
-                  Price Range
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Min</label>
-                      <input
-                        type="number"
-                        value={priceRange[0]}
-                        onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                        min={productPriceRange[0]}
-                        max={productPriceRange[1]}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Max</label>
-                      <input
-                        type="number"
-                        value={priceRange[1]}
-                        onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                        min={productPriceRange[0]}
-                        max={productPriceRange[1]}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 text-center">
-                    ₹{priceRange[0].toLocaleString()} - ₹{priceRange[1].toLocaleString()}
-                  </div>
-                </div>
-              </div>
+              {/* B2B Mode - Price Range and Sort By removed */}
 
-              {/* Sort By */}
-          <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Sort By</h2>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-            >
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-            </select>
-          </div>
-
-              {/* Clear Filters */}
-              {(selectedCategory !== 'all' || priceRange[0] !== productPriceRange[0] || priceRange[1] !== productPriceRange[1]) && (
+              {/* Clear Filters - category only */}
+              {selectedCategory !== 'all' && (
                 <button
                   onClick={() => {
                     setSelectedCategory('all');
-                    setPriceRange([productPriceRange[0], productPriceRange[1]]);
-                    setSortBy('featured');
+                    updateURL('all');
                   }}
                   className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors text-sm"
                 >
-                  Clear All Filters
+                  Clear Filters
                 </button>
               )}
         </div>

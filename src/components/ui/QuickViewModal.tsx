@@ -1,10 +1,12 @@
 'use client';
 
-import { X, ShoppingCart, Star, Check } from 'lucide-react';
+import { X, Star, FileText } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types/product';
 import { getProductImage } from '@/utils/imageUtils';
+import RequestQuoteModal from './RequestQuoteModal';
+import { useState } from 'react';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -85,11 +87,7 @@ export default function QuickViewModal({
                     </span>
                   </div>
 
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-blue-600">
-                      ₹{product.price.toLocaleString()}
-                    </span>
-                  </div>
+                  {/* B2B Mode - Price removed */}
 
                   <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${
                     product.inStock
@@ -105,25 +103,12 @@ export default function QuickViewModal({
 
                   <div className="flex gap-3">
                     <button
-                      onClick={() => onAddToCart(product)}
+                      onClick={() => setShowQuoteModal(true)}
                       disabled={!product.inStock}
-                      className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-                        addedToCart
-                          ? 'bg-green-600 text-white ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                      } ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all bg-blue-600 text-white hover:bg-blue-700 ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      {addedToCart ? (
-                        <>
-                          <Check className="h-5 w-5" />
-                          Added to Cart
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="h-5 w-5" />
-                          Add to Cart
-                        </>
-                      )}
+                      <FileText className="h-5 w-5" />
+                      Request Quote
                     </button>
                     <Link
                       href={`/products/${product.id}`}
@@ -133,6 +118,16 @@ export default function QuickViewModal({
                       View Details
                     </Link>
                   </div>
+                  <RequestQuoteModal
+                    isOpen={showQuoteModal}
+                    onClose={() => setShowQuoteModal(false)}
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      category: product.category,
+                    }}
+                  />
                 </div>
               </div>
             </div>

@@ -16,17 +16,6 @@ export default function AccountPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Management</h2>
-              <p className="text-gray-600 mb-4">Track your orders and view order history.</p>
-              <Link
-                href="/track-order"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
-              >
-                Track Orders
-              </Link>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Support</h2>
               <p className="text-gray-600 mb-4">Get help with your account or orders.</p>
               <Link

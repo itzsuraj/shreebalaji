@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Truck, Shield, RotateCcw, Package, Check, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { Star, Heart, Truck, Shield, RotateCcw, Package, FileText, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+// B2B Mode - Cart disabled
+// import { useCart } from '@/context/CartContext';
 import { getProductImage, normalizeImagePath } from '@/utils/imageUtils';
+import RequestQuoteModal from '@/components/ui/RequestQuoteModal';
 
 interface ProductVariant {
   size?: string;
@@ -54,7 +56,8 @@ interface EnhancedProductDetailProps {
 }
 
 export default function EnhancedProductDetail({ product }: EnhancedProductDetailProps) {
-  const { addItem } = useCart();
+  // B2B Mode - Cart disabled
+  // const { addItem } = useCart();
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -66,7 +69,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     itemDetails: true, // Keep first accordion open by default
   });
-  const [added, setAdded] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   // const [showShareModal, setShowShareModal] = useState(false);
 
   // Memoize expensive calculations
@@ -388,23 +391,13 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
     }
   }, [selectedVariant, displayImages, currentImageIndex]);
 
-  const handleAddToCart = useCallback(() => {
+  const handleRequestQuote = useCallback(() => {
     if (hasVariants && !selectedVariant) {
       alert('Please select all required options');
       return;
     }
-
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: currentPrice,
-      quantity,
-      image: normalizeImagePath(selectedVariant?.image) || getProductImage(product),
-      category: product.category
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
-  }, [hasVariants, selectedVariant, addItem, product, currentPrice, quantity]);
+    setShowQuoteModal(true);
+  }, [hasVariants, selectedVariant]);
 
   const toggleSection = useCallback((section: string) => {
     setOpenSections(prev => ({
@@ -730,37 +723,7 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             </p>
           </div>
 
-          {/* Price Section - Etsy Style */}
-          <div className="space-y-2">
-            <div className="flex items-baseline space-x-3">
-              <span className="text-3xl font-bold text-gray-900">
-                {formatPrice(currentPrice)}
-              </span>
-              {/* For products with variants, treat the variant price as the real price
-                  and ignore any default/base price coming from the backend. */}
-              {!hasVariants && product.price > currentPrice && (
-                <>
-                  <span className="text-lg text-gray-500 line-through">
-                    {formatPrice(product.price)}
-                  </span>
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
-                    New markdown!
-                  </span>
-                </>
-              )}
-            </div>
-            {!hasVariants && product.price > currentPrice && (
-              <div className="flex items-center space-x-2">
-                <span className="text-green-600 font-medium">
-                  {Math.round(((product.price - currentPrice) / product.price) * 100)}% off
-                </span>
-                <span className="text-sm text-gray-500">Sale ends in 1 day</span>
-              </div>
-            )}
-            <p className="text-xs text-gray-500">Local taxes included (where applicable)</p>
-          </div>
-
-          {/* Seller Information hidden for now */}
+          {/* B2B Mode - Price removed, customers must request quote */}
 
           {/* Returns & Exchanges */}
           <div className="flex items-center text-sm text-gray-600">
@@ -768,156 +731,47 @@ export default function EnhancedProductDetail({ product }: EnhancedProductDetail
             <span>Returns & exchanges accepted</span>
           </div>
 
-          {/* Product Options */}
-          {hasVariants && (
-            <div className="space-y-2">
-              {/* Size and Color Selection - Side by Side */}
-              <div className={`grid grid-cols-1 gap-4 ${variantCount === 1 ? 'md:grid-cols-4' : 'md:grid-cols-1'}`}>
-                {/* Size Selection */}
-                {availableSizes.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Size <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableSizes.map((size) => (
-                        <button
-                          key={size}
-                          onClick={() => setSelectedSize(size)}
-                          className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
-                            selectedSize === size
-                              ? 'border-purple-500 bg-white text-purple-600'
-                              : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Color Selection */}
-                {availableColors.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Color <span className="text-gray-400 text-xs font-normal">(Optional)</span>
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {availableColors.map((color) => (
-                        <button
-                          key={color}
-                          onClick={() => setSelectedColor(color)}
-                          className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
-                            selectedColor === color
-                              ? 'border-purple-500 bg-white text-purple-600'
-                              : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                          }`}
-                        >
-                          {color}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          {/* B2B: show only available size & pack options (no selectors/quantity) */}
+          {(availableSizes.length > 0 || availablePacks.length > 0) && (
+            <div className="mt-4 space-y-1">
+              <div className="text-sm font-medium text-gray-700">
+                Available sizes &amp; pack options:
               </div>
-
-              {/* Quantity Selection - For zipper */}
-              {availableQuantities.length > 0 && product.category === 'zipper' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quantity <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availableQuantities.map((qty) => (
-                      <button
-                        key={qty}
-                        onClick={() => setSelectedQuantity(qty)}
-                        className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
-                          selectedQuantity === qty
-                            ? 'border-purple-500 bg-white text-purple-600'
-                            : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                        }`}
-                      >
-                        {qty}
-                      </button>
-                    ))}
-                  </div>
+              {availableSizes.length > 0 && (
+                <div className="text-sm text-gray-700">
+                  <span className="font-semibold">Sizes:</span>{' '}
+                  {availableSizes.join(', ')}
                 </div>
               )}
-
-              {/* Pack Selection - Not for zipper or elastic */}
-              {availablePacks.length > 0 && product.category !== 'zipper' && product.category !== 'elastic' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pack Size <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {availablePacks.map((pack) => (
-                      <button
-                        key={pack}
-                        onClick={() => setSelectedPack(pack)}
-                        className={`px-4 py-2.5 border-2 rounded-lg text-sm font-medium transition-all ${
-                          selectedPack === pack
-                            ? 'border-purple-500 bg-white text-purple-600'
-                            : 'border-gray-300 hover:border-gray-400 text-gray-700'
-                        }`}
-                      >
-                        {pack}
-                      </button>
-                    ))}
-                  </div>
+              {availablePacks.length > 0 && (
+                <div className="text-sm text-gray-700">
+                  <span className="font-semibold">Packs:</span>{' '}
+                  {availablePacks.join(', ')}
                 </div>
               )}
             </div>
           )}
 
-          {/* Quantity Selector */}
-          <div className="mt-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-              <div className="inline-flex items-center border-2 border-gray-300 rounded-lg overflow-hidden mb-4">
-                <button
-                  type="button"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1 || currentStock === 0}
-                  className="px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed border-r border-gray-300"
-                >
-                  −
-                </button>
-                <div className="px-6 py-2 min-w-[3rem] text-center text-base font-medium text-gray-900 bg-white">
-                  {currentStock === 0 ? 0 : quantity}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= currentStock || currentStock === 0}
-                  className="px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed border-l border-gray-300"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Add to Cart Button - Etsy Style */}
+          {/* B2B Mode - Request Quote Button */}
+          <div className="mt-4">
             <button
-              onClick={handleAddToCart}
-              disabled={currentStock === 0 || (hasVariants && !selectedVariant)}
-              className={`w-full text-white py-4 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl ${
-                added
-                  ? 'bg-green-600 ring-2 ring-green-200 scale-[1.02] animate-pulse'
-                  : 'bg-primary-500 hover:bg-primary-600 hover:-translate-y-0.5'
-              }`}
+              onClick={handleRequestQuote}
+              disabled={currentStock === 0}
+              className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:bg-blue-700 hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
-              {added ? (
-                <span className="inline-flex items-center justify-center gap-2">
-                  <Check className="h-5 w-5" />
-                  Added to cart
-                </span>
-              ) : (
-                'Add to cart'
-              )}
+              <FileText className="h-5 w-5" />
+              Request Quote
             </button>
+            <RequestQuoteModal
+              isOpen={showQuoteModal}
+              onClose={() => setShowQuoteModal(false)}
+              product={{
+                id: product.id,
+                name: product.name,
+                price: currentPrice,
+                category: product.category,
+              }}
+            />
           </div>
 
           {/* Shipping & Trust Signals */}
