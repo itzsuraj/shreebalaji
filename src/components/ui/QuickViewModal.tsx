@@ -23,6 +23,8 @@ export default function QuickViewModal({
   onAddToCart,
   addedToCart
 }: QuickViewModalProps) {
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+
   if (!isOpen || !product) return null;
 
   return (

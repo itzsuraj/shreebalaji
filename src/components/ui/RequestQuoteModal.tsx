@@ -37,12 +37,39 @@ export default function RequestQuoteModal({ isOpen, onClose, product }: RequestQ
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Create WhatsApp message
-    const productInfo = product 
-      ? `Product: ${product.name}${product.size ? ` (Size: ${product.size})` : ''}${product.color ? ` (Color: ${product.color})` : ''}${product.pack ? ` (Pack: ${product.pack})` : ''}${product.quantity ? ` (Quantity: ${product.quantity})` : ''}`
-      : 'General Inquiry';
-    
-    const message = `Hello! I'm interested in requesting a quote.
+    try {
+      // Save to database first
+      const response = await fetch('/api/quote-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: formData.companyName,
+          contactName: formData.contactName,
+          email: formData.email,
+          phone: formData.phone,
+          quantity: formData.quantity || undefined,
+          message: formData.message || undefined,
+          productId: product?.id,
+          productName: product?.name,
+          productCategory: product?.category,
+          productSize: product?.size,
+          productColor: product?.color,
+          productPack: product?.pack,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save quote request');
+      }
+
+      // Create WhatsApp message
+      const productInfo = product 
+        ? `Product: ${product.name}${product.size ? ` (Size: ${product.size})` : ''}${product.color ? ` (Color: ${product.color})` : ''}${product.pack ? ` (Pack: ${product.pack})` : ''}${product.quantity ? ` (Quantity: ${product.quantity})` : ''}`
+        : 'General Inquiry';
+      
+      const message = `Hello! I'm interested in requesting a quote.
 
 Company: ${formData.companyName}
 Contact Person: ${formData.contactName}
@@ -54,31 +81,32 @@ ${productInfo}
 
 Message: ${formData.message || 'No additional message'}`;
 
-    const whatsappUrl = `https://wa.me/919372268410?text=${encodeURIComponent(message)}`;
-    
-    // Open WhatsApp
-    window.open(whatsappUrl, '_blank');
-    
-    // Also create email link as backup
-    const emailSubject = `Quote Request: ${product?.name || 'General Inquiry'}`;
-    const emailBody = `Company Name: ${formData.companyName}\nContact Name: ${formData.contactName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nQuantity: ${formData.quantity || 'Not specified'}\n\nProduct Details:\n${productInfo}\n\nMessage:\n${formData.message || 'No additional message'}`;
-    
-    // Show success message
-    setSubmitted(true);
-    setIsSubmitting(false);
-    
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        companyName: '',
-        contactName: '',
-        email: '',
-        phone: '',
-        quantity: '',
-        message: '',
-      });
-      onClose();
-    }, 2000);
+      const whatsappUrl = `https://wa.me/919372268410?text=${encodeURIComponent(message)}`;
+      
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
+      
+      // Show success message
+      setSubmitted(true);
+      setIsSubmitting(false);
+      
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          companyName: '',
+          contactName: '',
+          email: '',
+          phone: '',
+          quantity: '',
+          message: '',
+        });
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting quote request:', error);
+      alert('Failed to submit quote request. Please try again or contact us directly.');
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
